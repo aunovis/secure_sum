@@ -11,4 +11,6 @@ jobs:
                 uses: actions/checkout@v2
 
             -   name: Check licenses
-                run: ./scripts/check_licenses.sh
+                run: |
+                  chmod +x ./scripts/check_licenses.sh
+                  ./scripts/check_licenses.sh
