@@ -1,0 +1,29 @@
+name: Check Licenses
+
+on: [pull_request]
+
+jobs:
+    check_licenses:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+            - uses: EmbarkStudios/cargo-deny-action@v2
+
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+            - uses: clechasseur/rs-cargo@v1
+              with:
+                  command: test
+
+    clippy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+            - uses: clechasseur/rs-cargo@v1
+              with:
+                  command: clippy
