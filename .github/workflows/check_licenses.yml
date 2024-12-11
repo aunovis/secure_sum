@@ -11,6 +11,4 @@ jobs:
                 uses: actions/checkout@v2
 
             -   name: Check licenses
-                run: |
-                  chmod +x ./scripts/check_licenses.sh
-                  ./scripts/check_licenses.sh
+                uses: EmbarkStudios/cargo-deny-action@v2
