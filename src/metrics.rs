@@ -13,6 +13,10 @@ impl Metric {
     fn from_file(filepath: &Path) -> Result<Self, Error> {
         todo!()
     }
+
+    fn from_str(str: &str) -> Result<Self, Error> {
+        todo!()
+    }
 }
 
 #[cfg(test)]
@@ -38,17 +42,34 @@ mod tests {
         let tempfile = NamedTempFile::new().unwrap();
         let filepath = tempfile.path();
         write(path, EXAMPLE_METRIC_STR).unwrap();
-        let metrics = Metric::from_file(path).expect("Failed to read from file!");
-        assert!(metrics, EXAMPLE_METRIC);
+        let metric = Metric::from_file(path).expect("Failed to read from file!");
+        assert!(metric, EXAMPLE_METRIC);
     }
 
     #[test]
-    fn archived_probe_is_optional() {
-        todo!()
+    fn all_probes_are_optional() {
+        static ONLY_ONE_PROBE: &str = "archived = 0.1";
+        let metric = Metric::from_str(ONLY_ONE_PROBE).expect("Failed to parse metric!");
+        assert!(metric.archived = Some(0.1));
+        assert!(metric.blocksDeleteOnBranches = None);
+
+        static ONLY_ONE_OTHER_PROBE: &str = "blocksDeleteOnBranches = 0.2";
+        let metric = Metric::from_str(ONLY_ONE_OTHER_PROBE).expect("Failed to parse metric!");
+        assert!(metric.archived = None);
+        assert!(metric.blocksDeleteOnBranches = Some(0.2));
     }
 
     #[test]
     fn completely_empty_metric_is_not_ok() {
-        todo!();
+        assert!(Metric::from_str("").is_err());
+    }
+
+    #[test]
+    fn unknown_field_is_error() {
+        static WEIRD_METRIC: &str = r#"
+            archived = 0.1
+            definetelyNotAFieldThatSecureSumWouldExpectGivenThePresentStateOfTheEconomy = 0.2
+        "#;
+        assert!(Metric::from_str(WEIRD_METRIC).is_err());
     }
 }
