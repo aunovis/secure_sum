@@ -4,12 +4,12 @@ use crate::error::Error;
 
 #[derive(PartialEq)]
 #[allow(non_snake_case)]
-pub(crate) struct Metrics {
+pub(crate) struct Metric {
     archived: Option<f32>,
     blocksDeleteOnBranches: Option<f32>,
 }
 
-impl Metrics {
+impl Metric {
     fn from_file(filepath: &Path) -> Result<Self, Error> {
         todo!()
     }
@@ -23,7 +23,7 @@ mod tests {
 
     use super::*;
 
-    static EXAMPLE_METRIC: Metrics = Metrics {
+    static EXAMPLE_METRIC: Metric = Metric {
         archived: Some(0.1),
         blocksDeleteOnBranches: Some(0.2),
     };
@@ -38,7 +38,7 @@ mod tests {
         let tempfile = NamedTempFile::new().unwrap();
         let filepath = tempfile.path();
         write(path, EXAMPLE_METRIC_STR).unwrap();
-        let metrics = Metrics::from_file(path).expect("Failed to read from file!");
+        let metrics = Metric::from_file(path).expect("Failed to read from file!");
         assert!(metrics, EXAMPLE_METRIC);
     }
 
