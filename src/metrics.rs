@@ -1,27 +1,32 @@
-use std::path::Path;
+use std::{fs::read_to_string, path::Path};
+
+use serde::Deserialize;
 
 use crate::error::Error;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Deserialize)]
 #[allow(non_snake_case)]
 pub(crate) struct Metric {
+    #[serde(default)]
     archived: Option<f32>,
+    #[serde(default)]
     blocksDeleteOnBranches: Option<f32>,
 }
 
 impl Metric {
     fn from_file(filepath: &Path) -> Result<Self, Error> {
-        todo!()
+        let content = read_to_string(filepath)?;
+        Self::from_str(&content)
     }
 
     fn from_str(str: &str) -> Result<Self, Error> {
-        todo!()
+        toml::from_str(str)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs::write;
+    use std::fs::{remove_file, write};
 
     use tempfile::NamedTempFile;
 
@@ -44,6 +49,8 @@ mod tests {
         write(path, EXAMPLE_METRIC_STR).unwrap();
         let metric = Metric::from_file(path).expect("Failed to read from file!");
         assert!(metric, EXAMPLE_METRIC);
+
+        remove_file(path);
     }
 
     #[test]

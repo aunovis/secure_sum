@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5", default-features = false }
+clap = { version = "4.5", default-features = false, features = ["std"] }
+serde = { version = "1.0", default-features = false, features = ["derive"]}
 thiserror = { version = "2.0", default-features = false }
+toml ={ version = "0.8.19", default-features = false, features = ["parse"]}
 
 [dev-dependencies]
 tempfile = { version = "3.14", default-features = false }
