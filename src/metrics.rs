@@ -6,10 +6,11 @@ use crate::error::Error;
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[allow(non_snake_case)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Metric {
-    #[serde(default)]
+    #[serde(default, deserialize_with = "zero_to_none")]
     archived: Option<f32>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "zero_to_none")]
     blocksDeleteOnBranches: Option<f32>,
 }
 
@@ -37,6 +38,17 @@ impl Metric {
         };
         toml_str.trim().is_empty()
     }
+}
+
+fn zero_to_none<'de, D>(deserializer: D) -> Result<Option<f32>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = Option::<f32>::deserialize(deserializer)?;
+    Ok(match value {
+        Some(0.0) => None,
+        _ => value,
+    })
 }
 
 #[cfg(test)]
@@ -82,8 +94,25 @@ mod tests {
     }
 
     #[test]
+    fn weight_of_zero_is_treated_as_none() {
+        static METRIC_WITH_ZERO_STR: &str = r#"
+        archived = 0.0
+        blocksDeleteOnBranches = 0.2
+    "#;
+        let metric = Metric::from_str(METRIC_WITH_ZERO_STR).expect("Failed to parse metric!");
+        assert_eq!(metric.archived, None);
+    }
+
+    #[test]
     fn completely_empty_metric_is_not_ok() {
         assert!(Metric::from_str("").is_err());
+    }
+
+    #[test]
+    fn all_weights_zero_is_treated_as_empty() {
+        static METRIC_WITH_ZERO_STR: &str = "archived = 0.0";
+        let metric = Metric::from_str(METRIC_WITH_ZERO_STR);
+        assert!(metric.is_err());
     }
 
     #[test]
