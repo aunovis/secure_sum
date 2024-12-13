@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 use crate::error::Error;
 
-#[derive(PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize)]
 #[allow(non_snake_case)]
 pub(crate) struct Metric {
     #[serde(default)]
@@ -20,7 +20,7 @@ impl Metric {
     }
 
     fn from_str(str: &str) -> Result<Self, Error> {
-        toml::from_str(str)
+        toml::from_str(str).map_err(|e| e.into())
     }
 }
 
@@ -46,24 +46,24 @@ mod tests {
     fn metric_can_be_read_from_file() {
         let tempfile = NamedTempFile::new().unwrap();
         let filepath = tempfile.path();
-        write(path, EXAMPLE_METRIC_STR).unwrap();
-        let metric = Metric::from_file(path).expect("Failed to read from file!");
-        assert!(metric, EXAMPLE_METRIC);
+        write(filepath, EXAMPLE_METRIC_STR).unwrap();
+        let metric = Metric::from_file(filepath).expect("Failed to read from file!");
+        assert_eq!(metric, EXAMPLE_METRIC);
 
-        remove_file(path);
+        remove_file(filepath);
     }
 
     #[test]
     fn all_probes_are_optional() {
         static ONLY_ONE_PROBE: &str = "archived = 0.1";
         let metric = Metric::from_str(ONLY_ONE_PROBE).expect("Failed to parse metric!");
-        assert!(metric.archived = Some(0.1));
-        assert!(metric.blocksDeleteOnBranches = None);
+        assert_eq!(metric.archived, Some(0.1));
+        assert_eq!(metric.blocksDeleteOnBranches, None);
 
         static ONLY_ONE_OTHER_PROBE: &str = "blocksDeleteOnBranches = 0.2";
         let metric = Metric::from_str(ONLY_ONE_OTHER_PROBE).expect("Failed to parse metric!");
-        assert!(metric.archived = None);
-        assert!(metric.blocksDeleteOnBranches = Some(0.2));
+        assert_eq!(metric.archived, None);
+        assert_eq!(metric.blocksDeleteOnBranches, Some(0.2));
     }
 
     #[test]
