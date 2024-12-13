@@ -1,10 +1,10 @@
 use std::{fs::read_to_string, path::Path};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[allow(non_snake_case)]
 pub(crate) struct Metric {
     #[serde(default)]
@@ -20,7 +20,22 @@ impl Metric {
     }
 
     fn from_str(str: &str) -> Result<Self, Error> {
-        toml::from_str(str).map_err(|e| e.into())
+        let metric: Metric = toml::from_str(str)?;
+        if metric.contains_only_none() {
+            Err(Error::Other(
+                "Metric needs to contain at least one probe".to_string(),
+            ))
+        } else {
+            Ok(metric)
+        }
+    }
+
+    fn contains_only_none(&self) -> bool {
+        let toml_str = match toml::ser::to_string(self) {
+            Ok(str) => str,
+            Err(_) => return false,
+        };
+        toml_str.trim().is_empty()
     }
 }
 
@@ -50,7 +65,7 @@ mod tests {
         let metric = Metric::from_file(filepath).expect("Failed to read from file!");
         assert_eq!(metric, EXAMPLE_METRIC);
 
-        remove_file(filepath);
+        let _ = remove_file(filepath);
     }
 
     #[test]

@@ -6,4 +6,6 @@ pub(crate) enum Error {
     Deserialize(#[from] toml::de::Error),
     #[error("Std IO error")]
     Io(#[from] std::io::Error),
+    #[error("Some error occurred")]
+    Other(String),
 }
