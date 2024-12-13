@@ -3,6 +3,7 @@
 mod args;
 mod error;
 mod metrics;
+mod scorecard;
 
 use args::Arguments;
 use clap::Parser;
