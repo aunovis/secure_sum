@@ -15,7 +15,7 @@ pub(crate) struct Metric {
 }
 
 impl Metric {
-    fn from_file(filepath: &Path) -> Result<Self, Error> {
+    pub(crate) fn from_file(filepath: &Path) -> Result<Self, Error> {
         let content = read_to_string(filepath)?;
         Self::from_str(&content)
     }
