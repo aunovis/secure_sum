@@ -1,4 +1,4 @@
-name: Check Licenses
+name: PR Checks
 
 on: [pull_request]
 

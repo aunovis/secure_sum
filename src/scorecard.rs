@@ -15,10 +15,12 @@ static OS_STR: &str = "linux";
 #[cfg(target_os = "windows")]
 static OS_STR: &str = "windows";
 
-#[cfg(target_arch = "x86_64")]
-static ARCH_STR: &str = "amd64";
+/// target_arch config is not recognised on all OSs.
+/// We therefore only check for "arm or not arm".-
 #[cfg(target_arch = "arm")]
 static ARCH_STR: &str = "arm64";
+#[cfg(not(target_arch = "arm"))]
+static ARCH_STR: &str = "amd64";
 
 fn scorecard_url() -> String {
     format!("https://github.com/ossf/scorecard/releases/download/v{CURRENT_VERSION}/scorecard_{CURRENT_VERSION}_{OS_STR}_{ARCH_STR}.tar.gz")
@@ -72,26 +74,26 @@ mod tests {
     fn scorecard_url_exists() {
         let url = scorecard_url();
         let client = Client::new();
-        let response = client.head(url).send().unwrap();
-        assert!(response.status().is_success())
+        let response = client.head(&url).send().unwrap();
+        assert!(response.status().is_success(), "URL is: {url}")
     }
 
     #[test]
     fn data_dir_contains_aunovis_string() {
         let path = scorecard_path().unwrap().to_string_lossy().to_lowercase();
-        assert!(path.contains("aunovis"));
+        assert!(path.contains("aunovis"), "Path is: {path}");
     }
 
     #[test]
     fn scorecard_path_contains_scorecard_string() {
         let path = scorecard_path().unwrap().to_string_lossy().to_lowercase();
-        assert!(path.contains("scorecard"));
+        assert!(path.contains("scorecard"), "Path is: {path}");
     }
 
     #[test]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
-        assert!(path.exists());
-        assert!(path.is_file());
+        assert!(path.exists(), "Path is: {}", path.display());
+        assert!(path.is_file(), "Path is: {}", path.display());
     }
 }
