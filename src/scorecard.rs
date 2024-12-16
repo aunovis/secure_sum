@@ -1,7 +1,9 @@
 use std::{fs, path::PathBuf};
 
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
+use flate2::read::GzDecoder;
 use reqwest::blocking::Client;
+use tar::Archive;
 
 use crate::error::Error;
 
@@ -46,7 +48,17 @@ fn scorecard_path() -> Result<PathBuf, Error> {
 
 fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     let path = scorecard_path()?;
+    if fs::exists(&path)? {
+        return Ok(path);
+    }
     fs::create_dir_all(&path)?;
+    let url = scorecard_url();
+    log::info!("Downloading Scorecard binary from {url}");
+    let mut response = reqwest::blocking::get(url)?;
+    let gz_decoder = GzDecoder::new(&mut response);
+    let mut archive = Archive::new(gz_decoder);
+    let dir = data_dir()?;
+    archive.unpack(dir)?;
     todo!()
 }
 

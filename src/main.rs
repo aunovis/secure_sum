@@ -8,8 +8,14 @@ mod scorecard;
 use args::Arguments;
 use clap::Parser;
 use metrics::Metric;
+use simple_logger::SimpleLogger;
 
-fn main() -> Result<(), crate::error::Error> {
+use crate::error::Error;
+
+fn main() -> Result<(), Error> {
+    SimpleLogger::new()
+        .init()
+        .map_err(|e| Error::Other(e.to_string()))?;
     let args = Arguments::parse();
     let metrics = Metric::from_file(&args.metrics_file)?;
     println!("Parsed metrics: {:?}", metrics);
