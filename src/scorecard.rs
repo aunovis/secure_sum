@@ -2,7 +2,6 @@ use std::{fs, path::PathBuf};
 
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use flate2::read::GzDecoder;
-use reqwest::blocking::Client;
 use tar::Archive;
 
 use crate::error::Error;
@@ -38,33 +37,34 @@ fn data_dir() -> Result<PathBuf, Error> {
 }
 
 fn scorecard_path() -> Result<PathBuf, Error> {
-    let executable_name = if cfg!(target_os = "windows") {
-        "scorecard.exe"
-    } else {
-        "scorecard"
-    };
+    #[cfg(target_os = "windows")]
+    let ending = ".exe";
+    #[cfg(not(target_os = "windows"))]
+    let ending = "";
+    let executable_name = format!("scorecard-{OS_STR}-{ARCH_STR}{ending}");
     Ok(data_dir()?.join(executable_name))
 }
 
-fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
+pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     let path = scorecard_path()?;
     if fs::exists(&path)? {
         return Ok(path);
     }
-    fs::create_dir_all(&path)?;
+    let dir = data_dir()?;
+    fs::create_dir_all(&dir)?;
     let url = scorecard_url();
     log::info!("Downloading Scorecard binary from {url}");
     let mut response = reqwest::blocking::get(url)?;
     let gz_decoder = GzDecoder::new(&mut response);
     let mut archive = Archive::new(gz_decoder);
-    let dir = data_dir()?;
     archive.unpack(dir)?;
-    todo!()
+    log::info!("Stored binary under {}", path.display());
+    Ok(path)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use reqwest::blocking::Client;
 
     use super::*;
 
@@ -90,8 +90,8 @@ mod tests {
 
     #[test]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
-        ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
-        let path = scorecard_path().unwrap();
-        assert!(fs::exists(path).unwrap());
+        let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
+        assert!(path.exists());
+        assert!(path.is_file());
     }
 }
