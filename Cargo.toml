@@ -5,8 +5,14 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5", default-features = false, features = ["color", "error-context", "derive", "help", "std", "suggestions"] }
+etcetera = { version = "0.8.0", default-features = false }
+flate2 = { version = "1.0", default-features = false, features = ["zlib-ng-compat"] } # Decompression
+log ={ version = "0.4.22", default-features = false }
+reqwest = { version = "0.12.9", features = ["blocking", "default-tls"] }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
+simple_logger ={ version = "5.0", default-features = false }
 thiserror = { version = "2.0", default-features = false }
+tar = { version = "0.4.43", default-features = false } # Decompression
 toml ={ version = "0.8.19", default-features = false, features = ["display", "parse"]}
 
 [dev-dependencies]
