@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
+use reqwest::blocking::Client;
 
 use crate::error::Error;
 
@@ -55,20 +56,27 @@ mod tests {
 
     use super::*;
 
+    #[test]
     fn scorecard_url_exists() {
-        todo!()
+        let url = scorecard_url();
+        let client = Client::new();
+        let response = client.head(url).send().unwrap();
+        assert!(response.status().is_success())
     }
 
+    #[test]
     fn data_dir_contains_aunovis_string() {
         let path = scorecard_path().unwrap().to_string_lossy().to_lowercase();
         assert!(path.contains("aunovis"));
     }
 
+    #[test]
     fn scorecard_path_contains_scorecard_string() {
         let path = scorecard_path().unwrap().to_string_lossy().to_lowercase();
         assert!(path.contains("scorecard"));
     }
 
+    #[test]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
         ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
         let path = scorecard_path().unwrap();
