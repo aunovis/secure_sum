@@ -73,6 +73,14 @@ mod tests {
     }
 
     #[test]
+    fn simple_roundtrip() {
+        static SOME_METRIC: &str = "blocksDeleteOnBranches = 0.2";
+        let metric = Metric::from_str(SOME_METRIC).unwrap();
+        let metric_str = format!("{metric}");
+        assert_eq!(SOME_METRIC.trim(), metric_str.trim(), "{SOME_METRIC}\n{metric_str}");
+    }
+
+    #[test]
     fn completely_empty_metric_is_not_ok() {
         assert!(Metric::from_str("").is_err());
     }

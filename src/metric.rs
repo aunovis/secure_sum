@@ -6,105 +6,305 @@ use serde::{Deserialize, Serialize};
 #[allow(non_snake_case)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Metric {
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) archived: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) blocksDeleteOnBranches: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) blocksForcePushOnBranches: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) branchProtectionAppliesToAdmins: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) branchesAreProtected: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) codeApproved: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) codeReviewOneReviewers: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) contributorsFromOrgOrCompany: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) createdRecently: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) dependencyUpdateToolConfigured: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) dismissesStaleReviews: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) fuzzed: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasBinaryArtifacts: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasDangerousWorkflowScriptInjection: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasDangerousWorkflowUntrustedCheckout: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasFSFOrOSIApprovedLicense: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasLicenseFile: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasNoGitHubWorkflowPermissionUnknown: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasOSVVulnerabilities: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasOpenSSFBadge: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasPermissiveLicense: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasRecentCommits: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasReleaseSBOM: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasSBOM: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) hasUnverifiedBinaryArtifacts: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) internal: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) issueActivityByProjectMember: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) jobLevelPermissions: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) packagedWithAutomatedWorkflow: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) pinsDependencies: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) releasesAreSigned: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) releasesHaveProvenance: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) releasesHaveVerifiedProvenance: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) requiresApproversForPullRequests: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) requiresCodeOwnersReview: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) requiresLastPushApproval: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) requiresPRsToChangeCode: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) requiresUpToDateBranches: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) runsStatusChecksBeforeMerging: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) sastToolConfigured: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) sastToolRunsOnAllCommits: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) securityPolicyContainsLinks: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) securityPolicyContainsText: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) securityPolicyContainsVulnerabilityDisclosure: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) securityPolicyPresent: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) testsRunInCI: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) topLevelPermissions: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) utils: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) webhooksUseSecrets: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
+    #[serde(
+        default,
+        deserialize_with = "zero_to_none",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub(crate) zrunner: Option<f32>,
 }
 
@@ -117,6 +317,15 @@ where
         Some(0.0) => None,
         _ => value,
     })
+}
+
+impl std::fmt::Display for Metric {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match toml::to_string(self) {
+            Ok(toml_str) => write!(f, "{}", toml_str),
+            Err(err) => write!(f, "Error serializing to TOML: {}", err),
+        }
+    }
 }
 
 #[cfg(test)]
