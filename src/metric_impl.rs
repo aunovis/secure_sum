@@ -1,18 +1,6 @@
 use std::{fs::read_to_string, path::Path};
 
-use serde::{Deserialize, Serialize};
-
-use crate::error::Error;
-
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
-#[allow(non_snake_case)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct Metric {
-    #[serde(default, deserialize_with = "zero_to_none")]
-    archived: Option<f32>,
-    #[serde(default, deserialize_with = "zero_to_none")]
-    blocksDeleteOnBranches: Option<f32>,
-}
+use crate::{error::Error, metric::Metric};
 
 impl Metric {
     pub(crate) fn from_file(filepath: &Path) -> Result<Self, Error> {
@@ -40,34 +28,15 @@ impl Metric {
     }
 }
 
-fn zero_to_none<'de, D>(deserializer: D) -> Result<Option<f32>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let value = Option::<f32>::deserialize(deserializer)?;
-    Ok(match value {
-        Some(0.0) => None,
-        _ => value,
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use std::fs::{remove_file, write};
 
     use tempfile::NamedTempFile;
 
+    use crate::metric::{EXAMPLE_METRIC, EXAMPLE_METRIC_STR};
+
     use super::*;
-
-    static EXAMPLE_METRIC: Metric = Metric {
-        archived: Some(0.1),
-        blocksDeleteOnBranches: Some(0.2),
-    };
-
-    static EXAMPLE_METRIC_STR: &str = r#"
-        archived = 0.1
-        blocksDeleteOnBranches = 0.2
-    "#;
 
     #[test]
     fn metric_can_be_read_from_file() {
@@ -81,7 +50,7 @@ mod tests {
     }
 
     #[test]
-    fn all_probes_are_optional() {
+    fn probes_are_optional() {
         static ONLY_ONE_PROBE: &str = "archived = 0.1";
         let metric = Metric::from_str(ONLY_ONE_PROBE).expect("Failed to parse metric!");
         assert_eq!(metric.archived, Some(0.1));
