@@ -4,8 +4,10 @@ set -e
 
 cd $(git rev-parse --show-toplevel)
 
+python ./scripts/generate_code.py
+cargo fmt
+
 cargo update
 
-python ./scripts/generate_code.py
-
-cargo fmt
+cargo install cargo-outdated
+cargo outdated --exit-code 1
