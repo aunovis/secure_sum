@@ -14,5 +14,4 @@ pub(crate) struct Arguments {
     /// Path to the metrics file that defines the probes to analyse
     #[arg(value_name = "FILEPATH")]
     pub(crate) metrics_file: PathBuf,
-
 }
