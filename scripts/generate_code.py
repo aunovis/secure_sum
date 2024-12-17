@@ -58,7 +58,12 @@ pub(crate) static EXAMPLE_METRIC: Metric = Metric {{
 }};
 """
 
-MEMBER_PRELUDE = "#[serde(default, deserialize_with = \"zero_to_none\", skip_serializing_if = \"Option::is_none\")] pub(crate)"
+MEMBER_PRELUDE = """
+#[serde(default, 
+        deserialize_with = \"zero_to_none\",
+        skip_serializing_if = \"Option::is_none\")]
+pub(crate)
+"""
 MEMBER_TYPE = ": Option<f32>"
 
 def get_probes(url):

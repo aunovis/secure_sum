@@ -77,7 +77,11 @@ mod tests {
         static SOME_METRIC: &str = "blocksDeleteOnBranches = 0.2";
         let metric = Metric::from_str(SOME_METRIC).unwrap();
         let metric_str = format!("{metric}");
-        assert_eq!(SOME_METRIC.trim(), metric_str.trim(), "{SOME_METRIC}\n{metric_str}");
+        // Due to floating point errors the resulting serialized string will not be exactly equal to the input.
+        assert!(
+            metric_str.starts_with(SOME_METRIC),
+            "{SOME_METRIC}\n{metric_str}"
+        );
     }
 
     #[test]
