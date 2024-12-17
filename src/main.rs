@@ -2,12 +2,13 @@
 
 mod args;
 mod error;
-mod metrics;
+mod metric;
+mod metric_impl;
 mod scorecard;
 
 use args::Arguments;
 use clap::Parser;
-use metrics::Metric;
+use metric::Metric;
 use scorecard::ensure_scorecard_binary;
 use simple_logger::SimpleLogger;
 
