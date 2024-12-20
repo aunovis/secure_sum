@@ -11,3 +11,5 @@ cargo update
 
 cargo install cargo-outdated
 cargo outdated --exit-code 1
+
+./scripts/check_licenses.sh

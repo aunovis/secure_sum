@@ -308,6 +308,105 @@ pub(crate) struct Metric {
     pub(crate) zrunner: Option<f32>,
 }
 
+impl Metric {
+    pub(crate) fn probes(&self) -> impl Iterator<Item = (&'static str, f32)> + '_ {
+        [
+            self.archived.map(|weight| ("archived", weight)),
+            self.blocksDeleteOnBranches
+                .map(|weight| ("blocksDeleteOnBranches", weight)),
+            self.blocksForcePushOnBranches
+                .map(|weight| ("blocksForcePushOnBranches", weight)),
+            self.branchProtectionAppliesToAdmins
+                .map(|weight| ("branchProtectionAppliesToAdmins", weight)),
+            self.branchesAreProtected
+                .map(|weight| ("branchesAreProtected", weight)),
+            self.codeApproved.map(|weight| ("codeApproved", weight)),
+            self.codeReviewOneReviewers
+                .map(|weight| ("codeReviewOneReviewers", weight)),
+            self.contributorsFromOrgOrCompany
+                .map(|weight| ("contributorsFromOrgOrCompany", weight)),
+            self.createdRecently
+                .map(|weight| ("createdRecently", weight)),
+            self.dependencyUpdateToolConfigured
+                .map(|weight| ("dependencyUpdateToolConfigured", weight)),
+            self.dismissesStaleReviews
+                .map(|weight| ("dismissesStaleReviews", weight)),
+            self.fuzzed.map(|weight| ("fuzzed", weight)),
+            self.hasBinaryArtifacts
+                .map(|weight| ("hasBinaryArtifacts", weight)),
+            self.hasDangerousWorkflowScriptInjection
+                .map(|weight| ("hasDangerousWorkflowScriptInjection", weight)),
+            self.hasDangerousWorkflowUntrustedCheckout
+                .map(|weight| ("hasDangerousWorkflowUntrustedCheckout", weight)),
+            self.hasFSFOrOSIApprovedLicense
+                .map(|weight| ("hasFSFOrOSIApprovedLicense", weight)),
+            self.hasLicenseFile.map(|weight| ("hasLicenseFile", weight)),
+            self.hasNoGitHubWorkflowPermissionUnknown
+                .map(|weight| ("hasNoGitHubWorkflowPermissionUnknown", weight)),
+            self.hasOSVVulnerabilities
+                .map(|weight| ("hasOSVVulnerabilities", weight)),
+            self.hasOpenSSFBadge
+                .map(|weight| ("hasOpenSSFBadge", weight)),
+            self.hasPermissiveLicense
+                .map(|weight| ("hasPermissiveLicense", weight)),
+            self.hasRecentCommits
+                .map(|weight| ("hasRecentCommits", weight)),
+            self.hasReleaseSBOM.map(|weight| ("hasReleaseSBOM", weight)),
+            self.hasSBOM.map(|weight| ("hasSBOM", weight)),
+            self.hasUnverifiedBinaryArtifacts
+                .map(|weight| ("hasUnverifiedBinaryArtifacts", weight)),
+            self.internal.map(|weight| ("internal", weight)),
+            self.issueActivityByProjectMember
+                .map(|weight| ("issueActivityByProjectMember", weight)),
+            self.jobLevelPermissions
+                .map(|weight| ("jobLevelPermissions", weight)),
+            self.packagedWithAutomatedWorkflow
+                .map(|weight| ("packagedWithAutomatedWorkflow", weight)),
+            self.pinsDependencies
+                .map(|weight| ("pinsDependencies", weight)),
+            self.releasesAreSigned
+                .map(|weight| ("releasesAreSigned", weight)),
+            self.releasesHaveProvenance
+                .map(|weight| ("releasesHaveProvenance", weight)),
+            self.releasesHaveVerifiedProvenance
+                .map(|weight| ("releasesHaveVerifiedProvenance", weight)),
+            self.requiresApproversForPullRequests
+                .map(|weight| ("requiresApproversForPullRequests", weight)),
+            self.requiresCodeOwnersReview
+                .map(|weight| ("requiresCodeOwnersReview", weight)),
+            self.requiresLastPushApproval
+                .map(|weight| ("requiresLastPushApproval", weight)),
+            self.requiresPRsToChangeCode
+                .map(|weight| ("requiresPRsToChangeCode", weight)),
+            self.requiresUpToDateBranches
+                .map(|weight| ("requiresUpToDateBranches", weight)),
+            self.runsStatusChecksBeforeMerging
+                .map(|weight| ("runsStatusChecksBeforeMerging", weight)),
+            self.sastToolConfigured
+                .map(|weight| ("sastToolConfigured", weight)),
+            self.sastToolRunsOnAllCommits
+                .map(|weight| ("sastToolRunsOnAllCommits", weight)),
+            self.securityPolicyContainsLinks
+                .map(|weight| ("securityPolicyContainsLinks", weight)),
+            self.securityPolicyContainsText
+                .map(|weight| ("securityPolicyContainsText", weight)),
+            self.securityPolicyContainsVulnerabilityDisclosure
+                .map(|weight| ("securityPolicyContainsVulnerabilityDisclosure", weight)),
+            self.securityPolicyPresent
+                .map(|weight| ("securityPolicyPresent", weight)),
+            self.testsRunInCI.map(|weight| ("testsRunInCI", weight)),
+            self.topLevelPermissions
+                .map(|weight| ("topLevelPermissions", weight)),
+            self.utils.map(|weight| ("utils", weight)),
+            self.webhooksUseSecrets
+                .map(|weight| ("webhooksUseSecrets", weight)),
+            self.zrunner.map(|weight| ("zrunner", weight)),
+        ]
+        .into_iter()
+        .flatten()
+    }
+}
+
 fn zero_to_none<'de, D>(deserializer: D) -> Result<Option<f32>, D::Error>
 where
     D: serde::Deserializer<'de>,
