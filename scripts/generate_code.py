@@ -20,7 +20,7 @@ TEMPLATE = """
 
 use serde::{{Deserialize, Serialize}};
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Default)]
 #[allow(non_snake_case)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Metric {{

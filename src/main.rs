@@ -2,17 +2,17 @@
 
 mod args;
 mod error;
-mod input;
 mod metric;
 mod metric_impl;
 mod scorecard;
+mod target;
 
 use args::Arguments;
 use clap::Parser;
-use input::Input;
 use metric::Metric;
 use scorecard::ensure_scorecard_binary;
 use simple_logger::SimpleLogger;
+use target::Target;
 
 use crate::error::Error;
 
@@ -23,8 +23,8 @@ fn main() -> Result<(), Error> {
     let args = Arguments::parse();
     let metrics = Metric::from_file(&args.metrics_file)?;
     log::debug!("Parsed metrics:\n{metrics}");
-    let input = Input::parse(args.dependencies)?;
-    log::debug!("Parsed input: {input}");
+    let target = Target::parse(args.dependencies)?;
+    log::debug!("Parsed target: {target}");
     ensure_scorecard_binary()?;
     Ok(())
 }

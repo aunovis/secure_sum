@@ -4,7 +4,7 @@ use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::error::Error;
+use crate::{error::Error, metric::Metric, target::Target};
 
 static CURRENT_VERSION: &str = "5.0.0";
 
@@ -64,6 +64,15 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     Ok(path)
 }
 
+pub(crate) fn run_scorecard(metric: &Metric, target: Target) {
+    let args = scorecard_args(metric, target);
+    todo!()
+}
+
+fn scorecard_args(metric: &Metric, target: Target) -> Vec<String> {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use reqwest::blocking::Client;
@@ -95,5 +104,14 @@ mod tests {
         let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
         assert!(path.exists(), "Path is: {}", path.display());
         assert!(path.is_file(), "Path is: {}", path.display());
+    }
+
+    #[test]
+    fn scorecard_args_one_repo_one_probe() {
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        todo!("Test on.")
     }
 }

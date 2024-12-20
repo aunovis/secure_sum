@@ -2,11 +2,11 @@ use std::fmt::Display;
 
 use crate::error::Error;
 
-pub(crate) enum Input {
+pub(crate) enum Target {
     Url(String),
 }
 
-impl Input {
+impl Target {
     pub(crate) fn parse(path: String) -> Result<Self, Error> {
         if is_url(&path) {
             return Ok(Self::Url(path));
@@ -16,10 +16,10 @@ impl Input {
     }
 }
 
-impl Display for Input {
+impl Display for Target {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Input::Url(url) => write!(f, "URL: {url}"),
+            Target::Url(url) => write!(f, "URL: {url}"),
         }
     }
 }
