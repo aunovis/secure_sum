@@ -25,5 +25,6 @@ secure_sum <path/to/metrics/file> <target>
 
 For example, to run Secure Sum against a single repository, run:
 ```
-secure_sum example_metrics.toml github.com/aunovis/secure_sum
+secure_sum example_metrics.toml https://github.com/aunovis/secure_sum
 ```
+The URL has to start with `https://` or `http://`, otherwise Secure Sum will look for a lokal file.

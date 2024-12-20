@@ -9,4 +9,4 @@ cd $(git rev-parse --show-toplevel)
 cargo run --release -- --help
 
 # Load metrics and run probes
-cargo run --release -- ./system_tests/example_metrics.toml github.com/aunovis/secure_sum
+cargo run --release -- ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum

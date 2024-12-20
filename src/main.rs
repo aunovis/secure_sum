@@ -22,7 +22,7 @@ fn main() -> Result<(), Error> {
         .map_err(|e| Error::Other(e.to_string()))?;
     let args = Arguments::parse();
     let metrics = Metric::from_file(&args.metrics_file)?;
-    log::debug!("Parsed metrics: {:?}", metrics);
+    log::debug!("Parsed metrics:\n{metrics}");
     let input = Input::parse(args.dependencies)?;
     log::debug!("Parsed input: {input}");
     ensure_scorecard_binary()?;

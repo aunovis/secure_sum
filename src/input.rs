@@ -25,5 +25,18 @@ impl Display for Input {
 }
 
 fn is_url(str: &str) -> bool {
-    todo!()
+    log::debug!("Testing if {str} is a URL");
+    str.starts_with("https://") || str.starts_with("http://")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn protocols_mark_urls() {
+        assert!(is_url("https://quettapano"));
+        assert!(is_url("http://andolama/mirquet"));
+        assert!(!is_url("cimrinora/arquenie"));
+    }
 }
