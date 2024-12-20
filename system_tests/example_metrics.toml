@@ -1,2 +1,4 @@
-archived = 1
-blocksDeleteOnBranches = 0.4
+archived = 1 # TODO: Does this in- or decrease the score?
+fuzzed = 0.4 # Good practice, but not as important for us as other criteria.
+hasOSVVulnerabilities = 2 # Very important
+hasPermissiveLicense = 0 # A value of zero is treated as if the field is not present, the probe is not run

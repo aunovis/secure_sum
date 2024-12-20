@@ -21,10 +21,10 @@ fn main() -> Result<(), Error> {
         .init()
         .map_err(|e| Error::Other(e.to_string()))?;
     let args = Arguments::parse();
-    let input = Input::parse(args.dependencies)?;
-    log::debug!("Parsed input: {input}");
     let metrics = Metric::from_file(&args.metrics_file)?;
     log::debug!("Parsed metrics: {:?}", metrics);
+    let input = Input::parse(args.dependencies)?;
+    log::debug!("Parsed input: {input}");
     ensure_scorecard_binary()?;
     Ok(())
 }
