@@ -132,6 +132,13 @@ mod tests {
     }
 
     #[test]
+    fn scorecard_binary_can_be_executed_after_ensure_scorecard_binary_call() {
+        let path = ensure_scorecard_binary().unwrap();
+        let result = Command::new(path).arg("--version").output();
+        assert!(result.is_ok(), "Error occurred: {}", result.unwrap_err())
+    }
+
+    #[test]
     fn scorecard_args_one_probe() {
         let metric = Metric {
             archived: Some(1.),
@@ -172,7 +179,7 @@ mod tests {
         let repo = "buubpvnuodypyocmqnhv";
         let result = run_scorecard(&metric, repo);
         assert!(result.is_err());
-        let error_print = format!("{}", result.unwrap_err().to_string());
+        let error_print = format!("{}", result.unwrap_err());
         assert!(error_print.contains(repo), "Error print is: {error_print}");
     }
 
@@ -183,7 +190,7 @@ mod tests {
         let metric = Metric::default();
         let result = run_scorecard(&metric, EXAMPLE_REPO);
         assert!(result.is_err());
-        let error_print = format!("{}", result.unwrap_err().to_string());
+        let error_print = format!("{}", result.unwrap_err());
         assert!(
             error_print.contains("probe"),
             "Error print is: {error_print}"
