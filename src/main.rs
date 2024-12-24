@@ -10,7 +10,7 @@ mod target;
 use args::Arguments;
 use clap::Parser;
 use metric::Metric;
-use scorecard::ensure_scorecard_binary;
+use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use simple_logger::SimpleLogger;
 use target::Target;
 
@@ -26,5 +26,6 @@ fn main() -> Result<(), Error> {
     let target = Target::parse(args.dependencies)?;
     log::debug!("Parsed target: {target}");
     ensure_scorecard_binary()?;
+    dispatch_scorecard_runs(&metrics, target)?;
     Ok(())
 }

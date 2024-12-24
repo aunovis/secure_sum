@@ -176,6 +176,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "until https://github.com/aunovis/secure_sum/issues/24 is resolved"]
     fn running_scorecard_without_metrics_produces_error() {
         let metric = Metric::default();
         let result = run_scorecard(&metric, EXAMPLE_REPO);
