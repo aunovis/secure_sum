@@ -99,6 +99,7 @@ fn scorecard_args(metric: &Metric, repo: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use reqwest::blocking::Client;
+    use serial_test::serial;
 
     use super::*;
 
@@ -125,6 +126,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
         assert!(path.exists(), "Path is: {}", path.display());
@@ -132,6 +134,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn scorecard_binary_can_be_executed_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().unwrap();
         let result = Command::new(path).arg("--version").output();
@@ -170,6 +173,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn running_scorecard_with_nonexistent_repo_produces_error() {
         ensure_scorecard_binary().unwrap();
         let metric = Metric {
@@ -184,6 +188,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     #[ignore = "until https://github.com/aunovis/secure_sum/issues/24 is resolved"]
     fn running_scorecard_without_metrics_produces_error() {
         ensure_scorecard_binary().unwrap();

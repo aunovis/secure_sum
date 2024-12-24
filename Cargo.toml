@@ -16,4 +16,5 @@ tar = { version = "0.4.43", default-features = false } # Decompression
 toml ={ version = "0.8.19", default-features = false, features = ["display", "parse"]}
 
 [dev-dependencies]
+serial_test ={ version = "3.2", default-features = false }
 tempfile = { version = "3.14", default-features = false }
