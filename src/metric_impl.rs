@@ -73,6 +73,18 @@ mod tests {
     }
 
     #[test]
+    fn simple_roundtrip() {
+        static SOME_METRIC: &str = "blocksDeleteOnBranches = 0.2";
+        let metric = Metric::from_str(SOME_METRIC).unwrap();
+        let metric_str = format!("{metric}");
+        // Due to floating point errors the resulting serialized string will not be exactly equal to the input.
+        assert!(
+            metric_str.starts_with(SOME_METRIC),
+            "{SOME_METRIC}\n{metric_str}"
+        );
+    }
+
+    #[test]
     fn completely_empty_metric_is_not_ok() {
         assert!(Metric::from_str("").is_err());
     }

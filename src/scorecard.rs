@@ -1,10 +1,10 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::Command};
 
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::error::Error;
+use crate::{error::Error, metric::Metric, target::Target};
 
 static CURRENT_VERSION: &str = "5.0.0";
 
@@ -64,11 +64,46 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     Ok(path)
 }
 
+pub(crate) fn dispatch_scorecard_runs(metric: &Metric, target: Target) -> Result<(), Error> {
+    match target {
+        Target::Url(repo) => run_scorecard(metric, &repo)?,
+    };
+    Ok(())
+}
+
+fn run_scorecard(metric: &Metric, repo: &str) -> Result<String, Error> {
+    let args = scorecard_args(metric, repo);
+    let program = scorecard_path()?;
+    let output = Command::new(program).args(args).output()?;
+    let stderr = String::from_utf8(output.stderr)?;
+    if !stderr.is_empty() {
+        return Err(Error::Scorecard(stderr));
+    }
+    let stdout = String::from_utf8(output.stdout)?;
+    Ok(stdout)
+}
+
+fn scorecard_args(metric: &Metric, repo: &str) -> Vec<String> {
+    let mut args = vec![];
+    args.push(format!("--repo={repo}"));
+    let probes = metric
+        .probes()
+        .map(|(name, _)| name.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
+    args.push(format!("--probes={probes}"));
+    args.push("--format=probe".to_string());
+    args
+}
+
 #[cfg(test)]
 mod tests {
     use reqwest::blocking::Client;
+    use serial_test::serial;
 
     use super::*;
+
+    static EXAMPLE_REPO: &str = "https://github.com/aunovis/secure_sum";
 
     #[test]
     fn scorecard_url_exists() {
@@ -91,9 +126,79 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
         assert!(path.exists(), "Path is: {}", path.display());
         assert!(path.is_file(), "Path is: {}", path.display());
+    }
+
+    #[test]
+    #[serial]
+    fn scorecard_binary_can_be_executed_after_ensure_scorecard_binary_call() {
+        let path = ensure_scorecard_binary().unwrap();
+        let result = Command::new(path).arg("--version").output();
+        assert!(result.is_ok(), "Error occurred: {}", result.unwrap_err())
+    }
+
+    #[test]
+    fn scorecard_args_one_probe() {
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        let args = scorecard_args(&metric, EXAMPLE_REPO);
+        let expected = vec![
+            format!("--repo={EXAMPLE_REPO}"),
+            "--probes=archived".to_string(),
+            "--format=probe".to_string(),
+        ];
+        assert_eq!(args, expected);
+    }
+
+    #[test]
+    fn scorecard_args_several_probes() {
+        let metric = Metric {
+            archived: Some(1.),
+            fuzzed: Some(1.3),
+            ..Default::default()
+        };
+        let args = scorecard_args(&metric, EXAMPLE_REPO);
+        let expected = vec![
+            format!("--repo={EXAMPLE_REPO}"),
+            "--probes=archived,fuzzed".to_string(),
+            "--format=probe".to_string(),
+        ];
+        assert_eq!(args, expected);
+    }
+
+    #[test]
+    #[serial]
+    fn running_scorecard_with_nonexistent_repo_produces_error() {
+        ensure_scorecard_binary().unwrap();
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        let repo = "buubpvnuodypyocmqnhv";
+        let result = run_scorecard(&metric, repo);
+        assert!(result.is_err());
+        let error_print = format!("{}", result.unwrap_err());
+        assert!(error_print.contains(repo), "Error print is: {error_print}");
+    }
+
+    #[test]
+    #[serial]
+    #[ignore = "until https://github.com/aunovis/secure_sum/issues/24 is resolved"]
+    fn running_scorecard_without_metrics_produces_error() {
+        ensure_scorecard_binary().unwrap();
+        let metric = Metric::default();
+        let result = run_scorecard(&metric, EXAMPLE_REPO);
+        assert!(result.is_err());
+        let error_print = format!("{}", result.unwrap_err());
+        assert!(
+            error_print.contains("probe"),
+            "Error print is: {error_print}"
+        );
     }
 }

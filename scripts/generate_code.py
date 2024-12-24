@@ -20,11 +20,21 @@ TEMPLATE = """
 
 use serde::{{Deserialize, Serialize}};
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Default)]
 #[allow(non_snake_case)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Metric {{
     {members}
+}}
+
+impl Metric {{
+    pub(crate) fn probes(&self) -> impl Iterator<Item = (&'static str, f32)> + '_ {{
+        [
+            {probe_conversions}
+        ]
+        .into_iter()
+        .flatten()
+    }}
 }}
 
 fn zero_to_none<'de, D>(deserializer: D) -> Result<Option<f32>, D::Error>
@@ -38,6 +48,15 @@ where
     }})
 }}
 
+impl std::fmt::Display for Metric {{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
+        match toml::to_string(self) {{
+            Ok(toml_str) => write!(f, "{{}}", toml_str),
+            Err(err) => write!(f, "Error serializing to TOML: {{}}", err),
+        }}
+    }}
+}}
+
 #[cfg(test)]
 pub(crate) static EXAMPLE_METRIC_STR: &str = r#"
 {member_assignements}
@@ -49,8 +68,15 @@ pub(crate) static EXAMPLE_METRIC: Metric = Metric {{
 }};
 """
 
-MEMBER_PRELUDE = "#[serde(default, deserialize_with = \"zero_to_none\")] pub(crate)"
+MEMBER_PRELUDE = """
+#[serde(default, 
+        deserialize_with = \"zero_to_none\",
+        skip_serializing_if = \"Option::is_none\")]
+pub(crate)
+"""
 MEMBER_TYPE = ": Option<f32>"
+
+TO_PROBE_SNIPPET = "self.{member}.map(|weight| (\"{member}\", weight))"
 
 def get_probes(url):
     try:
@@ -72,6 +98,10 @@ def construct_members_string(probes):
     members = [f"{MEMBER_PRELUDE}{probe}{MEMBER_TYPE}" for probe in probes]
     return ",".join(members)
 
+def construct_to_probes_string(probes):
+    to_probes = [TO_PROBE_SNIPPET.format(member = probe) for probe in probes]
+    return ",".join(to_probes)
+
 def assign_test_values(probes):
     return [((index + 1)/10, probe) for index, probe in enumerate(probes)]
 
@@ -86,9 +116,11 @@ def construct_assigned_members_string(assigned_probes):
 probes = get_probes(url)
 assigned_probes = assign_test_values(probes)
 members = construct_members_string(probes)
+probe_conversions = construct_to_probes_string(probes)
 member_assignments = construct_member_assignemnt_string(assigned_probes)
 assigned_members = construct_assigned_members_string(assigned_probes)
 with open(TARGET_PATH, 'w') as metric_file:
     metric_file.write(TEMPLATE.format(members = members, 
+                                      probe_conversions = probe_conversions,
                                       member_assignements = member_assignments, 
                                       assigned_members = assigned_members))
