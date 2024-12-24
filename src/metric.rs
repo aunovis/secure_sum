@@ -309,7 +309,7 @@ pub(crate) struct Metric {
 }
 
 impl Metric {
-    pub(crate) fn probes(&self) -> impl Iterator<Item = (&'static str, f32)> + '_ {
+    pub(crate) fn probes(&self) -> Vec<(&'static str, f32)> {
         [
             self.archived.map(|weight| ("archived", weight)),
             self.blocksDeleteOnBranches
@@ -404,6 +404,7 @@ impl Metric {
         ]
         .into_iter()
         .flatten()
+        .collect()
     }
 }
 
