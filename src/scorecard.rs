@@ -79,6 +79,8 @@ mod tests {
 
     use super::*;
 
+    static EXAMPLE_REPO: &str = "https://github.com/aunovis/secure_sum";
+
     #[test]
     fn scorecard_url_exists() {
         let url = scorecard_url();
@@ -107,11 +109,35 @@ mod tests {
     }
 
     #[test]
-    fn scorecard_args_one_repo_one_probe() {
+    fn scorecard_args_one_probe_url_target() {
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
-        todo!("Test on.")
+        let target = Target::Url(EXAMPLE_REPO.to_string());
+        let args = scorecard_args(&metric, target);
+        let expected = vec![
+            format!("--repo={EXAMPLE_REPO}"),
+            "--probes=archived".to_string(),
+            "--format=probe".to_string(),
+        ];
+        assert_eq!(args, expected);
+    }
+
+    #[test]
+    fn scorecard_args_several_probes_url_target() {
+        let metric = Metric {
+            archived: Some(1.),
+            fuzzed: Some(1.3),
+            ..Default::default()
+        };
+        let target = Target::Url(EXAMPLE_REPO.to_string());
+        let args = scorecard_args(&metric, target);
+        let expected = vec![
+            format!("--repo={EXAMPLE_REPO}"),
+            "--probes=archived,fuzzed".to_string(),
+            "--format=probe".to_string(),
+        ];
+        assert_eq!(args, expected);
     }
 }
