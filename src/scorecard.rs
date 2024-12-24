@@ -65,12 +65,24 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
 }
 
 pub(crate) fn run_scorecard(metric: &Metric, target: Target) {
-    let args = scorecard_args(metric, target);
-    todo!()
+    match target {
+        Target::Url(url) => {
+            let args = scorecard_args(metric, &url);
+        }
+    }
 }
 
-fn scorecard_args(metric: &Metric, target: Target) -> Vec<String> {
-    todo!()
+fn scorecard_args(metric: &Metric, repo: &str) -> Vec<String> {
+    let mut args = vec![];
+    args.push(format!("--repo={repo}"));
+    let probes = metric
+        .probes()
+        .map(|(name, _)| name.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
+    args.push(format!("--probes={probes}"));
+    args.push("--format=probe".to_string());
+    args
 }
 
 #[cfg(test)]
@@ -109,13 +121,12 @@ mod tests {
     }
 
     #[test]
-    fn scorecard_args_one_probe_url_target() {
+    fn scorecard_args_one_probe() {
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
-        let target = Target::Url(EXAMPLE_REPO.to_string());
-        let args = scorecard_args(&metric, target);
+        let args = scorecard_args(&metric, EXAMPLE_REPO);
         let expected = vec![
             format!("--repo={EXAMPLE_REPO}"),
             "--probes=archived".to_string(),
@@ -125,14 +136,13 @@ mod tests {
     }
 
     #[test]
-    fn scorecard_args_several_probes_url_target() {
+    fn scorecard_args_several_probes() {
         let metric = Metric {
             archived: Some(1.),
             fuzzed: Some(1.3),
             ..Default::default()
         };
-        let target = Target::Url(EXAMPLE_REPO.to_string());
-        let args = scorecard_args(&metric, target);
+        let args = scorecard_args(&metric, EXAMPLE_REPO);
         let expected = vec![
             format!("--repo={EXAMPLE_REPO}"),
             "--probes=archived,fuzzed".to_string(),
