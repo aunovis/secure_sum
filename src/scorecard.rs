@@ -164,6 +164,7 @@ mod tests {
 
     #[test]
     fn running_scorecard_with_nonexistent_repo_produces_error() {
+        ensure_scorecard_binary().unwrap();
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
@@ -178,6 +179,7 @@ mod tests {
     #[test]
     #[ignore = "until https://github.com/aunovis/secure_sum/issues/24 is resolved"]
     fn running_scorecard_without_metrics_produces_error() {
+        ensure_scorecard_binary().unwrap();
         let metric = Metric::default();
         let result = run_scorecard(&metric, EXAMPLE_REPO);
         assert!(result.is_err());
