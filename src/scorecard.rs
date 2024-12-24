@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::Command};
 
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use flate2::read::GzDecoder;
@@ -64,12 +64,23 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     Ok(path)
 }
 
-pub(crate) fn run_scorecard(metric: &Metric, target: Target) {
+pub(crate) fn dispatch_scorecard_runs(metric: &Metric, target: Target) -> Result<(), Error> {
     match target {
-        Target::Url(url) => {
-            let args = scorecard_args(metric, &url);
-        }
+        Target::Url(repo) => run_scorecard(metric, &repo)?,
+    };
+    Ok(())
+}
+
+fn run_scorecard(metric: &Metric, repo: &str) -> Result<String, Error> {
+    let args = scorecard_args(metric, repo);
+    let program = scorecard_path()?;
+    let output = Command::new(program).args(args).output()?;
+    let stderr = String::from_utf8(output.stderr)?;
+    if !stderr.is_empty() {
+        return Err(Error::Scorecard(stderr));
     }
+    let stdout = String::from_utf8(output.stdout)?;
+    Ok(stdout)
 }
 
 fn scorecard_args(metric: &Metric, repo: &str) -> Vec<String> {
@@ -149,5 +160,30 @@ mod tests {
             "--format=probe".to_string(),
         ];
         assert_eq!(args, expected);
+    }
+
+    #[test]
+    fn running_scorecard_with_nonexistent_repo_produces_error() {
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        let repo = "buubpvnuodypyocmqnhv";
+        let result = run_scorecard(&metric, repo);
+        assert!(result.is_err());
+        let error_print = format!("{}", result.unwrap_err().to_string());
+        assert!(error_print.contains(repo), "Error print is: {error_print}");
+    }
+
+    #[test]
+    fn running_scorecard_without_metrics_produces_error() {
+        let metric = Metric::default();
+        let result = run_scorecard(&metric, EXAMPLE_REPO);
+        assert!(result.is_err());
+        let error_print = format!("{}", result.unwrap_err().to_string());
+        assert!(
+            error_print.contains("probe"),
+            "Error print is: {error_print}"
+        );
     }
 }
