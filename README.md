@@ -1,5 +1,7 @@
 # AUNOVIS Secure Sum
 
+<img align="right" src="https://raw.githubusercontent.com/aunovis/secure_sum/main/img/secure_sam.svg" alt="Secure Sam, Secure Sum's mascot" width="200"/>
+
 ## About
 
 Most modern software depends on numerous open source packages scattered over various ecosystems. A vulnerability deep within the dependency tree can potentially affect the whole supply chain. Which dependencies should you trust, and which should you rather avoid?
