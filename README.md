@@ -16,7 +16,36 @@ This is what AUNOVIS Secure Sum does.
 
 ## Setup
 
-Most checks that scorecard runs require a personal access token (PAT) for the GitHub API. The [GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) explain how to set one up. We recommend a fine-grained access token with public-repo read-only access, as this is all that is needed by mose scorecard checks.
+Most checks that scorecard runs require a personal access token (PAT) for the GitHub API. The [GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) explain how to generate one. We recommend a fine-grained access token with public-repo read-only access, as this is all that is needed by most scorecard checks.
+
+When executed, scorecard looks for an environment variable called `GITHUB_TOKEN`. The fastest way to get it to work is to temporarily export the variable:
+<details>
+<summary>Unix</summary>
+
+```bash
+export GITHUB_TOKEN=<your PAT>
+```
+
+</details>
+
+<details>
+<summary>Powershell</summary>
+
+```ps
+$env:GITHUB_TOKEN="<your PAT>"
+```
+
+</details>
+
+<details>
+<summary>CMD</summary>
+
+```cmd
+set GITHUB_TOKEN=<your PAT>
+```
+
+</details>
+
 
 ## Usage
 
