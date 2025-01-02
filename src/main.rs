@@ -26,6 +26,7 @@ fn main() -> Result<(), Error> {
     let target = Target::parse(args.dependencies)?;
     log::debug!("Parsed target: {target}");
     ensure_scorecard_binary()?;
+    dotenvy::dotenv()?;
     dispatch_scorecard_runs(&metrics, target)?;
     Ok(())
 }

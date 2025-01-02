@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5", default-features = false, features = ["color", "error-context", "derive", "help", "std", "suggestions"] }
+dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.8.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["zlib-ng-compat"] } # Decompression
 log ={ version = "0.4.22", default-features = false }

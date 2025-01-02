@@ -29,22 +29,17 @@ export GITHUB_TOKEN=<your PAT>
 </details>
 
 <details>
-<summary>Powershell</summary>
-
-```ps
-$env:GITHUB_TOKEN="<your PAT>"
-```
-
-</details>
-
-<details>
-<summary>CMD</summary>
+<summary>Powershell/CMD</summary>
 
 ```cmd
 set GITHUB_TOKEN=<your PAT>
 ```
 
 </details>
+
+A more persistent way is to write create a fiel called `.env` with the content `GITHUB_TOKEN=<your PAT>` in the folder from which you are calling Secure Sum.
+
+> If you create a `.env` file inside a repository, do not forget to add it to your `.gitignore` file (or the analogous ignore file for your versioning ecosystem). You will leak secrets otherwise!
 
 
 ## Usage

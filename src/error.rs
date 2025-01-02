@@ -7,6 +7,9 @@ pub(crate) enum Error {
     #[error("String could not be deserialized: {0}")]
     Deserialize(#[from] toml::de::Error),
 
+    #[error("Error parsing .env file: {0}")]
+    Dotenvy(#[from] dotenvy::Error),
+
     #[error("Failed to interpret bytes as UTF-8: {0}")]
     FromUtf8(#[from] FromUtf8Error),
 
