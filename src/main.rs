@@ -3,6 +3,7 @@
 mod args;
 mod error;
 mod metric;
+mod probe_result;
 mod metric_impl;
 mod scorecard;
 mod target;
