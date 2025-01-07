@@ -1,4 +1,8 @@
-use std::{fs, path::PathBuf, process::Command};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use flate2::read::GzDecoder;
@@ -65,16 +69,19 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
 }
 
 pub(crate) fn dispatch_scorecard_runs(metric: &Metric, target: Target) -> Result<(), Error> {
+    let scorecard = scorecard_path()?;
+    log::debug!("Running scorecard binary {}", scorecard.display());
     match target {
-        Target::Url(repo) => run_scorecard(metric, &repo)?,
+        Target::Url(repo) => run_scorecard(metric, &repo, &scorecard)?,
     };
     Ok(())
 }
 
-fn run_scorecard(metric: &Metric, repo: &str) -> Result<String, Error> {
+fn run_scorecard(metric: &Metric, repo: &str, scorecard: &Path) -> Result<String, Error> {
+    log::debug!("Checking {repo}");
     let args = scorecard_args(metric, repo);
-    let program = scorecard_path()?;
-    let output = Command::new(program).args(args).output()?;
+    log::trace!("Args: {:#?}", args);
+    let output = Command::new(scorecard).args(args).output()?;
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {
         return Err(Error::Scorecard(stderr));
@@ -176,12 +183,13 @@ mod tests {
     #[serial]
     fn running_scorecard_with_nonexistent_repo_produces_error() {
         ensure_scorecard_binary().unwrap();
+        let scorecard = scorecard_path().unwrap();
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
         let repo = "buubpvnuodypyocmqnhv";
-        let result = run_scorecard(&metric, repo);
+        let result = run_scorecard(&metric, repo, &scorecard);
         assert!(result.is_err());
         let error_print = format!("{}", result.unwrap_err());
         assert!(error_print.contains(repo), "Error print is: {error_print}");
@@ -192,8 +200,9 @@ mod tests {
     #[ignore = "until https://github.com/aunovis/secure_sum/issues/24 is resolved"]
     fn running_scorecard_without_metrics_produces_error() {
         ensure_scorecard_binary().unwrap();
+        let scorecard = scorecard_path().unwrap();
         let metric = Metric::default();
-        let result = run_scorecard(&metric, EXAMPLE_REPO);
+        let result = run_scorecard(&metric, EXAMPLE_REPO, &scorecard);
         assert!(result.is_err());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
