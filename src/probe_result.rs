@@ -1,9 +1,9 @@
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct ProbeResult {
-    date: DateTime<Utc>,
+    date: NaiveDate,
     repo: Repo,
     findings: Vec<ProbeFinding>,
 }
