@@ -1,4 +1,29 @@
+use chrono::{DateTime, Utc};
+use serde::Deserialize;
 
+#[derive(Deserialize, Debug)]
+pub(crate) struct ProbeResult {
+    date: DateTime<Utc>,
+    repo: Repo,
+    findings: Vec<ProbeFinding>,
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct Repo {
+    name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) struct ProbeFinding {
+    probe: String,
+    outcome: ProbeOutcome,
+}
+
+#[derive(Deserialize, Debug)]
+pub(crate) enum ProbeOutcome {
+    True,
+    False,
+}
 
 #[cfg(test)]
 mod tests {
@@ -37,6 +62,7 @@ mod tests {
 
     #[test]
     fn example_can_be_deserialised() {
-        todo!();
+        let result: Result<ProbeResult, _> = serde_json::from_str(EXAMPLE);
+        assert!(result.is_ok(), "{:#?}", result);
     }
 }
