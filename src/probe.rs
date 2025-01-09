@@ -1,6 +1,8 @@
 use chrono::NaiveDate;
 use serde::Deserialize;
 
+use crate::{error::Error, metric::Metric};
+
 #[derive(Deserialize, Debug)]
 pub(crate) struct ProbeResult {
     date: NaiveDate,
@@ -23,6 +25,18 @@ pub(crate) struct ProbeFinding {
 pub(crate) enum ProbeOutcome {
     True,
     False,
+}
+
+pub(crate) fn store_probe(repo: &str, raw_output: &str) -> Result<(), Error> {
+    todo!()
+}
+
+fn load_stored_probe(repo: String) -> Result<Option<ProbeResult>, Error> {
+    todo!()
+}
+
+fn needs_rerun(repo: &str, metric: &Metric, stored_probe: &ProbeResult) -> bool {
+    todo!()
 }
 
 #[cfg(test)]

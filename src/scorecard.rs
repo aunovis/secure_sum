@@ -4,11 +4,16 @@ use std::{
     process::Command,
 };
 
-use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::{error::Error, metric::Metric, target::Target};
+use crate::{
+    error::Error,
+    filesystem::data_dir,
+    metric::Metric,
+    probe::{store_probe, ProbeResult},
+    target::Target,
+};
 
 static CURRENT_VERSION: &str = "5.0.0";
 
@@ -28,18 +33,6 @@ static ARCH_STR: &str = "amd64";
 
 fn scorecard_url() -> String {
     format!("https://github.com/ossf/scorecard/releases/download/v{CURRENT_VERSION}/scorecard_{CURRENT_VERSION}_{OS_STR}_{ARCH_STR}.tar.gz")
-}
-
-fn data_dir() -> Result<PathBuf, Error> {
-    let app_strategy_args = AppStrategyArgs {
-        top_level_domain: "de".to_string(),
-        author: "aunovis".to_string(),
-        app_name: "aunovis_secure_sum".to_string(),
-    };
-    let data_dir = choose_app_strategy(app_strategy_args)
-        .map_err(|e| Error::Other(e.to_string()))?
-        .data_dir();
-    Ok(data_dir)
 }
 
 fn scorecard_path() -> Result<PathBuf, Error> {
@@ -72,12 +65,16 @@ pub(crate) fn dispatch_scorecard_runs(metric: &Metric, target: Target) -> Result
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     match target {
-        Target::Url(repo) => run_scorecard(metric, &repo, &scorecard)?,
+        Target::Url(repo) => run_scorecard_probe(&repo, metric, &scorecard)?,
     };
     Ok(())
 }
 
-fn run_scorecard(metric: &Metric, repo: &str, scorecard: &Path) -> Result<String, Error> {
+fn run_scorecard_probe(
+    repo: &str,
+    metric: &Metric,
+    scorecard: &Path,
+) -> Result<ProbeResult, Error> {
     log::debug!("Checking {repo}");
     let args = scorecard_args(metric, repo);
     log::trace!("Args: {:#?}", args);
@@ -87,7 +84,9 @@ fn run_scorecard(metric: &Metric, repo: &str, scorecard: &Path) -> Result<String
         return Err(Error::Scorecard(stderr));
     }
     let stdout = String::from_utf8(output.stdout)?;
-    Ok(stdout)
+    let probe_result = serde_json::from_str(&stdout)?;
+    store_probe(repo, &stdout)?;
+    Ok(probe_result)
 }
 
 fn scorecard_args(metric: &Metric, repo: &str) -> Vec<String> {
@@ -189,7 +188,7 @@ mod tests {
             ..Default::default()
         };
         let repo = "buubpvnuodypyocmqnhv";
-        let result = run_scorecard(&metric, repo, &scorecard);
+        let result = run_scorecard_probe(repo, &metric, &scorecard);
         assert!(result.is_err());
         let error_print = format!("{}", result.unwrap_err());
         assert!(error_print.contains(repo), "Error print is: {error_print}");
@@ -197,17 +196,22 @@ mod tests {
 
     #[test]
     #[serial]
-    #[ignore = "until https://github.com/aunovis/secure_sum/issues/24 is resolved"]
     fn running_scorecard_without_metrics_produces_error() {
         ensure_scorecard_binary().unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric::default();
-        let result = run_scorecard(&metric, EXAMPLE_REPO, &scorecard);
+        let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);
         assert!(result.is_err());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
             error_print.contains("probe"),
             "Error print is: {error_print}"
         );
+    }
+
+    #[test]
+    #[serial]
+    fn running_scorecard_stores_output() {
+        todo!()
     }
 }

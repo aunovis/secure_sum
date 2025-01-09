@@ -2,9 +2,10 @@
 
 mod args;
 mod error;
+mod filesystem;
 mod metric;
 mod metric_impl;
-mod probe_result;
+mod probe;
 mod scorecard;
 mod target;
 
