@@ -1,7 +1,9 @@
+use std::{fs, path::PathBuf};
+
 use chrono::NaiveDate;
 use serde::Deserialize;
 
-use crate::{error::Error, metric::Metric};
+use crate::{error::Error, filesystem::data_dir, metric::Metric};
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct ProbeResult {
@@ -27,8 +29,21 @@ pub(crate) enum ProbeOutcome {
     False,
 }
 
-pub(crate) fn store_probe(repo: &str, raw_output: &str) -> Result<(), Error> {
+fn probe_file(repo: &str) -> Result<PathBuf, Error> {
+    let probe_dir = data_dir()?.join("probes");
     todo!()
+}
+
+pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
+    let parsed_probe: ProbeResult = serde_json::from_str(raw_output)?;
+    let repo = &parsed_probe.repo.name;
+    let path = probe_file(repo)?;
+    if let Some(dir) = path.parent() {
+        if !dir.exists() {
+            fs::create_dir_all(dir)?;
+        }
+    }
+    Ok(fs::write(path, raw_output)?)
 }
 
 fn load_stored_probe(repo: String) -> Result<Option<ProbeResult>, Error> {
@@ -41,6 +56,8 @@ fn needs_rerun(repo: &str, metric: &Metric, stored_probe: &ProbeResult) -> bool 
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
+
     use super::*;
 
     static EXAMPLE: &str = r#"
@@ -78,5 +95,17 @@ mod tests {
     fn example_can_be_deserialised() {
         let result: Result<ProbeResult, _> = serde_json::from_str(EXAMPLE);
         assert!(result.is_ok(), "{:#?}", result);
+    }
+
+    #[test]
+    #[serial]
+    fn store_probe_stores_probe() {
+        let repo = "github.com/aunovis/secure_sum";
+        let path = probe_file(repo).unwrap();
+        fs::remove_file(&path).ok();
+
+        assert!(!path.exists());
+        store_probe(EXAMPLE).unwrap();
+        assert!(path.exists());
     }
 }

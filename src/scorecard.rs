@@ -85,7 +85,7 @@ fn run_scorecard_probe(
     }
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
-    store_probe(repo, &stdout)?;
+    store_probe(&stdout)?;
     Ok(probe_result)
 }
 
