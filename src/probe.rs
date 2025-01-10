@@ -35,12 +35,23 @@ pub(crate) enum ProbeOutcome {
 
 pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
+    static HTTP: &str = "http://";
+    static HTTPS: &str = "https://";
+    let no_protocol = if repo.starts_with(HTTP) {
+        &repo[HTTP.len()..]
+    } else if repo.starts_with(HTTPS) {
+        &repo[HTTPS.len()..]
+    } else {
+        repo
+    };
+    // Dots are valid in filenames, but without this replacement every probe has basename "github".
+    let no_dots = no_protocol.replace(".", "_");
     let sanitise_opts = sanitize_filename::Options {
-        replacement: "", // TODO: Improve replacement.
+        replacement: "_", // Replace invalid characters with underscores
         windows: cfg!(windows),
         truncate: false,
     };
-    let filename = sanitize_filename::sanitize_with_options(repo, sanitise_opts);
+    let filename = sanitize_filename::sanitize_with_options(no_dots, sanitise_opts);
     Ok(probe_dir.join(filename))
 }
 
@@ -106,6 +117,15 @@ mod tests {
     fn example_can_be_deserialised() {
         let result: Result<ProbeResult, _> = serde_json::from_str(EXAMPLE);
         assert!(result.is_ok(), "{:#?}", result);
+    }
+
+    #[test]
+    fn probe_filename_removes_protocol() {
+        let no_protocol = probe_file("test.com/path").unwrap();
+        let http_protocol = probe_file("http://test.com/path").unwrap();
+        let https_protocol = probe_file("https://test.com/path").unwrap();
+        assert_eq!(no_protocol, http_protocol);
+        assert_eq!(no_protocol, https_protocol);
     }
 
     #[test]
