@@ -107,6 +107,8 @@ mod tests {
     use reqwest::blocking::Client;
     use serial_test::serial;
 
+    use crate::probe::probe_file;
+
     use super::*;
 
     static EXAMPLE_REPO: &str = "https://github.com/aunovis/secure_sum";
@@ -180,6 +182,21 @@ mod tests {
 
     #[test]
     #[serial]
+    fn running_scorecard_stores_output() {
+        ensure_scorecard_binary().unwrap();
+        let scorecard = scorecard_path().unwrap();
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);
+        assert!(result.is_ok(), "{:#?}", result);
+        let filepath = probe_file(EXAMPLE_REPO).unwrap();
+        assert!(filepath.exists(), "{} does not exist", filepath.display())
+    }
+
+    #[test]
+    #[serial]
     fn running_scorecard_with_nonexistent_repo_produces_error() {
         ensure_scorecard_binary().unwrap();
         let scorecard = scorecard_path().unwrap();
@@ -207,11 +224,5 @@ mod tests {
             error_print.contains("probe"),
             "Error print is: {error_print}"
         );
-    }
-
-    #[test]
-    #[serial]
-    fn running_scorecard_stores_output() {
-        todo!()
     }
 }

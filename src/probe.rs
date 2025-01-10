@@ -29,9 +29,10 @@ pub(crate) enum ProbeOutcome {
     False,
 }
 
-fn probe_file(repo: &str) -> Result<PathBuf, Error> {
+pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
-    todo!()
+    let filename = sanitize_filename::sanitize(repo);
+    Ok(probe_dir.join(filename))
 }
 
 pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
@@ -43,6 +44,7 @@ pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
             fs::create_dir_all(dir)?;
         }
     }
+    log::debug!("Storing probe output in {}", path.display());
     Ok(fs::write(path, raw_output)?)
 }
 
