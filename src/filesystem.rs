@@ -4,6 +4,20 @@ use etcetera::{choose_app_strategy, AppStrategy, AppStrategyArgs};
 
 use crate::error::Error;
 
+#[cfg(target_os = "macos")]
+pub(crate) static OS_STR: &str = "darwin";
+#[cfg(target_os = "linux")]
+pub(crate) static OS_STR: &str = "linux";
+#[cfg(target_os = "windows")]
+pub(crate) static OS_STR: &str = "windows";
+
+/// target_arch config is not recognised on all OSs.
+/// We therefore only check for "arm or not arm".-
+#[cfg(target_arch = "arm")]
+pub(crate) static ARCH_STR: &str = "arm64";
+#[cfg(not(target_arch = "arm"))]
+pub(crate) static ARCH_STR: &str = "amd64";
+
 pub(crate) fn data_dir() -> Result<PathBuf, Error> {
     let app_strategy_args = AppStrategyArgs {
         top_level_domain: "de".to_string(),

@@ -1,7 +1,7 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
 };
 
 use flate2::read::GzDecoder;
@@ -9,27 +9,13 @@ use tar::Archive;
 
 use crate::{
     error::Error,
-    filesystem::data_dir,
+    filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
     probe::{store_probe, ProbeResult},
     target::Target,
 };
 
 static CURRENT_VERSION: &str = "5.0.0";
-
-#[cfg(target_os = "macos")]
-static OS_STR: &str = "darwin";
-#[cfg(target_os = "linux")]
-static OS_STR: &str = "linux";
-#[cfg(target_os = "windows")]
-static OS_STR: &str = "windows";
-
-/// target_arch config is not recognised on all OSs.
-/// We therefore only check for "arm or not arm".-
-#[cfg(target_arch = "arm")]
-static ARCH_STR: &str = "arm64";
-#[cfg(not(target_arch = "arm"))]
-static ARCH_STR: &str = "amd64";
 
 fn scorecard_url() -> String {
     format!("https://github.com/ossf/scorecard/releases/download/v{CURRENT_VERSION}/scorecard_{CURRENT_VERSION}_{OS_STR}_{ARCH_STR}.tar.gz")
@@ -78,7 +64,10 @@ fn run_scorecard_probe(
     log::debug!("Checking {repo}");
     let args = scorecard_args(metric, repo);
     log::trace!("Args: {:#?}", args);
-    let output = Command::new(scorecard).args(args).output()?;
+    let output = Command::new(scorecard)
+        .stderr(Stdio::inherit())
+        .args(args)
+        .output()?;
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {
         return Err(Error::Scorecard(stderr));
@@ -184,14 +173,17 @@ mod tests {
     #[serial]
     fn running_scorecard_stores_output() {
         ensure_scorecard_binary().unwrap();
+        dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
+        let filepath = probe_file(EXAMPLE_REPO).unwrap();
+        fs::remove_file(&filepath).ok();
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
+        assert!(!filepath.exists());
         let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);
         assert!(result.is_ok(), "{:#?}", result);
-        let filepath = probe_file(EXAMPLE_REPO).unwrap();
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
 
@@ -199,6 +191,7 @@ mod tests {
     #[serial]
     fn running_scorecard_with_nonexistent_repo_produces_error() {
         ensure_scorecard_binary().unwrap();
+        dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric {
             archived: Some(1.),
@@ -215,6 +208,7 @@ mod tests {
     #[serial]
     fn running_scorecard_without_metrics_produces_error() {
         ensure_scorecard_binary().unwrap();
+        dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric::default();
         let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);

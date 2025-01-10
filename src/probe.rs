@@ -3,7 +3,11 @@ use std::{fs, path::PathBuf};
 use chrono::NaiveDate;
 use serde::Deserialize;
 
-use crate::{error::Error, filesystem::data_dir, metric::Metric};
+use crate::{
+    error::Error,
+    filesystem::{data_dir, OS_STR},
+    metric::Metric,
+};
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct ProbeResult {
@@ -31,7 +35,12 @@ pub(crate) enum ProbeOutcome {
 
 pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
-    let filename = sanitize_filename::sanitize(repo);
+    let sanitise_opts = sanitize_filename::Options {
+        replacement: "", // TODO: Improve replacement.
+        windows: cfg!(windows),
+        truncate: false,
+    };
+    let filename = sanitize_filename::sanitize_with_options(repo, sanitise_opts);
     Ok(probe_dir.join(filename))
 }
 
@@ -108,6 +117,6 @@ mod tests {
 
         assert!(!path.exists());
         store_probe(EXAMPLE).unwrap();
-        assert!(path.exists());
+        assert!(path.exists(), "{} does not exist", path.display());
     }
 }
