@@ -1,33 +1,32 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs::{self, read_to_string},
+    path::PathBuf,
+};
 
 use chrono::NaiveDate;
 use serde::Deserialize;
 
-use crate::{
-    error::Error,
-    filesystem::{data_dir, OS_STR},
-    metric::Metric,
-};
+use crate::{error::Error, filesystem::data_dir, metric::Metric};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
     date: NaiveDate,
     repo: Repo,
     findings: Vec<ProbeFinding>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct Repo {
     name: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
     probe: String,
     outcome: ProbeOutcome,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) enum ProbeOutcome {
     True,
     False,
@@ -44,7 +43,7 @@ pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
     } else {
         repo
     };
-    // Dots are valid in filenames, but without this replacement every probe has basename "github".
+    // Dots are valid in filenames, but without this replacement almost every probe has basename "github".
     let no_dots = no_protocol.replace(".", "_");
     let sanitise_opts = sanitize_filename::Options {
         replacement: "_", // Replace invalid characters with underscores
@@ -68,8 +67,14 @@ pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
     Ok(fs::write(path, raw_output)?)
 }
 
-fn load_stored_probe(repo: String) -> Result<Option<ProbeResult>, Error> {
-    todo!()
+fn load_stored_probe(repo: &str) -> Result<Option<ProbeResult>, Error> {
+    let path = probe_file(repo)?;
+    if !path.exists() {
+        return Ok(None);
+    }
+    let contents = read_to_string(path)?;
+    let probe = serde_json::from_str(&contents)?;
+    Ok(Some(probe))
 }
 
 fn needs_rerun(repo: &str, metric: &Metric, stored_probe: &ProbeResult) -> bool {
@@ -138,5 +143,25 @@ mod tests {
         assert!(!path.exists());
         store_probe(EXAMPLE).unwrap();
         assert!(path.exists(), "{} does not exist", path.display());
+    }
+
+    #[test]
+    #[serial]
+    fn load_probe_loads_probe_if_it_exists() {
+        let repo = "github.com/aunovis/secure_sum";
+        let path = probe_file(repo).unwrap();
+
+        fs::remove_file(&path).ok();
+        assert!(!path.exists());
+
+        let probe = load_stored_probe(repo).unwrap();
+        assert!(probe.is_none());
+
+        store_probe(EXAMPLE).unwrap();
+        assert!(path.exists());
+
+        let probe = load_stored_probe(repo).unwrap().unwrap();
+        let expected = serde_json::from_str(EXAMPLE).unwrap();
+        assert_eq!(probe, expected);
     }
 }
