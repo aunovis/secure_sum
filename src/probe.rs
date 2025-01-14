@@ -3,10 +3,12 @@ use std::{
     path::PathBuf,
 };
 
-use chrono::NaiveDate;
+use chrono::{Duration, NaiveDate, Utc};
 use serde::Deserialize;
 
 use crate::{error::Error, filesystem::data_dir, metric::Metric};
+
+static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
@@ -20,13 +22,13 @@ pub(crate) struct Repo {
     name: String,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
     probe: String,
     outcome: ProbeOutcome,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Deserialize, Debug, PartialEq, Eq)]
 pub(crate) enum ProbeOutcome {
     True,
     False,
@@ -77,12 +79,24 @@ fn load_stored_probe(repo: &str) -> Result<Option<ProbeResult>, Error> {
     Ok(Some(probe))
 }
 
-fn needs_rerun(repo: &str, metric: &Metric, stored_probe: &ProbeResult) -> bool {
-    todo!()
+fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
+    let today = Utc::now().date_naive();
+    let time_since_last_check = today.signed_duration_since(stored_probe.date);
+    if time_since_last_check >= PROBE_VALIDITY_PERIOD {
+        return true;
+    }
+    let probe_finding_names: Vec<_> = stored_probe
+        .findings
+        .iter()
+        .map(|f| f.probe.as_str())
+        .collect();
+    let mut probes_to_run = metric.probes();
+    probes_to_run.any(|(probe, _)| !probe_finding_names.contains(&probe))
 }
 
 #[cfg(test)]
 mod tests {
+    use chrono::{Duration, Utc};
     use serial_test::serial;
 
     use super::*;
@@ -163,5 +177,72 @@ mod tests {
         let probe = load_stored_probe(repo).unwrap().unwrap();
         let expected = serde_json::from_str(EXAMPLE).unwrap();
         assert_eq!(probe, expected);
+    }
+
+    #[test]
+    fn probe_needs_rerun_if_result_is_older_than_validity() {
+        let today = Utc::now().date_naive();
+        let yesterday = (Utc::now() - Duration::days(1)).date_naive();
+        let yesterweek = (Utc::now() - Duration::weeks(1)).date_naive();
+        let mut probe = ProbeResult {
+            date: today,
+            repo: Repo {
+                name: "Some Repo".to_owned(),
+            },
+            findings: vec![ProbeFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+            }],
+        };
+        let metric = Metric::from_str("archived = 1").unwrap();
+
+        assert!(!needs_rerun(&probe, &metric));
+
+        probe.date = yesterday;
+        assert!(!needs_rerun(&probe, &metric));
+
+        probe.date = yesterweek;
+        assert!(needs_rerun(&probe, &metric));
+    }
+
+    #[test]
+    fn probe_needs_rerun_if_metric_contains_probes_without_finding() {
+        let metric = Metric::from_str("archived = 1\ncodeApproved = 1").unwrap();
+        let same_findings = vec![
+            ProbeFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: "codeApproved".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+        ];
+        let other_finding = ProbeFinding {
+            probe: "fuzzed".to_owned(),
+            outcome: ProbeOutcome::True,
+        };
+        let less_findings = same_findings[1..].to_vec();
+        let mut more_findings = same_findings.clone();
+        more_findings.push(other_finding.clone());
+        let mut other_findings = same_findings.clone();
+        other_findings[0] = other_finding;
+
+        let mut probe = ProbeResult {
+            date: Utc::now().date_naive(),
+            repo: Repo {
+                name: "Some Repo".to_owned(),
+            },
+            findings: vec![],
+        };
+
+        probe.findings = same_findings;
+        assert!(!needs_rerun(&probe, &metric));
+        probe.findings = less_findings;
+        assert!(needs_rerun(&probe, &metric));
+        probe.findings = more_findings;
+        assert!(!needs_rerun(&probe, &metric));
+        probe.findings = other_findings;
+        assert!(needs_rerun(&probe, &metric));
     }
 }

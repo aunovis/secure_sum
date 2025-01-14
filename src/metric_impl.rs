@@ -8,7 +8,7 @@ impl Metric {
         Self::from_str(&content)
     }
 
-    fn from_str(str: &str) -> Result<Self, Error> {
+    pub(crate) fn from_str(str: &str) -> Result<Self, Error> {
         let metric: Metric = toml::from_str(str)?;
         if metric.contains_only_none() {
             Err(Error::Other(
