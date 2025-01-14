@@ -69,7 +69,7 @@ pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
     Ok(fs::write(path, raw_output)?)
 }
 
-fn load_stored_probe(repo: &str) -> Result<Option<ProbeResult>, Error> {
+pub(crate) fn load_stored_probe(repo: &str) -> Result<Option<ProbeResult>, Error> {
     let path = probe_file(repo)?;
     if !path.exists() {
         return Ok(None);
@@ -79,7 +79,7 @@ fn load_stored_probe(repo: &str) -> Result<Option<ProbeResult>, Error> {
     Ok(Some(probe))
 }
 
-fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
+pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
     let today = Utc::now().date_naive();
     let time_since_last_check = today.signed_duration_since(stored_probe.date);
     if time_since_last_check >= PROBE_VALIDITY_PERIOD {

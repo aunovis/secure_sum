@@ -11,7 +11,7 @@ use crate::{
     error::Error,
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
-    probe::{store_probe, ProbeResult},
+    probe::{load_stored_probe, needs_rerun, store_probe, ProbeResult},
     target::Target,
 };
 
@@ -51,9 +51,18 @@ pub(crate) fn dispatch_scorecard_runs(metric: &Metric, target: Target) -> Result
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     match target {
-        Target::Url(repo) => run_scorecard_probe(&repo, metric, &scorecard)?,
+        Target::Url(repo) => evaluate_repo(&repo, metric, &scorecard)?,
     };
     Ok(())
+}
+
+fn evaluate_repo(repo: &str, metric: &Metric, scorecard: &Path) -> Result<ProbeResult, Error> {
+    if let Some(stored_probe) = load_stored_probe(repo)? {
+        if !needs_rerun(&stored_probe, metric) {
+            return Ok(stored_probe);
+        }
+    }
+    run_scorecard_probe(repo, metric, scorecard)
 }
 
 fn run_scorecard_probe(
