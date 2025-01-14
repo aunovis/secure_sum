@@ -28,10 +28,14 @@ pub(crate) struct ProbeFinding {
     outcome: ProbeOutcome,
 }
 
+/// Corresponds to constants defined in https://github.com/ossf/scorecard/blob/main/finding/finding.go
 #[derive(Clone, Copy, Deserialize, Debug, PartialEq, Eq)]
 pub(crate) enum ProbeOutcome {
-    True,
     False,
+    NotAvailable,
+    Error,
+    True,
+    NotSupported,
     NotApplicable,
 }
 
