@@ -32,6 +32,7 @@ pub(crate) struct ProbeFinding {
 pub(crate) enum ProbeOutcome {
     True,
     False,
+    NotApplicable,
 }
 
 pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
