@@ -29,6 +29,6 @@ fn main() -> Result<(), Error> {
     log::debug!("Parsed target: {target}");
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
-    dispatch_scorecard_runs(&metrics, target)?;
+    dispatch_scorecard_runs(&metrics, target, args.rerun)?;
     Ok(())
 }

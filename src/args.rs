@@ -14,4 +14,8 @@ pub(crate) struct Arguments {
     /// Local Path to a dependencyfile or url to a single repository
     #[arg(value_name = "FILEPATH|URL")]
     pub(crate) dependencies: String,
+
+    /// Rerun all scorecard checks, even if recent results are stored locally
+    #[arg(long)]
+    pub(crate) rerun: bool,
 }

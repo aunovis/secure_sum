@@ -47,19 +47,30 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     Ok(path)
 }
 
-pub(crate) fn dispatch_scorecard_runs(metric: &Metric, target: Target) -> Result<(), Error> {
+pub(crate) fn dispatch_scorecard_runs(
+    metric: &Metric,
+    target: Target,
+    force_rerun: bool,
+) -> Result<(), Error> {
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     match target {
-        Target::Url(repo) => evaluate_repo(&repo, metric, &scorecard)?,
+        Target::Url(repo) => evaluate_repo(&repo, metric, &scorecard, force_rerun)?,
     };
     Ok(())
 }
 
-fn evaluate_repo(repo: &str, metric: &Metric, scorecard: &Path) -> Result<ProbeResult, Error> {
-    if let Some(stored_probe) = load_stored_probe(repo)? {
-        if !needs_rerun(&stored_probe, metric) {
-            return Ok(stored_probe);
+fn evaluate_repo(
+    repo: &str,
+    metric: &Metric,
+    scorecard: &Path,
+    force_rerun: bool,
+) -> Result<ProbeResult, Error> {
+    if !force_rerun {
+        if let Some(stored_probe) = load_stored_probe(repo)? {
+            if !needs_rerun(&stored_probe, metric) {
+                return Ok(stored_probe);
+            }
         }
     }
     run_scorecard_probe(repo, metric, scorecard)
