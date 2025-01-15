@@ -78,13 +78,11 @@ MEMBER_TYPE = ": Option<f32>"
 
 TO_PROBE_SNIPPET = "self.{member}.map(|weight| (\"{member}\", weight))"
 
-def get_probes(url):
+def get_probe_candidates():
     try:
         # Send a GET request to GitHub API
         response = requests.get(url, headers=headers)
         response.raise_for_status()  # Raise error for HTTP issues
-        
-        # Parse the JSON response
         contents = response.json()
         
         # Filter directories (type == "dir")
@@ -93,6 +91,20 @@ def get_probes(url):
         return directories
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
+
+def is_actual_probe(candidate):
+    expected_files = ["def.yml", "impl.go", "impl_test.go"]
+    probe_url = f"{url}/{candidate}"
+    # Send a GET request to GitHub API
+    response = requests.get(probe_url, headers=headers)
+    response.raise_for_status()  # Raise error for HTTP issues
+    contents = response.json()
+    for expected in expected_files:
+        if False: #TODO actual check
+            return False
+    return True
+
+
 
 def construct_members_string(probes):
     members = [f"{MEMBER_PRELUDE}{probe}{MEMBER_TYPE}" for probe in probes]
@@ -113,7 +125,8 @@ def construct_assigned_members_string(assigned_probes):
     assignements = [f"{probe}: Some({val})" for val, probe in assigned_probes]
     return ",".join(assignements)
 
-probes = get_probes(url)
+probe_candidates = get_probe_candidates()
+probes = [p for p in probe_candidates if is_actual_probe(p)]
 assigned_probes = assign_test_values(probes)
 members = construct_members_string(probes)
 probe_conversions = construct_to_probes_string(probes)
