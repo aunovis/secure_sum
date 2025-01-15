@@ -3,12 +3,14 @@ name: PR Checks
 on: [pull_request]
 
 jobs:
-    check_licenses:
+    check-licenses:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
-            - uses: EmbarkStudios/cargo-deny-action@v2
+            - name: Checkout repo
+              uses: actions/checkout@v2
+            - name: Check for disallowed licenses
+              uses: EmbarkStudios/cargo-deny-action@v2
 
     rust-tests:
         strategy:
@@ -31,8 +33,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
-            - uses: clechasseur/rs-cargo@v1
+            - name: Checkout repo
+              uses: actions/checkout@v2
+            - name: Run Clippy
+              uses: clechasseur/rs-cargo@v1
               with:
                   command: clippy
 
@@ -40,11 +44,12 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
-            - uses: clechasseur/rs-cargo@v1
-              with:
-                  command: build
-                  args: --release
-            - run: |
+            - name: Checkout repo
+              uses: actions/checkout@v2
+            - name: Setup Rust Toolchain
+              uses: actions-rust-lang/setup-rust-toolchain@v1
+            - name: Run System Tests
+              run: |
+                echo GITHUB_TOKEN=${{ secrets.PAT }} > .env
                 chmod +x ./system_tests/test.sh
-                echo "TODO: This test currently never terminates."
+                ./system_tests/test.sh
