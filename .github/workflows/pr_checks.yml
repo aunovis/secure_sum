@@ -8,7 +8,7 @@ jobs:
 
         steps:
             - name: Checkout repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Check for disallowed licenses
               uses: EmbarkStudios/cargo-deny-action@v2
 
@@ -20,12 +20,12 @@ jobs:
 
         steps:
             - name: Checkout repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Add GitHub Access Token to .env File
               run: |
                 echo GITHUB_TOKEN=${{ secrets.PAT }} > .env
             - name: Run Tests
-              uses: clechasseur/rs-cargo@v1
+              uses: clechasseur/rs-cargo@v3
               with:
                   command: test
 
@@ -34,9 +34,9 @@ jobs:
 
         steps:
             - name: Checkout repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Run Clippy
-              uses: clechasseur/rs-cargo@v1
+              uses: clechasseur/rs-cargo@v3
               with:
                   command: clippy
 
@@ -45,7 +45,7 @@ jobs:
 
         steps:
             - name: Checkout repo
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Setup Rust Toolchain
               uses: actions-rust-lang/setup-rust-toolchain@v1
             - name: Run System Tests
