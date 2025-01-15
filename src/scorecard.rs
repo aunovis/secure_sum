@@ -71,7 +71,7 @@ fn run_scorecard_probe(
     scorecard: &Path,
 ) -> Result<ProbeResult, Error> {
     log::debug!("Checking {repo}");
-    let args = scorecard_args(metric, repo);
+    let args = scorecard_args(metric, repo)?;
     log::trace!("Args: {:#?}", args);
     let output = Command::new(scorecard)
         .stderr(Stdio::inherit())
@@ -87,17 +87,22 @@ fn run_scorecard_probe(
     Ok(probe_result)
 }
 
-fn scorecard_args(metric: &Metric, repo: &str) -> Vec<String> {
+fn scorecard_args(metric: &Metric, repo: &str) -> Result<Vec<String>, Error> {
     let mut args = vec![];
     args.push(format!("--repo={repo}"));
     let probes = metric
         .probes()
         .map(|(name, _)| name.to_string())
-        .collect::<Vec<_>>()
-        .join(",");
+        .collect::<Vec<_>>();
+    if probes.is_empty() {
+        return Err(Error::Input(
+            "At least one probe needs to be specified".to_owned(),
+        ));
+    }
+    let probes = probes.join(",");
     args.push(format!("--probes={probes}"));
     args.push("--format=probe".to_string());
-    args
+    Ok(args)
 }
 
 #[cfg(test)]
@@ -148,12 +153,19 @@ mod tests {
     }
 
     #[test]
+    fn scorecard_args_without_probes_is_err() {
+        let metric = Metric::default();
+        let args_result = scorecard_args(&metric, EXAMPLE_REPO);
+        assert!(args_result.is_err())
+    }
+
+    #[test]
     fn scorecard_args_one_probe() {
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
-        let args = scorecard_args(&metric, EXAMPLE_REPO);
+        let args = scorecard_args(&metric, EXAMPLE_REPO).unwrap();
         let expected = vec![
             format!("--repo={EXAMPLE_REPO}"),
             "--probes=archived".to_string(),
@@ -169,7 +181,7 @@ mod tests {
             fuzzed: Some(1.3),
             ..Default::default()
         };
-        let args = scorecard_args(&metric, EXAMPLE_REPO);
+        let args = scorecard_args(&metric, EXAMPLE_REPO).unwrap();
         let expected = vec![
             format!("--repo={EXAMPLE_REPO}"),
             "--probes=archived,fuzzed".to_string(),
@@ -221,7 +233,7 @@ mod tests {
         let scorecard = scorecard_path().unwrap();
         let metric = Metric::default();
         let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);
-        assert!(result.is_err());
+        assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
             error_print.contains("probe"),
