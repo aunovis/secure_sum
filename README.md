@@ -57,7 +57,12 @@ For example, to run Secure Sum against a single repository, run:
 ```
 secure_sum example_metrics.toml https://github.com/aunovis/secure_sum
 ```
-The URL has to start with `https://` or `http://`, otherwise Secure Sum will look for a lokal file.
+The URL of the target has to start with `https://` or `http://`, otherwise Secure Sum will look for a local file.
+
+If a check containing the required metrics has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` flag.
+```
+secure_sum example_metrics.toml https://github.com/aunovis/secure_sum --rerun
+```
 
 ## Known Issues
 

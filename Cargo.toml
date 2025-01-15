@@ -5,12 +5,15 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5", default-features = false, features = ["color", "error-context", "derive", "help", "std", "suggestions"] }
+chrono = { version = "0.4.39", default-features = false, features = ["now", "serde"]}
 dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.8.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["zlib-ng-compat"] } # Decompression
 log ={ version = "0.4.22", default-features = false }
-reqwest = { version = "0.12.9", features = ["blocking", "default-tls"] }
+reqwest = { version = "0.12.12", features = ["blocking", "default-tls"] }
+sanitize-filename = { version = "0.6.0", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
+serde_json  = { version = "1.0", default-features = false, features = ["std"]}
 simple_logger ={ version = "5.0", default-features = false }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression
@@ -18,4 +21,4 @@ toml ={ version = "0.8.19", default-features = false, features = ["display", "pa
 
 [dev-dependencies]
 serial_test ={ version = "3.2", default-features = false }
-tempfile = { version = "3.14", default-features = false }
+tempfile = { version = "3.15", default-features = false }

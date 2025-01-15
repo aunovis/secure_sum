@@ -17,8 +17,13 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         steps:
-            - uses: actions/checkout@v2
-            - uses: clechasseur/rs-cargo@v1
+            - name: Checkout repo
+              uses: actions/checkout@v2
+            - name: Add GitHub Access Token to .env File
+              run: |
+                echo GITHUB_TOKEN=${{ secrets.PAT }} > .env
+            - name: Run Tests
+              uses: clechasseur/rs-cargo@v1
               with:
                   command: test
 

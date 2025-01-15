@@ -2,8 +2,10 @@
 
 mod args;
 mod error;
+mod filesystem;
 mod metric;
 mod metric_impl;
+mod probe;
 mod scorecard;
 mod target;
 
@@ -27,6 +29,6 @@ fn main() -> Result<(), Error> {
     log::debug!("Parsed target: {target}");
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
-    dispatch_scorecard_runs(&metrics, target)?;
+    dispatch_scorecard_runs(&metrics, target, args.rerun)?;
     Ok(())
 }

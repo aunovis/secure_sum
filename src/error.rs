@@ -25,6 +25,9 @@ pub(crate) enum Error {
     #[error("Scorecard error: {0}")]
     Scorecard(String),
 
+    #[error("Serde JSON error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+
     #[error("An unspecified error occurred: {0}")]
     Other(String),
 }
