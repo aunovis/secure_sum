@@ -1,7 +1,7 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Command,
 };
 
 use flate2::read::GzDecoder;
@@ -73,12 +73,10 @@ fn run_scorecard_probe(
     log::debug!("Checking {repo}");
     let args = scorecard_args(metric, repo)?;
     log::trace!("Args: {:#?}", args);
-    let output = Command::new(scorecard)
-        .stderr(Stdio::inherit())
-        .args(args)
-        .output()?;
+    let output = Command::new(scorecard).args(args).output()?;
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {
+        log::error!("{stderr}");
         return Err(Error::Scorecard(stderr));
     }
     let stdout = String::from_utf8(output.stdout)?;
@@ -220,7 +218,7 @@ mod tests {
         };
         let repo = "buubpvnuodypyocmqnhv";
         let result = run_scorecard_probe(repo, &metric, &scorecard);
-        assert!(result.is_err());
+        assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(error_print.contains(repo), "Error print is: {error_print}");
     }
