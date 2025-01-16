@@ -1,5 +1,9 @@
+from dotenv import load_dotenv
 import os
 import requests
+
+# Needs to contain GITHUB_TOKEN
+load_dotenv()
 
 # GitHub repository details
 owner = "ossf"
@@ -7,8 +11,10 @@ repo = "scorecard"
 path = "probes"
 url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
 
-# GitHub API requires a User-Agent header
+github_pat = os.getenv("GITHUB_TOKEN")
+# Headers required by GitHub API
 headers = {
+    "Authorization": f"token {github_pat}",
     "User-Agent": "Python-Directory-Fetcher"
 }
 
