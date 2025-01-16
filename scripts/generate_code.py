@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import re
 import requests
 
 # Needs to contain GITHUB_TOKEN
@@ -8,15 +9,15 @@ load_dotenv()
 # GitHub repository details
 owner = "ossf"
 repo = "scorecard"
-path = "probes"
-url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/main?recursive=1"
 
-github_pat = os.getenv("GITHUB_TOKEN")
 # Headers required by GitHub API
 headers = {
-    "Authorization": f"token {github_pat}",
     "User-Agent": "Python-Directory-Fetcher"
 }
+github_pat = os.getenv("GITHUB_TOKEN")
+if github_pat is not None:
+    headers["Authorization"] = f"token {github_pat}"
 
 TARGET_PATH = os.path.join("src", "metric.rs")
 
@@ -84,32 +85,20 @@ MEMBER_TYPE = ": Option<f32>"
 
 TO_PROBE_SNIPPET = "self.{member}.map(|weight| (\"{member}\", weight))"
 
-def get_probe_candidates():
+def get_probes():
     try:
         # Send a GET request to GitHub API
         response = requests.get(url, headers=headers)
         response.raise_for_status()  # Raise error for HTTP issues
         contents = response.json()
-        
-        # Filter directories (type == "dir")
-        directories = [item['name'] for item in contents if item['type'] == 'dir']
+        filepaths = [item['path'] for item in contents['tree']]
 
-        return directories
+        pattern = r"probes/([^/]+)/def\.yml"
+        probes = [match.group(1) for filepath in filepaths if (match := re.search(pattern, filepath))]
+        
+        return probes
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
-
-def is_actual_probe(candidate):
-    expected_files = ["def.yml", "impl.go", "impl_test.go"]
-    probe_url = f"{url}/{candidate}"
-    # Send a GET request to GitHub API
-    response = requests.get(probe_url, headers=headers)
-    response.raise_for_status()  # Raise error for HTTP issues
-    files = response.json()
-    for expected in expected_files:
-        exists = any(f['name'] == expected for f in files)
-        if not exists:
-            return False
-    return True
 
 def construct_members_string(probes):
     members = [f"{MEMBER_PRELUDE}{probe}{MEMBER_TYPE}" for probe in probes]
@@ -130,8 +119,7 @@ def construct_assigned_members_string(assigned_probes):
     assignements = [f"{probe}: Some({val})" for val, probe in assigned_probes]
     return ",".join(assignements)
 
-probe_candidates = get_probe_candidates()
-probes = [p for p in probe_candidates if is_actual_probe(p)]
+probes = get_probes()
 assigned_probes = assign_test_values(probes)
 members = construct_members_string(probes)
 probe_conversions = construct_to_probes_string(probes)
