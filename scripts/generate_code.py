@@ -1,16 +1,23 @@
+from dotenv import load_dotenv
 import os
+import re
 import requests
+
+# Needs to contain GITHUB_TOKEN
+load_dotenv()
 
 # GitHub repository details
 owner = "ossf"
 repo = "scorecard"
-path = "probes"
-url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/main?recursive=1"
 
-# GitHub API requires a User-Agent header
+# Headers required by GitHub API
 headers = {
     "User-Agent": "Python-Directory-Fetcher"
 }
+github_pat = os.getenv("GITHUB_TOKEN")
+if github_pat is not None:
+    headers["Authorization"] = f"token {github_pat}"
 
 TARGET_PATH = os.path.join("src", "metric.rs")
 
@@ -78,19 +85,18 @@ MEMBER_TYPE = ": Option<f32>"
 
 TO_PROBE_SNIPPET = "self.{member}.map(|weight| (\"{member}\", weight))"
 
-def get_probes(url):
+def get_probes():
     try:
         # Send a GET request to GitHub API
         response = requests.get(url, headers=headers)
         response.raise_for_status()  # Raise error for HTTP issues
-        
-        # Parse the JSON response
         contents = response.json()
-        
-        # Filter directories (type == "dir")
-        directories = [item['name'] for item in contents if item['type'] == 'dir']
+        filepaths = [item['path'] for item in contents['tree']]
 
-        return directories
+        pattern = r"probes/([^/]+)/def\.yml"
+        probes = [match.group(1) for filepath in filepaths if (match := re.search(pattern, filepath))]
+        
+        return probes
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
 
@@ -113,7 +119,7 @@ def construct_assigned_members_string(assigned_probes):
     assignements = [f"{probe}: Some({val})" for val, probe in assigned_probes]
     return ",".join(assignements)
 
-probes = get_probes(url)
+probes = get_probes()
 assigned_probes = assign_test_values(probes)
 members = construct_members_string(probes)
 probe_conversions = construct_to_probes_string(probes)

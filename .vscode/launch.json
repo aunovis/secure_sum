@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "[Windows] Analyse secure_sum repo",
+            "name": "Analyse secure_sum repo",
             "cargo": {
                 "args": [
                     "build",
@@ -24,6 +24,13 @@
                 "https://github.com/aunovis/secure_sum"
             ],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Code Generation",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "./scripts/generate_code.py",
+            "console": "integratedTerminal"
         }
     ]
 }

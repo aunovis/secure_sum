@@ -161,12 +161,6 @@ pub(crate) struct Metric {
         deserialize_with = "zero_to_none",
         skip_serializing_if = "Option::is_none"
     )]
-    pub(crate) internal: Option<f32>,
-    #[serde(
-        default,
-        deserialize_with = "zero_to_none",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub(crate) issueActivityByProjectMember: Option<f32>,
     #[serde(
         default,
@@ -293,19 +287,7 @@ pub(crate) struct Metric {
         deserialize_with = "zero_to_none",
         skip_serializing_if = "Option::is_none"
     )]
-    pub(crate) utils: Option<f32>,
-    #[serde(
-        default,
-        deserialize_with = "zero_to_none",
-        skip_serializing_if = "Option::is_none"
-    )]
     pub(crate) webhooksUseSecrets: Option<f32>,
-    #[serde(
-        default,
-        deserialize_with = "zero_to_none",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub(crate) zrunner: Option<f32>,
 }
 
 impl Metric {
@@ -355,7 +337,6 @@ impl Metric {
             self.hasSBOM.map(|weight| ("hasSBOM", weight)),
             self.hasUnverifiedBinaryArtifacts
                 .map(|weight| ("hasUnverifiedBinaryArtifacts", weight)),
-            self.internal.map(|weight| ("internal", weight)),
             self.issueActivityByProjectMember
                 .map(|weight| ("issueActivityByProjectMember", weight)),
             self.jobLevelPermissions
@@ -397,10 +378,8 @@ impl Metric {
             self.testsRunInCI.map(|weight| ("testsRunInCI", weight)),
             self.topLevelPermissions
                 .map(|weight| ("topLevelPermissions", weight)),
-            self.utils.map(|weight| ("utils", weight)),
             self.webhooksUseSecrets
                 .map(|weight| ("webhooksUseSecrets", weight)),
-            self.zrunner.map(|weight| ("zrunner", weight)),
         ]
         .into_iter()
         .flatten()
@@ -454,31 +433,28 @@ hasRecentCommits = 2.2
 hasReleaseSBOM = 2.3
 hasSBOM = 2.4
 hasUnverifiedBinaryArtifacts = 2.5
-internal = 2.6
-issueActivityByProjectMember = 2.7
-jobLevelPermissions = 2.8
-packagedWithAutomatedWorkflow = 2.9
-pinsDependencies = 3.0
-releasesAreSigned = 3.1
-releasesHaveProvenance = 3.2
-releasesHaveVerifiedProvenance = 3.3
-requiresApproversForPullRequests = 3.4
-requiresCodeOwnersReview = 3.5
-requiresLastPushApproval = 3.6
-requiresPRsToChangeCode = 3.7
-requiresUpToDateBranches = 3.8
-runsStatusChecksBeforeMerging = 3.9
-sastToolConfigured = 4.0
-sastToolRunsOnAllCommits = 4.1
-securityPolicyContainsLinks = 4.2
-securityPolicyContainsText = 4.3
-securityPolicyContainsVulnerabilityDisclosure = 4.4
-securityPolicyPresent = 4.5
-testsRunInCI = 4.6
-topLevelPermissions = 4.7
-utils = 4.8
-webhooksUseSecrets = 4.9
-zrunner = 5.0
+issueActivityByProjectMember = 2.6
+jobLevelPermissions = 2.7
+packagedWithAutomatedWorkflow = 2.8
+pinsDependencies = 2.9
+releasesAreSigned = 3.0
+releasesHaveProvenance = 3.1
+releasesHaveVerifiedProvenance = 3.2
+requiresApproversForPullRequests = 3.3
+requiresCodeOwnersReview = 3.4
+requiresLastPushApproval = 3.5
+requiresPRsToChangeCode = 3.6
+requiresUpToDateBranches = 3.7
+runsStatusChecksBeforeMerging = 3.8
+sastToolConfigured = 3.9
+sastToolRunsOnAllCommits = 4.0
+securityPolicyContainsLinks = 4.1
+securityPolicyContainsText = 4.2
+securityPolicyContainsVulnerabilityDisclosure = 4.3
+securityPolicyPresent = 4.4
+testsRunInCI = 4.5
+topLevelPermissions = 4.6
+webhooksUseSecrets = 4.7
 "#;
 
 #[cfg(test)]
@@ -508,29 +484,26 @@ pub(crate) static EXAMPLE_METRIC: Metric = Metric {
     hasReleaseSBOM: Some(2.3),
     hasSBOM: Some(2.4),
     hasUnverifiedBinaryArtifacts: Some(2.5),
-    internal: Some(2.6),
-    issueActivityByProjectMember: Some(2.7),
-    jobLevelPermissions: Some(2.8),
-    packagedWithAutomatedWorkflow: Some(2.9),
-    pinsDependencies: Some(3.0),
-    releasesAreSigned: Some(3.1),
-    releasesHaveProvenance: Some(3.2),
-    releasesHaveVerifiedProvenance: Some(3.3),
-    requiresApproversForPullRequests: Some(3.4),
-    requiresCodeOwnersReview: Some(3.5),
-    requiresLastPushApproval: Some(3.6),
-    requiresPRsToChangeCode: Some(3.7),
-    requiresUpToDateBranches: Some(3.8),
-    runsStatusChecksBeforeMerging: Some(3.9),
-    sastToolConfigured: Some(4.0),
-    sastToolRunsOnAllCommits: Some(4.1),
-    securityPolicyContainsLinks: Some(4.2),
-    securityPolicyContainsText: Some(4.3),
-    securityPolicyContainsVulnerabilityDisclosure: Some(4.4),
-    securityPolicyPresent: Some(4.5),
-    testsRunInCI: Some(4.6),
-    topLevelPermissions: Some(4.7),
-    utils: Some(4.8),
-    webhooksUseSecrets: Some(4.9),
-    zrunner: Some(5.0),
+    issueActivityByProjectMember: Some(2.6),
+    jobLevelPermissions: Some(2.7),
+    packagedWithAutomatedWorkflow: Some(2.8),
+    pinsDependencies: Some(2.9),
+    releasesAreSigned: Some(3.0),
+    releasesHaveProvenance: Some(3.1),
+    releasesHaveVerifiedProvenance: Some(3.2),
+    requiresApproversForPullRequests: Some(3.3),
+    requiresCodeOwnersReview: Some(3.4),
+    requiresLastPushApproval: Some(3.5),
+    requiresPRsToChangeCode: Some(3.6),
+    requiresUpToDateBranches: Some(3.7),
+    runsStatusChecksBeforeMerging: Some(3.8),
+    sastToolConfigured: Some(3.9),
+    sastToolRunsOnAllCommits: Some(4.0),
+    securityPolicyContainsLinks: Some(4.1),
+    securityPolicyContainsText: Some(4.2),
+    securityPolicyContainsVulnerabilityDisclosure: Some(4.3),
+    securityPolicyPresent: Some(4.4),
+    testsRunInCI: Some(4.5),
+    topLevelPermissions: Some(4.6),
+    webhooksUseSecrets: Some(4.7),
 };
