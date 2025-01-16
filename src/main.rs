@@ -6,6 +6,7 @@ mod filesystem;
 mod metric;
 mod metric_impl;
 mod probe;
+mod score;
 mod scorecard;
 mod target;
 
