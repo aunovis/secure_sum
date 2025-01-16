@@ -24,8 +24,8 @@ pub(crate) struct Repo {
 
 #[derive(Clone, Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
-    probe: String,
-    outcome: ProbeOutcome,
+    pub(crate) probe: String,
+    pub(crate) outcome: ProbeOutcome,
 }
 
 /// Corresponds to constants defined in https://github.com/ossf/scorecard/blob/main/finding/finding.go

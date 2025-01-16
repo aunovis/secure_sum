@@ -5,17 +5,18 @@ use crate::{
 
 static NORM: f32 = 10.;
 
+#[derive(Debug, PartialEq)]
 struct WeighedFinding {
     probe: String,
     weight: f32,
     outcome: ProbeOutcome,
 }
 
-fn weigh_findings(result: &Vec<ProbeFinding>, metric: Metric) -> Vec<WeighedFinding> {
+fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
     todo!()
 }
 
-fn calculate_total_score(findings: &Vec<WeighedFinding>) -> f32 {
+fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
     todo!()
 }
 
@@ -24,22 +25,151 @@ mod tests {
     use super::*;
 
     #[test]
-    fn weig_findings_ignores_probes_not_in_metric() {
-        todo!()
+    fn weigh_findings_ignores_probes_not_in_metric() {
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        let findings = vec![
+            ProbeFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: "fuzzed".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+        ];
+
+        let weighed = weighed_findings(&findings, &metric);
+
+        let expected = vec![WeighedFinding {
+            probe: "archived".to_owned(),
+            outcome: ProbeOutcome::True,
+            weight: 1.,
+        }];
+        assert_eq!(weighed, expected);
     }
 
     #[test]
-    fn weighed_findingss_are_sorted_by_weight() {
-        todo!()
+    fn weighed_findings_are_sorted_by_weight_amplitude() {
+        let metric = Metric {
+            archived: Some(1.),
+            fuzzed: Some(2.),
+            codeApproved: Some(-3.),
+            ..Default::default()
+        };
+        let findings = vec![
+            ProbeFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: "codeApproved".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: "fuzzed".to_owned(),
+                outcome: ProbeOutcome::True,
+            },
+        ];
+
+        let weighed = weighed_findings(&findings, &metric);
+
+        let expected = vec![
+            WeighedFinding {
+                probe: "codeApproved".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: -3.,
+            },
+            WeighedFinding {
+                probe: "fuzzed".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 2.,
+            },
+            WeighedFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+        ];
+        assert_eq!(weighed, expected);
     }
 
     #[test]
     fn total_score_is_normed() {
-        todo!()
+        let findings = vec![WeighedFinding {
+            probe: "archived".to_owned(),
+            outcome: ProbeOutcome::True,
+            weight: 1.234,
+        }];
+
+        assert_eq!(calculate_total_score(&findings), NORM);
+    }
+
+    // TODO: Is this what we want? Or do we want to map most negative value to 0 and most positive to 10?
+    #[test]
+    fn total_score_is_normed_to_max_value() {
+        let findings = vec![
+            WeighedFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: "codeApproved".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: "fuzzed".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+        ];
+
+        assert_eq!(calculate_total_score(&findings), NORM/2.);
+    }
+
+    
+    #[test]
+    fn total_score_ignores_non_boolean_outcomes() {
+        let findings = vec![
+            WeighedFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: "codeApproved".to_owned(),
+                outcome: ProbeOutcome::False,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: "fuzzed".to_owned(),
+                outcome: ProbeOutcome::NotSupported,
+                weight: 1.,
+            },
+        ];
+
+        assert_eq!(calculate_total_score(&findings), NORM/2.);
     }
 
     #[test]
     fn total_score_can_handle_division_by_zero() {
-        todo!()
+        let findings = vec![
+            WeighedFinding {
+                probe: "archived".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: "codeApproved".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+        ];
+        
+        assert_eq!(calculate_total_score(&findings), 0.);
     }
 }
