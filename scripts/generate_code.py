@@ -98,13 +98,12 @@ def is_actual_probe(candidate):
     # Send a GET request to GitHub API
     response = requests.get(probe_url, headers=headers)
     response.raise_for_status()  # Raise error for HTTP issues
-    contents = response.json()
+    files = response.json()
     for expected in expected_files:
-        if False: #TODO actual check
+        exists = any(f['name'] == expected for f in files)
+        if not exists:
             return False
     return True
-
-
 
 def construct_members_string(probes):
     members = [f"{MEMBER_PRELUDE}{probe}{MEMBER_TYPE}" for probe in probes]
