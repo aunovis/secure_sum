@@ -97,42 +97,6 @@ mod tests {
     }
 
     #[test]
-    fn total_score_is_normed() {
-        let findings = vec![WeighedFinding {
-            probe: "archived".to_owned(),
-            outcome: ProbeOutcome::True,
-            weight: 1.234,
-        }];
-
-        assert_eq!(calculate_total_score(&findings), NORM);
-    }
-
-    // TODO: Is this what we want? Or do we want to map most negative value to 0 and most positive to 10?
-    #[test]
-    fn total_score_is_normed_to_max_value() {
-        let findings = vec![
-            WeighedFinding {
-                probe: "archived".to_owned(),
-                outcome: ProbeOutcome::True,
-                weight: -1.,
-            },
-            WeighedFinding {
-                probe: "codeApproved".to_owned(),
-                outcome: ProbeOutcome::True,
-                weight: 1.,
-            },
-            WeighedFinding {
-                probe: "fuzzed".to_owned(),
-                outcome: ProbeOutcome::True,
-                weight: 1.,
-            },
-        ];
-
-        assert_eq!(calculate_total_score(&findings), NORM/2.);
-    }
-
-    
-    #[test]
     fn total_score_ignores_non_boolean_outcomes() {
         let findings = vec![
             WeighedFinding {
@@ -152,24 +116,49 @@ mod tests {
             },
         ];
 
-        assert_eq!(calculate_total_score(&findings), NORM/2.);
+        assert_eq!(calculate_total_score(&findings), NORM / 2.);
     }
 
     #[test]
-    fn total_score_can_handle_division_by_zero() {
+    fn total_score_is_normed() {
+        let findings = vec![WeighedFinding {
+            probe: "archived".to_owned(),
+            outcome: ProbeOutcome::True,
+            weight: 1.234,
+        }];
+
+        assert_eq!(calculate_total_score(&findings), NORM);
+    }
+
+    #[test]
+    fn total_score_is_normed_between_min_and_max_value() {
         let findings = vec![
             WeighedFinding {
                 probe: "archived".to_owned(),
                 outcome: ProbeOutcome::True,
-                weight: 1.,
+                weight: -1.,
             },
             WeighedFinding {
                 probe: "codeApproved".to_owned(),
                 outcome: ProbeOutcome::True,
-                weight: -1.,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: "fuzzed".to_owned(),
+                outcome: ProbeOutcome::True,
+                weight: 1.,
             },
         ];
-        
-        assert_eq!(calculate_total_score(&findings), 0.);
+        // Lowest possible value before normalization is -1.
+        // Highest is 2.
+        // Actual i 1.
+        // => After normalization, value is at 2/3 of NORM.
+
+        assert_eq!(calculate_total_score(&findings), NORM * 2. / 3.);
+    }
+
+    #[test]
+    fn total_score_can_handle_empty_findings() {
+        assert_eq!(calculate_total_score(&vec![]), 0.);
     }
 }
