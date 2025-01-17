@@ -13,13 +13,13 @@ static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
     date: NaiveDate,
-    repo: Repo,
-    findings: Vec<ProbeFinding>,
+    pub(crate) repo: Repo,
+    pub(crate) findings: Vec<ProbeFinding>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct Repo {
-    name: String,
+    pub(crate) name: String,
 }
 
 #[derive(Clone, Deserialize, Debug, PartialEq, Eq)]

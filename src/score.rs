@@ -9,7 +9,7 @@ static NORM: f32 = 10.;
 static ZERO_ACCURACY: f32 = 1e-10;
 
 #[derive(Debug, PartialEq)]
-struct WeighedFinding {
+pub(crate) struct WeighedFinding {
     probe: String,
     weight: f32,
     outcome: ProbeOutcome,
@@ -36,7 +36,7 @@ impl PartialOrd for WeighedFinding {
     }
 }
 
-fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
+pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
     let mut weighed = vec![];
     for (probe, weight) in metric.probes() {
         let finding = findings.iter().find(|f| f.probe == probe);
@@ -57,7 +57,7 @@ fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFi
     weighed
 }
 
-fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
+pub(crate) fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
     let (lowest, highest) = lowest_and_highest_possible_value(findings);
     let translation_offset = -lowest;
     let scale = highest - lowest;
@@ -81,13 +81,17 @@ fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
     weighed_sum
 }
 
+pub(crate) fn boolean_outcomes(findings: &[WeighedFinding]) -> Vec<&WeighedFinding> {
+    findings.iter().filter(|f| f.outcome.is_boolean()).collect()
+}
+
 fn lowest_and_highest_possible_value(findings: &[WeighedFinding]) -> (f32, f32) {
-    let boolean_outcomes = findings.iter().filter(|f| f.outcome.is_boolean());
-    let lowest = boolean_outcomes
-        .clone()
+    let lowest = boolean_outcomes(findings)
+        .iter()
         .filter_map(|f| if f.weight < 0. { Some(f.weight) } else { None })
         .sum();
-    let highest = boolean_outcomes
+    let highest = boolean_outcomes(findings)
+        .iter()
         .filter_map(|f| if f.weight > 0. { Some(f.weight) } else { None })
         .sum();
     (lowest, highest)
