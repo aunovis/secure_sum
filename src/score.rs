@@ -1,9 +1,12 @@
+use std::cmp::Ordering;
+
 use crate::{
     metric::Metric,
     probe::{ProbeFinding, ProbeOutcome},
 };
 
 static NORM: f32 = 10.;
+static ZERO_ACCURACY: f32 = 1e-10;
 
 #[derive(Debug, PartialEq)]
 struct WeighedFinding {
@@ -12,12 +15,82 @@ struct WeighedFinding {
     outcome: ProbeOutcome,
 }
 
+impl Eq for WeighedFinding {}
+
+impl Ord for WeighedFinding {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let self_weight = self.weight.abs();
+        let other_weight = other.weight.abs();
+        // The order is such that higher values come first.
+        match other_weight.partial_cmp(&self_weight) {
+            Some(Ordering::Equal) | None => {}
+            Some(ord) => return ord,
+        }
+        self.probe.cmp(&other.probe)
+    }
+}
+
+impl PartialOrd for WeighedFinding {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
-    todo!()
+    let mut weighed = vec![];
+    for (probe, weight) in metric.probes() {
+        let finding = findings.iter().find(|f| f.probe == probe);
+        let outcome = match finding {
+            Some(finding) => finding.outcome,
+            None => {
+                log::error!("Findings contain no outcome for probe \"{probe}\"");
+                continue;
+            }
+        };
+        weighed.push(WeighedFinding {
+            probe: probe.to_owned(),
+            weight,
+            outcome,
+        });
+    }
+    weighed.sort();
+    weighed
 }
 
 fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
-    todo!()
+    let (lowest, highest) = lowest_and_highest_possible_value(findings);
+    let translation_offset = -lowest;
+    let scale = highest - lowest;
+    if scale.abs() < ZERO_ACCURACY {
+        log::warn!("A finding has a difference of {scale} between lowest and highest possible value. Most probably too many probes yielded no boolean result.");
+        return 0.;
+    }
+    let factor = NORM / scale;
+    let mut weighed_sum: f32 = findings
+        .iter()
+        .filter_map(|f| {
+            if f.outcome == ProbeOutcome::True {
+                Some(f.weight)
+            } else {
+                None
+            }
+        })
+        .sum();
+    weighed_sum += translation_offset;
+    weighed_sum *= factor;
+    weighed_sum
+}
+
+fn lowest_and_highest_possible_value(findings: &[WeighedFinding]) -> (f32, f32) {
+    let boolean_outcomes = findings.iter().filter(|f| f.outcome.is_boolean());
+    let lowest = boolean_outcomes
+        .clone()
+        .filter_map(|f| if f.weight < 0. { Some(f.weight) } else { None })
+        .sum();
+    let highest = boolean_outcomes
+        .filter_map(|f| if f.weight > 0. { Some(f.weight) } else { None })
+        .sum();
+    (lowest, highest)
 }
 
 #[cfg(test)]
@@ -116,6 +189,9 @@ mod tests {
             },
         ];
 
+        let (lowest, highest) = lowest_and_highest_possible_value(&findings);
+        assert_eq!(lowest, 0.,);
+        assert_eq!(highest, 2.);
         assert_eq!(calculate_total_score(&findings), NORM / 2.);
     }
 
@@ -127,6 +203,9 @@ mod tests {
             weight: 1.234,
         }];
 
+        let (lowest, highest) = lowest_and_highest_possible_value(&findings);
+        assert_eq!(lowest, 0.,);
+        assert_eq!(highest, 1.234);
         assert_eq!(calculate_total_score(&findings), NORM);
     }
 
@@ -149,16 +228,19 @@ mod tests {
                 weight: 1.,
             },
         ];
-        // Lowest possible value before normalization is -1.
-        // Highest is 2.
-        // Actual i 1.
-        // => After normalization, value is at 2/3 of NORM.
 
+        let (lowest, highest) = lowest_and_highest_possible_value(&findings);
+        assert_eq!(lowest, -1.,);
+        assert_eq!(highest, 2.);
+        // Actual result is 1, which is 2/3 along the scale.
         assert_eq!(calculate_total_score(&findings), NORM * 2. / 3.);
     }
 
     #[test]
     fn total_score_can_handle_empty_findings() {
+        let (lowest, highest) = lowest_and_highest_possible_value(&vec![]);
+        assert_eq!(lowest, 0.,);
+        assert_eq!(highest, 0.);
         assert_eq!(calculate_total_score(&vec![]), 0.);
     }
 }

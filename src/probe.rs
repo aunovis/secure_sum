@@ -39,6 +39,12 @@ pub(crate) enum ProbeOutcome {
     NotApplicable,
 }
 
+impl ProbeOutcome {
+    pub(crate) fn is_boolean(&self) -> bool {
+        self == &ProbeOutcome::True || self == &ProbeOutcome::False
+    }
+}
+
 pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
     static HTTP: &str = "http://";
