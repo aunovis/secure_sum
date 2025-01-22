@@ -1,6 +1,7 @@
 #![warn(clippy::unwrap_used)]
 
 mod args;
+mod ecosystem;
 mod error;
 mod filesystem;
 mod metric;
