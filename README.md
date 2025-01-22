@@ -12,7 +12,7 @@ However, you may not agree with Scorecard's prioritisation of security aspects. 
 
 To solve this issue, Scorecard has exposed the results of the various evaluations as machine-readable output. All that is left to do is to parse and combine them to a single score according to a customisable metric.
 
-This is what AUNOVIS Secure Sum does.
+This is what Secure Sum does.
 
 ## Setup
 
@@ -44,9 +44,27 @@ A more persistent way is to write create a fiel called `.env` with the content `
 
 ## Usage
 
-First, you have to define a metrics file. This tells AUNOVIS Secure Sum your priorities when evaluating projects. The file is written in [TOML format](https://toml.io/) and contains all probes you want to run, paired with a weight factor. The `system_tests` folder contains [an example file](https://github.com/aunovis/secure_sum/blob/main/system_tests/example_metrics.toml).
+### Metric File
+
+First, you have to define a metrics file. This tells Secure Sum your priorities when evaluating projects. The file is written in [TOML format](https://toml.io/) and contains all probes you want to run, paired with a weight factor. The `system_tests` folder contains [an example file](https://github.com/aunovis/secure_sum/blob/main/system_tests/example_metrics.toml).
+
+A probe is some kind of check with an outcome that is either true, false, or a variation of "the probe check didn't work properly". The "fuzzed" probe for example checks if a repository is automatically fuzzed. The "archived" probe checks whether or not the repository is marked as archived.
 
 A list of all available probes can be found [in the scorecard repo](https://github.com/ossf/scorecard/tree/main/probes). They are kept up to date with [the corresponding rust file](https://github.com/aunovis/secure_sum/blob/main/src/metric.rs).
+
+Weight factors can be any real number. Positive numbers should be used for qualities that are good to have (for example being fuzzed), negative numbers for qualities that are bad to have (for example being archived). A weight of zero is equivalent to omitting the probe from the metric file, the probe is not run.
+
+Secure Sum's algorithm for calculating the total score is as follows:
+1. Run all probes.
+2. Keep only those probes whose outcome is either true or false.
+3. Calculate the lowest weighed sum possible with these probes, by summing up all negative weights.
+4. Analogously calculate the highest weighed sum possible.
+5. Calculate the actual result by summing all weights of probes with outcome true.
+6. Linearly transform the three numbers such that the lowest possible value is mapped to 0, and the highest value to 10. The actual result will be in this interval.
+
+This algorithm is a choice. If you yould like Secure Sum to be configurable to use another algorithm, please [create an issue](https://github.com/aunovis/secure_sum/issues) and we will see what we can do.
+
+### Program Call
 
 To run the analyses and apply the metrics, pass the metrics file as the first and the target as the second argument:
 ```

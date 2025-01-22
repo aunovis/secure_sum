@@ -51,13 +51,13 @@ pub(crate) fn dispatch_scorecard_runs(
     metric: &Metric,
     target: Target,
     force_rerun: bool,
-) -> Result<(), Error> {
+) -> Result<Vec<ProbeResult>, Error> {
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
-    match target {
-        Target::Url(repo) => evaluate_repo(&repo, metric, &scorecard, force_rerun)?,
+    let results = match target {
+        Target::Url(repo) => vec![evaluate_repo(&repo, metric, &scorecard, force_rerun)?],
     };
-    Ok(())
+    Ok(results)
 }
 
 fn evaluate_repo(

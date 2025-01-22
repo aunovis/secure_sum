@@ -6,14 +6,18 @@ mod filesystem;
 mod metric;
 mod metric_impl;
 mod probe;
+mod repodata;
+mod score;
 mod scorecard;
 mod target;
 
 use args::Arguments;
 use clap::Parser;
 use metric::Metric;
+use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use simple_logger::SimpleLogger;
+use tabled::Table;
 use target::Target;
 
 use crate::error::Error;
@@ -29,6 +33,11 @@ fn main() -> Result<(), Error> {
     log::debug!("Parsed target: {target}");
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
-    dispatch_scorecard_runs(&metrics, target, args.rerun)?;
+    let results = dispatch_scorecard_runs(&metrics, target, args.rerun)?;
+    let results: Vec<_> = results
+        .iter()
+        .map(|r| RepoData::repodata(r, &metrics))
+        .collect();
+    log::info!("\n{}", Table::new(results));
     Ok(())
 }

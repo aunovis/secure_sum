@@ -13,19 +13,19 @@ static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
     date: NaiveDate,
-    repo: Repo,
-    findings: Vec<ProbeFinding>,
+    pub(crate) repo: Repo,
+    pub(crate) findings: Vec<ProbeFinding>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct Repo {
-    name: String,
+    pub(crate) name: String,
 }
 
 #[derive(Clone, Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
-    probe: String,
-    outcome: ProbeOutcome,
+    pub(crate) probe: String,
+    pub(crate) outcome: ProbeOutcome,
 }
 
 /// Corresponds to constants defined in https://github.com/ossf/scorecard/blob/main/finding/finding.go
@@ -37,6 +37,12 @@ pub(crate) enum ProbeOutcome {
     True,
     NotSupported,
     NotApplicable,
+}
+
+impl ProbeOutcome {
+    pub(crate) fn is_boolean(&self) -> bool {
+        self == &ProbeOutcome::True || self == &ProbeOutcome::False
+    }
 }
 
 pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
