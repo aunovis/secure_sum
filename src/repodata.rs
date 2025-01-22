@@ -1,15 +1,17 @@
 use std::cmp::Ordering;
 
+use tabled::Tabled;
+
 use crate::{
     metric::Metric,
     probe::ProbeResult,
     score::{boolean_outcomes, calculate_total_score, weighed_findings},
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Tabled)]
 pub(crate) struct RepoData {
-    total_score: f32,
     repo: String,
+    total_score: f32,
     number_of_probes: usize,
     successful_probes: usize,
 }

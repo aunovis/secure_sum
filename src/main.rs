@@ -17,6 +17,7 @@ use metric::Metric;
 use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use simple_logger::SimpleLogger;
+use tabled::Table;
 use target::Target;
 
 use crate::error::Error;
@@ -33,9 +34,10 @@ fn main() -> Result<(), Error> {
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
     let results = dispatch_scorecard_runs(&metrics, target, args.rerun)?;
-    let mut results: Vec<_> = results
+    let results: Vec<_> = results
         .iter()
         .map(|r| RepoData::repodata(r, &metrics))
         .collect();
+    log::info!("\n{}", Table::new(results));
     Ok(())
 }
