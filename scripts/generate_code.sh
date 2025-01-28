@@ -3,19 +3,18 @@
 set -e
 
 cd $(git rev-parse --show-toplevel)
-cd scripts
 
-if [ ! -d venv ]; then
-    python -m venv venv
+if [ ! -d ./scripts/venv ]; then
+    python -m venv ./scripts/venv
 fi
 
-if [ -d ./venv/bin ]; then
-    source ./venv/bin/activate
+if [ -d ./scripts/venv/bin ]; then
+    source ./scripts/venv/bin/activate
 else
-    source ./venv/Scripts/activate
+    source ./scripts/venv/Scripts/activate
 fi
 
-pip install -r requirements.txt
-python ./generate_code.py
+pip install -r ./scripts/requirements.txt
+python ./scripts/generate_code.py
 
 cargo fmt
