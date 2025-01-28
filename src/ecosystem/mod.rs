@@ -1,6 +1,8 @@
 mod depfile;
 mod rust;
 
+pub(crate) use depfile::*;
+
 pub(crate) enum Ecosystem {
     Rust,
 }

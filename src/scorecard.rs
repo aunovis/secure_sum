@@ -8,6 +8,7 @@ use flate2::read::GzDecoder;
 use tar::Archive;
 
 use crate::{
+    ecosystem::try_parse_all_ecosystems,
     error::Error,
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
@@ -56,6 +57,11 @@ pub(crate) fn dispatch_scorecard_runs(
     log::debug!("Running scorecard binary {}", scorecard.display());
     let results = match target {
         Target::Url(repo) => vec![evaluate_repo(&repo, metric, &scorecard, force_rerun)?],
+        Target::DepFile(_, depfile) => depfile
+            .first_level_deps()
+            .iter()
+            .map(|dep| evaluate_repo(dep, metric, &scorecard, force_rerun))
+            .collect::<Result<_, _>>()?,
     };
     Ok(results)
 }
