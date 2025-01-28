@@ -5,8 +5,8 @@ set -e
 cd $(git rev-parse --show-toplevel)
 
 echo Generating Code
-chmod +x ./scripts/generate_code.py
-./scripts/generate_code.py
+chmod +x ./scripts/generate_code.sh
+./scripts/generate_code.sh
 
 echo Updating Dependencies
 cargo update
