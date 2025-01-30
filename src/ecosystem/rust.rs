@@ -1,5 +1,6 @@
 use std::{collections::HashMap, fs, path::Path};
 
+use reqwest::blocking::Client;
 use serde::Deserialize;
 
 use crate::{error::Error, url::Url};
@@ -30,8 +31,37 @@ impl DepFile for CargoToml {
     }
 
     fn first_level_deps(&self) -> Result<Vec<Url>, Error> {
-        // self.dependencies.keys().cloned().collect()
-        todo!()
+        self.dependencies.keys().map(|d| repo_url(d)).collect()
+    }
+}
+
+#[derive(Deserialize)]
+struct CrateResponse {
+    #[serde(rename = "crate")]
+    crate_: Crate,
+}
+
+#[derive(Deserialize)]
+struct Crate {
+    repository: Option<String>,
+}
+
+fn repo_url(crate_name: &str) -> Result<Url, Error> {
+    let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
+    let client = Client::new();
+    let response = client
+        .get(&url)
+        .header("User-Agent", "secure_sum (info@aunovis.de)")
+        .send()?
+        .text()?;
+
+    let crate_response: CrateResponse = serde_json::from_str(&response)?;
+    match crate_response.crate_.repository {
+        Some(repo) => Ok(repo.into()),
+        None => {
+            let message = format!("Could not obtain repo for crate {}", crate_name);
+            Err(Error::Other(message))
+        }
     }
 }
 
@@ -72,5 +102,14 @@ mod tests {
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let cargo_toml = result.unwrap();
         assert!(cargo_toml.dependencies.contains_key("serde"));
+    }
+
+    #[test]
+    fn crate_repo_url_can_be_obtained() {
+        let crate_name = "serde";
+        let result = repo_url(crate_name);
+        assert!(result.is_ok(), "{}", result.err().unwrap());
+        let repo = result.unwrap();
+        assert_eq!(repo.0, "https://github.com/serde-rs/serde");
     }
 }
