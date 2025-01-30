@@ -6,7 +6,7 @@ use super::Ecosystem;
 
 pub(crate) trait DepFile {
     fn ecosystem(&self) -> Ecosystem;
-    fn first_level_deps(&self) -> Vec<Url>;
+    fn first_level_deps(&self) -> Result<Vec<Url>, Error>;
 }
 
 pub(crate) fn parse(file: &Path) -> Result<Box<dyn DepFile>, Error> {

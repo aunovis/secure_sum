@@ -58,7 +58,7 @@ pub(crate) fn dispatch_scorecard_runs(
     let results = match target {
         Target::Url(repo) => vec![evaluate_repo(&repo, metric, &scorecard, force_rerun)?],
         Target::DepFile(_, depfile) => depfile
-            .first_level_deps()
+            .first_level_deps()?
             .iter()
             .map(|dep| evaluate_repo(dep, metric, &scorecard, force_rerun))
             .collect::<Result<_, _>>()?,

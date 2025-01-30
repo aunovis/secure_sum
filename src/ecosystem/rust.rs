@@ -29,7 +29,7 @@ impl DepFile for CargoToml {
         Ecosystem::Rust
     }
 
-    fn first_level_deps(&self) -> Vec<Url> {
+    fn first_level_deps(&self) -> Result<Vec<Url>, Error> {
         // self.dependencies.keys().cloned().collect()
         todo!()
     }
@@ -46,7 +46,7 @@ mod tests {
         let result = CargoToml::parse_str("");
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let cargo_toml = result.unwrap();
-        assert!(cargo_toml.first_level_deps().is_empty());
+        assert!(cargo_toml.dependencies.is_empty());
     }
 
     #[test]
@@ -59,9 +59,9 @@ mod tests {
         let result = CargoToml::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let cargo_toml = result.unwrap();
-        assert_eq!(cargo_toml.first_level_deps().len(), 2);
-        assert!(cargo_toml.first_level_deps().contains(&"serde".into()));
-        assert!(cargo_toml.first_level_deps().contains(&"toml".into()));
+        assert_eq!(cargo_toml.dependencies.len(), 2);
+        assert!(cargo_toml.dependencies.contains_key("serde"));
+        assert!(cargo_toml.dependencies.contains_key("toml"));
     }
 
     #[test]
@@ -71,6 +71,6 @@ mod tests {
         let result = CargoToml::parse(&path);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let cargo_toml = result.unwrap();
-        assert!(cargo_toml.first_level_deps().contains(&"serde".into()));
+        assert!(cargo_toml.dependencies.contains_key("serde"));
     }
 }
