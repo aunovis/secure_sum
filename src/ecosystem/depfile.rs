@@ -18,7 +18,7 @@ pub(crate) fn parse(file: &Path) -> Result<Box<dyn DepFile>, Error> {
     Ok(dep_file)
 }
 
-pub(crate) fn try_parse_all_ecosystems(file: &Path) -> Result<Box<dyn DepFile>, Error> {
+fn try_parse_all_ecosystems(file: &Path) -> Result<Box<dyn DepFile>, Error> {
     if let Ok(cargo_toml) = CargoToml::parse(file) {
         return Ok(Box::new(cargo_toml));
     }

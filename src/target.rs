@@ -1,7 +1,7 @@
 use std::{fmt::Display, path::PathBuf};
 
 use crate::{
-    ecosystem::{try_parse_all_ecosystems, DepFile},
+    ecosystem::{parse, DepFile},
     error::Error,
     url::Url,
 };
@@ -17,7 +17,7 @@ impl Target {
             return Ok(Self::Url(path.into()));
         }
         let depfile_path = PathBuf::from(&path);
-        let depfile = try_parse_all_ecosystems(&depfile_path);
+        let depfile = parse(&depfile_path);
         if let Ok(depfile) = depfile {
             return Ok(Self::DepFile(depfile_path, depfile));
         }
@@ -37,10 +37,6 @@ impl Display for Target {
 
 fn is_url(str: &str) -> bool {
     str.starts_with("https://") || str.starts_with("http://")
-}
-
-fn is_cargo_toml(str: &str) -> bool {
-    str.to_lowercase().ends_with("cargo.toml")
 }
 
 #[cfg(test)]
