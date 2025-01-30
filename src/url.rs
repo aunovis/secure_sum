@@ -19,7 +19,7 @@ impl From<String> for Url {
 
 impl From<&str> for Url {
     fn from(value: &str) -> Self {
-        value.into()
+        Url(value.to_owned())
     }
 }
 
