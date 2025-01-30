@@ -3,17 +3,18 @@ use std::{fmt::Display, path::PathBuf};
 use crate::{
     ecosystem::{try_parse_all_ecosystems, DepFile},
     error::Error,
+    url::Url,
 };
 
 pub(crate) enum Target {
-    Url(String),
+    Url(Url),
     DepFile(PathBuf, Box<dyn DepFile>),
 }
 
 impl Target {
     pub(crate) fn parse(path: String) -> Result<Self, Error> {
         if is_url(&path) {
-            return Ok(Self::Url(path));
+            return Ok(Self::Url(path.into()));
         }
         let depfile_path = PathBuf::from(&path);
         let depfile = try_parse_all_ecosystems(&depfile_path);

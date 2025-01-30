@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs, path::Path};
 
 use serde::Deserialize;
 
-use crate::error::Error;
+use crate::{error::Error, url::Url};
 
 use super::{depfile::DepFile, Ecosystem};
 
@@ -29,8 +29,9 @@ impl DepFile for CargoToml {
         Ecosystem::Rust
     }
 
-    fn first_level_deps(&self) -> Vec<String> {
-        self.dependencies.keys().cloned().collect()
+    fn first_level_deps(&self) -> Vec<Url> {
+        // self.dependencies.keys().cloned().collect()
+        todo!()
     }
 }
 
@@ -59,8 +60,8 @@ mod tests {
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let cargo_toml = result.unwrap();
         assert_eq!(cargo_toml.first_level_deps().len(), 2);
-        assert!(cargo_toml.first_level_deps().contains(&"serde".to_string()));
-        assert!(cargo_toml.first_level_deps().contains(&"toml".to_string()));
+        assert!(cargo_toml.first_level_deps().contains(&"serde".into()));
+        assert!(cargo_toml.first_level_deps().contains(&"toml".into()));
     }
 
     #[test]
@@ -70,6 +71,6 @@ mod tests {
         let result = CargoToml::parse(&path);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let cargo_toml = result.unwrap();
-        assert!(cargo_toml.first_level_deps().contains(&"serde".to_string()));
+        assert!(cargo_toml.first_level_deps().contains(&"serde".into()));
     }
 }

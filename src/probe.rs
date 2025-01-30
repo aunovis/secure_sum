@@ -6,7 +6,7 @@ use std::{
 use chrono::{Duration, NaiveDate, Utc};
 use serde::Deserialize;
 
-use crate::{error::Error, filesystem::data_dir, metric::Metric};
+use crate::{error::Error, filesystem::data_dir, metric::Metric, url::Url};
 
 static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 
@@ -19,7 +19,7 @@ pub(crate) struct ProbeResult {
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub(crate) struct Repo {
-    pub(crate) name: String,
+    pub(crate) name: Url,
 }
 
 #[derive(Clone, Deserialize, Debug, PartialEq, Eq)]
@@ -45,17 +45,9 @@ impl ProbeOutcome {
     }
 }
 
-pub(crate) fn probe_file(repo: &str) -> Result<PathBuf, Error> {
+pub(crate) fn probe_file(repo: &Url) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
-    static HTTP: &str = "http://";
-    static HTTPS: &str = "https://";
-    let no_protocol = if repo.starts_with(HTTP) {
-        &repo[HTTP.len()..]
-    } else if repo.starts_with(HTTPS) {
-        &repo[HTTPS.len()..]
-    } else {
-        repo
-    };
+    let no_protocol = repo.str_without_protocol();
     // Dots are valid in filenames, but without this replacement almost every probe has basename "github".
     let no_dots = no_protocol.replace(".", "_");
     let sanitise_opts = sanitize_filename::Options {
@@ -80,7 +72,7 @@ pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
     Ok(fs::write(path, raw_output)?)
 }
 
-pub(crate) fn load_stored_probe(repo: &str) -> Result<Option<ProbeResult>, Error> {
+pub(crate) fn load_stored_probe(repo: &Url) -> Result<Option<ProbeResult>, Error> {
     let path = probe_file(repo)?;
     if !path.exists() {
         return Ok(None);
@@ -151,9 +143,9 @@ mod tests {
 
     #[test]
     fn probe_filename_removes_protocol() {
-        let no_protocol = probe_file("test.com/path").unwrap();
-        let http_protocol = probe_file("http://test.com/path").unwrap();
-        let https_protocol = probe_file("https://test.com/path").unwrap();
+        let no_protocol = probe_file(&"test.com/path".into()).unwrap();
+        let http_protocol = probe_file(&"http://test.com/path".into()).unwrap();
+        let https_protocol = probe_file(&"https://test.com/path".into()).unwrap();
         assert_eq!(no_protocol, http_protocol);
         assert_eq!(no_protocol, https_protocol);
     }
@@ -161,8 +153,8 @@ mod tests {
     #[test]
     #[serial]
     fn store_probe_stores_probe() {
-        let repo = "github.com/aunovis/secure_sum";
-        let path = probe_file(repo).unwrap();
+        let repo = "github.com/aunovis/secure_sum".into();
+        let path = probe_file(&repo).unwrap();
         fs::remove_file(&path).ok();
 
         assert!(!path.exists());
@@ -173,19 +165,19 @@ mod tests {
     #[test]
     #[serial]
     fn load_probe_loads_probe_if_it_exists() {
-        let repo = "github.com/aunovis/secure_sum";
-        let path = probe_file(repo).unwrap();
+        let repo = "github.com/aunovis/secure_sum".into();
+        let path = probe_file(&repo).unwrap();
 
         fs::remove_file(&path).ok();
         assert!(!path.exists());
 
-        let probe = load_stored_probe(repo).unwrap();
+        let probe = load_stored_probe(&repo).unwrap();
         assert!(probe.is_none());
 
         store_probe(EXAMPLE).unwrap();
         assert!(path.exists());
 
-        let probe = load_stored_probe(repo).unwrap().unwrap();
+        let probe = load_stored_probe(&repo).unwrap().unwrap();
         let expected = serde_json::from_str(EXAMPLE).unwrap();
         assert_eq!(probe, expected);
     }
@@ -198,7 +190,7 @@ mod tests {
         let mut probe = ProbeResult {
             date: today,
             repo: Repo {
-                name: "Some Repo".to_owned(),
+                name: "Some Repo".into(),
             },
             findings: vec![ProbeFinding {
                 probe: "archived".to_owned(),
@@ -242,7 +234,7 @@ mod tests {
         let mut probe = ProbeResult {
             date: Utc::now().date_naive(),
             repo: Repo {
-                name: "Some Repo".to_owned(),
+                name: "Some Repo".into(),
             },
             findings: vec![],
         };

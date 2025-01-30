@@ -11,6 +11,7 @@ mod repodata;
 mod score;
 mod scorecard;
 mod target;
+mod url;
 
 use args::Arguments;
 use clap::Parser;

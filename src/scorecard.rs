@@ -8,12 +8,12 @@ use flate2::read::GzDecoder;
 use tar::Archive;
 
 use crate::{
-    ecosystem::try_parse_all_ecosystems,
     error::Error,
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
     probe::{load_stored_probe, needs_rerun, store_probe, ProbeResult},
     target::Target,
+    url::Url,
 };
 
 static CURRENT_VERSION: &str = "5.0.0";
@@ -67,7 +67,7 @@ pub(crate) fn dispatch_scorecard_runs(
 }
 
 fn evaluate_repo(
-    repo: &str,
+    repo: &Url,
     metric: &Metric,
     scorecard: &Path,
     force_rerun: bool,
@@ -83,7 +83,7 @@ fn evaluate_repo(
 }
 
 fn run_scorecard_probe(
-    repo: &str,
+    repo: &Url,
     metric: &Metric,
     scorecard: &Path,
 ) -> Result<ProbeResult, Error> {
@@ -102,7 +102,7 @@ fn run_scorecard_probe(
     Ok(probe_result)
 }
 
-fn scorecard_args(metric: &Metric, repo: &str) -> Result<Vec<String>, Error> {
+fn scorecard_args(metric: &Metric, repo: &Url) -> Result<Vec<String>, Error> {
     let mut args = vec![];
     args.push(format!("--repo={repo}"));
     let probes = metric
@@ -129,7 +129,9 @@ mod tests {
 
     use super::*;
 
-    static EXAMPLE_REPO: &str = "https://github.com/aunovis/secure_sum";
+    fn example_repo() -> Url {
+        "https://github.com/aunovis/secure_sum".into()
+    }
 
     #[test]
     fn scorecard_url_exists() {
@@ -170,7 +172,7 @@ mod tests {
     #[test]
     fn scorecard_args_without_probes_is_err() {
         let metric = Metric::default();
-        let args_result = scorecard_args(&metric, EXAMPLE_REPO);
+        let args_result = scorecard_args(&metric, &example_repo());
         assert!(args_result.is_err())
     }
 
@@ -180,9 +182,9 @@ mod tests {
             archived: Some(1.),
             ..Default::default()
         };
-        let args = scorecard_args(&metric, EXAMPLE_REPO).unwrap();
+        let args = scorecard_args(&metric, &example_repo()).unwrap();
         let expected = vec![
-            format!("--repo={EXAMPLE_REPO}"),
+            format!("--repo={}", example_repo()),
             "--probes=archived".to_string(),
             "--format=probe".to_string(),
         ];
@@ -196,9 +198,9 @@ mod tests {
             fuzzed: Some(1.3),
             ..Default::default()
         };
-        let args = scorecard_args(&metric, EXAMPLE_REPO).unwrap();
+        let args = scorecard_args(&metric, &example_repo()).unwrap();
         let expected = vec![
-            format!("--repo={EXAMPLE_REPO}"),
+            format!("--repo={}", example_repo()),
             "--probes=archived,fuzzed".to_string(),
             "--format=probe".to_string(),
         ];
@@ -211,14 +213,14 @@ mod tests {
         ensure_scorecard_binary().unwrap();
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
-        let filepath = probe_file(EXAMPLE_REPO).unwrap();
+        let filepath = probe_file(&example_repo()).unwrap();
         fs::remove_file(&filepath).ok();
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
         assert!(!filepath.exists());
-        let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);
+        let result = run_scorecard_probe(&example_repo(), &metric, &scorecard);
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -233,11 +235,14 @@ mod tests {
             archived: Some(1.),
             ..Default::default()
         };
-        let repo = "buubpvnuodypyocmqnhv";
-        let result = run_scorecard_probe(repo, &metric, &scorecard);
+        let repo = "buubpvnuodypyocmqnhv".into();
+        let result = run_scorecard_probe(&repo, &metric, &scorecard);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
-        assert!(error_print.contains(repo), "Error print is: {error_print}");
+        assert!(
+            error_print.contains(&repo.0),
+            "Error print is: {error_print}"
+        );
     }
 
     #[test]
@@ -247,7 +252,7 @@ mod tests {
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric::default();
-        let result = run_scorecard_probe(EXAMPLE_REPO, &metric, &scorecard);
+        let result = run_scorecard_probe(&example_repo(), &metric, &scorecard);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
