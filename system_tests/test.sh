@@ -16,3 +16,6 @@ cargo run --release -- ./system_tests/example_metrics.toml https://github.com/au
 
 # Unless the --rerun flag is used
 cargo run --release -- ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum --rerun
+
+# Run on a dependencyfile of the Rust ecosystem
+cargo run --release -- ./system_tests/example_metrics.toml ./Cargo.toml

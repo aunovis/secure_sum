@@ -36,7 +36,8 @@ fn main() -> Result<(), Error> {
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
     let results = dispatch_scorecard_runs(&metrics, target, args.rerun)?;
-    let results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metrics)).collect();
+    let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metrics)).collect();
+    results.sort();
     log::info!("\n{}", Table::new(results));
     Ok(())
 }
