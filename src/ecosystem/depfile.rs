@@ -29,5 +29,5 @@ fn try_parse_all_ecosystems(file: &Path) -> Result<Box<dyn DepFile>, Error> {
         "Could not parse {} as a dependency file.\n{QUESTION}\n{CTA}\n{LINK}",
         file.display()
     );
-    return Err(Error::Other(message));
+    Err(Error::Other(message))
 }

@@ -15,7 +15,7 @@ pub(super) struct CargoToml {
 
 impl CargoToml {
     pub(super) fn parse(file: &Path) -> Result<Self, Error> {
-        let contents = fs::read_to_string(&file)?;
+        let contents = fs::read_to_string(file)?;
         Self::parse_str(&contents)
     }
 

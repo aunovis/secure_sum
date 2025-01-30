@@ -20,8 +20,8 @@ pub(crate) struct RepoData {
 impl Eq for RepoData {}
 
 impl RepoData {
-    pub(crate) fn repodata(result: &ProbeResult, metrics: &Metric) -> Self {
-        let findings = weighed_findings(&result.findings, &metrics);
+    pub(crate) fn new(result: &ProbeResult, metrics: &Metric) -> Self {
+        let findings = weighed_findings(&result.findings, metrics);
         let total_score = calculate_total_score(&findings);
         let repo = result.repo.name.clone();
         let number_of_probes = findings.len();
