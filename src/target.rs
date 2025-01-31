@@ -43,7 +43,7 @@ impl Display for Target {
 impl SingleTarget {
     pub(crate) fn to_scorecard_arg(&self) -> Result<String, Error> {
         match self {
-            SingleTarget::Package(package, ecosystem) => ecosystem.dep_to_scorecard_arg(&package),
+            SingleTarget::Package(package, ecosystem) => ecosystem.dep_to_scorecard_arg(package),
             SingleTarget::Url(url) => Ok(format!("--repo={url}")),
         }
     }
