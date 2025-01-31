@@ -1,7 +1,7 @@
 use std::{fmt::Display, path::PathBuf};
 
 use crate::{
-    ecosystem::{parse, DepFile},
+    ecosystem::{parse, DepFile, Ecosystem},
     error::Error,
     url::Url,
 };
@@ -9,6 +9,11 @@ use crate::{
 pub(crate) enum Target {
     Url(Url),
     DepFile(PathBuf, Box<dyn DepFile>),
+}
+
+pub(crate) enum SingleTarget {
+    Package(String, Ecosystem),
+    Url(Url),
 }
 
 impl Target {
@@ -31,6 +36,26 @@ impl Display for Target {
         match self {
             Target::Url(url) => write!(f, "URL: {url}"),
             Target::DepFile(path, _) => write!(f, "Cargo/Rust: {}", path.display()),
+        }
+    }
+}
+
+impl SingleTarget {
+    pub(crate) fn to_scorecard_arg(&self) -> Result<String, Error> {
+        match self {
+            SingleTarget::Package(package, ecosystem) => ecosystem.dep_to_scorecard_arg(&package),
+            SingleTarget::Url(url) => Ok(format!("--repo={url}")),
+        }
+    }
+}
+
+impl Display for SingleTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SingleTarget::Package(package, ecosystem) => {
+                write!(f, "{} package {package}", ecosystem.as_str())
+            }
+            SingleTarget::Url(url) => write!(f, "URL: {url}"),
         }
     }
 }

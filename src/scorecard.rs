@@ -12,8 +12,7 @@ use crate::{
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
     probe::{load_stored_probe, needs_rerun, store_probe, ProbeResult},
-    target::Target,
-    url::Url,
+    target::{SingleTarget, Target},
 };
 
 static CURRENT_VERSION: &str = "5.0.0";
@@ -56,39 +55,44 @@ pub(crate) fn dispatch_scorecard_runs(
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     let results = match target {
-        Target::Url(repo) => vec![evaluate_repo(&repo, metric, &scorecard, force_rerun)?],
+        Target::Url(repo) => vec![evaluate_repo(
+            &SingleTarget::Url(repo),
+            metric,
+            &scorecard,
+            force_rerun,
+        )?],
         Target::DepFile(_, depfile) => depfile
-            .first_level_deps()?
+            .first_level_deps()
             .iter()
-            .map(|dep| evaluate_repo(dep, metric, &scorecard, force_rerun))
+            .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun))
             .collect::<Result<_, _>>()?,
     };
     Ok(results)
 }
 
 fn evaluate_repo(
-    repo: &Url,
+    target: &SingleTarget,
     metric: &Metric,
     scorecard: &Path,
     force_rerun: bool,
 ) -> Result<ProbeResult, Error> {
     if !force_rerun {
-        if let Some(stored_probe) = load_stored_probe(repo)? {
+        if let Some(stored_probe) = load_stored_probe(target)? {
             if !needs_rerun(&stored_probe, metric) {
                 return Ok(stored_probe);
             }
         }
     }
-    run_scorecard_probe(repo, metric, scorecard)
+    run_scorecard_probe(target, metric, scorecard)
 }
 
 fn run_scorecard_probe(
-    repo: &Url,
+    target: &SingleTarget,
     metric: &Metric,
     scorecard: &Path,
 ) -> Result<ProbeResult, Error> {
-    log::debug!("Checking {repo}");
-    let args = scorecard_args(metric, repo)?;
+    log::debug!("Checking {target}");
+    let args = scorecard_args(metric, target)?;
     log::trace!("Args: {:#?}", args);
     let output = Command::new(scorecard).args(args).output()?;
     let stderr = String::from_utf8(output.stderr)?;
@@ -98,13 +102,13 @@ fn run_scorecard_probe(
     }
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
-    store_probe(&stdout)?;
+    store_probe(target, &stdout)?;
     Ok(probe_result)
 }
 
-fn scorecard_args(metric: &Metric, repo: &Url) -> Result<Vec<String>, Error> {
+fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>, Error> {
     let mut args = vec![];
-    args.push(format!("--repo={repo}"));
+    args.push(target.to_scorecard_arg()?);
     let probes = metric
         .probes()
         .map(|(name, _)| name.to_string())
@@ -125,12 +129,20 @@ mod tests {
     use reqwest::blocking::Client;
     use serial_test::serial;
 
-    use crate::probe::probe_file;
+    use crate::{probe::probe_file, url::Url};
 
     use super::*;
 
-    fn example_repo() -> Url {
-        "https://github.com/aunovis/secure_sum".into()
+    fn example_url() -> Url {
+        Url("https://github.com/aunovis/secure_sum".to_string())
+    }
+
+    fn example_target() -> SingleTarget {
+        SingleTarget::Url(example_url())
+    }
+
+    fn example_target_arg() -> String {
+        format!("--repo=https://github.com/aunovis/secure_sum")
     }
 
     #[test]
@@ -172,7 +184,7 @@ mod tests {
     #[test]
     fn scorecard_args_without_probes_is_err() {
         let metric = Metric::default();
-        let args_result = scorecard_args(&metric, &example_repo());
+        let args_result = scorecard_args(&metric, &example_target());
         assert!(args_result.is_err())
     }
 
@@ -182,9 +194,9 @@ mod tests {
             archived: Some(1.),
             ..Default::default()
         };
-        let args = scorecard_args(&metric, &example_repo()).unwrap();
+        let args = scorecard_args(&metric, &example_target()).unwrap();
         let expected = vec![
-            format!("--repo={}", example_repo()),
+            example_target_arg(),
             "--probes=archived".to_string(),
             "--format=probe".to_string(),
         ];
@@ -198,9 +210,9 @@ mod tests {
             fuzzed: Some(1.3),
             ..Default::default()
         };
-        let args = scorecard_args(&metric, &example_repo()).unwrap();
+        let args = scorecard_args(&metric, &example_target()).unwrap();
         let expected = vec![
-            format!("--repo={}", example_repo()),
+            example_target_arg(),
             "--probes=archived,fuzzed".to_string(),
             "--format=probe".to_string(),
         ];
@@ -213,14 +225,14 @@ mod tests {
         ensure_scorecard_binary().unwrap();
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
-        let filepath = probe_file(&example_repo()).unwrap();
+        let filepath = probe_file(&example_target()).unwrap();
         fs::remove_file(&filepath).ok();
         let metric = Metric {
             archived: Some(1.),
             ..Default::default()
         };
         assert!(!filepath.exists());
-        let result = run_scorecard_probe(&example_repo(), &metric, &scorecard);
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -235,12 +247,13 @@ mod tests {
             archived: Some(1.),
             ..Default::default()
         };
-        let repo = "buubpvnuodypyocmqnhv".into();
-        let result = run_scorecard_probe(&repo, &metric, &scorecard);
+        let url = Url("buubpvnuodypyocmqnhv".to_string());
+        let target = SingleTarget::Url(url.clone());
+        let result = run_scorecard_probe(&target, &metric, &scorecard);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
-            error_print.contains(&repo.0),
+            error_print.contains(&url.0),
             "Error print is: {error_print}"
         );
     }
@@ -252,7 +265,7 @@ mod tests {
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric::default();
-        let result = run_scorecard_probe(&example_repo(), &metric, &scorecard);
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(

@@ -6,7 +6,7 @@ use std::{
 use chrono::{Duration, NaiveDate, Utc};
 use serde::Deserialize;
 
-use crate::{error::Error, filesystem::data_dir, metric::Metric, url::Url};
+use crate::{error::Error, filesystem::data_dir, metric::Metric, target::SingleTarget, url::Url};
 
 static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 
@@ -45,24 +45,26 @@ impl ProbeOutcome {
     }
 }
 
-pub(crate) fn probe_file(repo: &Url) -> Result<PathBuf, Error> {
+pub(crate) fn probe_file(target: &SingleTarget) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
-    let no_protocol = repo.str_without_protocol();
+    let package = match target {
+        SingleTarget::Package(package, ecosystem) => format!("{}_{package}", ecosystem.as_str()),
+        SingleTarget::Url(url) => url.str_without_protocol().to_owned(),
+    };
     // Dots are valid in filenames, but without this replacement almost every probe has basename "github".
-    let no_dots = no_protocol.replace(".", "_");
+    let no_dots = package.replace(".", "_");
     let sanitise_opts = sanitize_filename::Options {
         replacement: "_", // Replace invalid characters with underscores
         windows: cfg!(windows),
         truncate: false,
     };
-    let filename = sanitize_filename::sanitize_with_options(no_dots, sanitise_opts);
+    let mut filename = sanitize_filename::sanitize_with_options(no_dots, sanitise_opts);
+    filename.push_str(".json");
     Ok(probe_dir.join(filename))
 }
 
-pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
-    let parsed_probe: ProbeResult = serde_json::from_str(raw_output)?;
-    let repo = &parsed_probe.repo.name;
-    let path = probe_file(repo)?;
+pub(crate) fn store_probe(target: &SingleTarget, raw_output: &str) -> Result<(), Error> {
+    let path = probe_file(target)?;
     if let Some(dir) = path.parent() {
         if !dir.exists() {
             fs::create_dir_all(dir)?;
@@ -72,8 +74,8 @@ pub(crate) fn store_probe(raw_output: &str) -> Result<(), Error> {
     Ok(fs::write(path, raw_output)?)
 }
 
-pub(crate) fn load_stored_probe(repo: &Url) -> Result<Option<ProbeResult>, Error> {
-    let path = probe_file(repo)?;
+pub(crate) fn load_stored_probe(target: &SingleTarget) -> Result<Option<ProbeResult>, Error> {
+    let path = probe_file(target)?;
     if !path.exists() {
         return Ok(None);
     }
@@ -101,6 +103,8 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
 mod tests {
     use chrono::{Duration, Utc};
     use serial_test::serial;
+
+    use crate::ecosystem::Ecosystem;
 
     use super::*;
 
@@ -135,6 +139,10 @@ mod tests {
 }
     "#;
 
+    fn url_target(string: &str) -> SingleTarget {
+        SingleTarget::Url(Url(string.to_owned()))
+    }
+
     #[test]
     fn example_can_be_deserialised() {
         let result: Result<ProbeResult, _> = serde_json::from_str(EXAMPLE);
@@ -142,30 +150,38 @@ mod tests {
     }
 
     #[test]
-    fn probe_filename_removes_protocol() {
-        let no_protocol = probe_file(&"test.com/path".into()).unwrap();
-        let http_protocol = probe_file(&"http://test.com/path".into()).unwrap();
-        let https_protocol = probe_file(&"https://test.com/path".into()).unwrap();
+    fn probe_filename_removes_protocol_from_url() {
+        let no_protocol = probe_file(&url_target("test.com/path")).unwrap();
+        let http_protocol = probe_file(&url_target("http://test.com/path")).unwrap();
+        let https_protocol = probe_file(&url_target("https://test.com/path")).unwrap();
         assert_eq!(no_protocol, http_protocol);
         assert_eq!(no_protocol, https_protocol);
     }
 
     #[test]
+    fn probe_filename_adds_ecosystem() {
+        let target = SingleTarget::Package("serde".to_owned(), Ecosystem::Rust);
+        let path = probe_file(&target).unwrap();
+        let file = path.file_name().unwrap().to_str().unwrap().to_owned();
+        assert_eq!(file, "rust_serde.json");
+    }
+
+    #[test]
     #[serial]
     fn store_probe_stores_probe() {
-        let repo = "github.com/aunovis/secure_sum".into();
+        let repo = url_target("github.com/aunovis/secure_sum");
         let path = probe_file(&repo).unwrap();
         fs::remove_file(&path).ok();
 
         assert!(!path.exists());
-        store_probe(EXAMPLE).unwrap();
+        store_probe(&repo, EXAMPLE).unwrap();
         assert!(path.exists(), "{} does not exist", path.display());
     }
 
     #[test]
     #[serial]
     fn load_probe_loads_probe_if_it_exists() {
-        let repo = "github.com/aunovis/secure_sum".into();
+        let repo = url_target("github.com/aunovis/secure_sum");
         let path = probe_file(&repo).unwrap();
 
         fs::remove_file(&path).ok();
@@ -174,7 +190,7 @@ mod tests {
         let probe = load_stored_probe(&repo).unwrap();
         assert!(probe.is_none());
 
-        store_probe(EXAMPLE).unwrap();
+        store_probe(&repo, EXAMPLE).unwrap();
         assert!(path.exists());
 
         let probe = load_stored_probe(&repo).unwrap().unwrap();

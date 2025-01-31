@@ -1,12 +1,12 @@
 use std::path::Path;
 
-use crate::{ecosystem::rust::CargoToml, error::Error, url::Url};
+use crate::{ecosystem::rust::CargoToml, error::Error, target::SingleTarget};
 
 use super::Ecosystem;
 
 pub(crate) trait DepFile {
     fn ecosystem(&self) -> Ecosystem;
-    fn first_level_deps(&self) -> Result<Vec<Url>, Error>;
+    fn first_level_deps(&self) -> Vec<SingleTarget>;
 }
 
 pub(crate) fn parse(file: &Path) -> Result<Box<dyn DepFile>, Error> {

@@ -3,7 +3,7 @@ use std::{collections::HashMap, fs, path::Path};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 
-use crate::{error::Error, url::Url};
+use crate::{error::Error, target::SingleTarget, url::Url};
 
 use super::{depfile::DepFile, Ecosystem};
 
@@ -30,8 +30,11 @@ impl DepFile for CargoToml {
         Ecosystem::Rust
     }
 
-    fn first_level_deps(&self) -> Result<Vec<Url>, Error> {
-        self.dependencies.keys().map(|d| repo_url(d)).collect()
+    fn first_level_deps(&self) -> Vec<SingleTarget> {
+        self.dependencies
+            .keys()
+            .map(|dep| SingleTarget::Package(dep.to_owned(), Ecosystem::Rust))
+            .collect()
     }
 }
 
@@ -46,7 +49,7 @@ struct Crate {
     repository: Option<String>,
 }
 
-fn repo_url(crate_name: &str) -> Result<Url, Error> {
+pub(super) fn repo_url(crate_name: &str) -> Result<Url, Error> {
     let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
     let client = Client::new();
     let response = client
