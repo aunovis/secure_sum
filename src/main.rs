@@ -1,6 +1,7 @@
 #![warn(clippy::unwrap_used)]
 
 mod args;
+mod ecosystem;
 mod error;
 mod filesystem;
 mod metric;
@@ -10,6 +11,7 @@ mod repodata;
 mod score;
 mod scorecard;
 mod target;
+mod url;
 
 use args::Arguments;
 use clap::Parser;
@@ -34,10 +36,8 @@ fn main() -> Result<(), Error> {
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
     let results = dispatch_scorecard_runs(&metrics, target, args.rerun)?;
-    let results: Vec<_> = results
-        .iter()
-        .map(|r| RepoData::repodata(r, &metrics))
-        .collect();
+    let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metrics)).collect();
+    results.sort();
     log::info!("\n{}", Table::new(results));
     Ok(())
 }

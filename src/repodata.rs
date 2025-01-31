@@ -6,11 +6,12 @@ use crate::{
     metric::Metric,
     probe::ProbeResult,
     score::{boolean_outcomes, calculate_total_score, weighed_findings},
+    url::Url,
 };
 
 #[derive(Debug, PartialEq, Tabled)]
 pub(crate) struct RepoData {
-    repo: String,
+    repo: Url,
     total_score: f32,
     number_of_probes: usize,
     successful_probes: usize,
@@ -19,8 +20,8 @@ pub(crate) struct RepoData {
 impl Eq for RepoData {}
 
 impl RepoData {
-    pub(crate) fn repodata(result: &ProbeResult, metrics: &Metric) -> Self {
-        let findings = weighed_findings(&result.findings, &metrics);
+    pub(crate) fn new(result: &ProbeResult, metrics: &Metric) -> Self {
+        let findings = weighed_findings(&result.findings, metrics);
         let total_score = calculate_total_score(&findings);
         let repo = result.repo.name.clone();
         let number_of_probes = findings.len();
@@ -59,19 +60,19 @@ mod tests {
         let mut data = vec![
             RepoData {
                 total_score: 1.,
-                repo: "1".to_string(),
+                repo: "1".into(),
                 number_of_probes: 1,
                 successful_probes: 1,
             },
             RepoData {
                 total_score: 2.,
-                repo: "2".to_string(),
+                repo: "2".into(),
                 number_of_probes: 1,
                 successful_probes: 1,
             },
         ];
         data.sort();
-        assert_eq!(data[0].repo, "2");
-        assert_eq!(data[1].repo, "1");
+        assert_eq!(data[0].repo.0, "2");
+        assert_eq!(data[1].repo.0, "1");
     }
 }

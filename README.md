@@ -77,6 +77,12 @@ secure_sum example_metrics.toml https://github.com/aunovis/secure_sum
 ```
 The URL of the target has to start with `https://` or `http://`, otherwise Secure Sum will look for a local file.
 
+To run Secure Sum against the Rust ecosystem, target the Cargo.toml file:
+```
+secure_sum example_metrics.toml Cargo.toml
+```
+It will then collect all first level dependencies and analyse them.
+
 If a check containing the required metrics has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` flag.
 ```
 secure_sum example_metrics.toml https://github.com/aunovis/secure_sum --rerun
