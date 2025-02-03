@@ -19,3 +19,6 @@ cargo run --release -- ./system_tests/example_metrics.toml https://github.com/au
 
 # Run on a dependencyfile of the Rust ecosystem
 cargo run --release -- ./system_tests/example_metrics.toml ./Cargo.toml
+
+# Run on a dependencyfile of the Node.js ecosystem
+cargo run --release -- ./system_tests/example_metrics.toml ./system_tests/example_package.json

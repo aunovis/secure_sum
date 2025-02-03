@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn empty_depfile_can_be_parsed() {
-        let result = PackageJson::parse_str("");
+        let result = PackageJson::parse_str("{}");
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let depfile = result.unwrap();
         assert!(depfile.dependencies.is_empty());

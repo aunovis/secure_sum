@@ -88,6 +88,13 @@ If a check containing the required metrics has been run for a repository within 
 secure_sum example_metrics.toml https://github.com/aunovis/secure_sum --rerun
 ```
 
+### Supported Ecosystems
+
+- **Node.js:** Provide a `package.json`.
+- **Rust:** Provide a `Cargo.toml`.
+
+Is your favourite ecosystem missing? Create an [issue](https://github.com/aunovis/secure_sum/issues) and we'll see what we can do about that.
+
 ## Known Issues
 
 ### 401 Bad Credentials
