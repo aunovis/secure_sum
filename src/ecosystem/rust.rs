@@ -20,8 +20,8 @@ impl CargoToml {
     }
 
     fn parse_str(contents: &str) -> Result<Self, Error> {
-        let cargo_toml = toml::from_str(contents)?;
-        Ok(cargo_toml)
+        let depfile = toml::from_str(contents)?;
+        Ok(depfile)
     }
 }
 
@@ -33,7 +33,7 @@ impl DepFile for CargoToml {
     fn first_level_deps(&self) -> Vec<SingleTarget> {
         self.dependencies
             .keys()
-            .map(|dep| SingleTarget::Package(dep.to_owned(), Ecosystem::Rust))
+            .map(|dep| SingleTarget::Package(dep.to_owned(), self.ecosystem()))
             .collect()
     }
 }
@@ -75,15 +75,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn empty_toml_can_be_parsed() {
+    fn empty_depfile_can_be_parsed() {
         let result = CargoToml::parse_str("");
         assert!(result.is_ok(), "{}", result.err().unwrap());
-        let cargo_toml = result.unwrap();
-        assert!(cargo_toml.dependencies.is_empty());
+        let depfile = result.unwrap();
+        assert!(depfile.dependencies.is_empty());
     }
 
     #[test]
-    fn small_toml_can_be_parsed() {
+    fn small_depfile_can_be_parsed() {
         let content = r#"
         [dependencies]
         serde = "1.0"
@@ -91,10 +91,10 @@ mod tests {
     "#;
         let result = CargoToml::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
-        let cargo_toml = result.unwrap();
-        assert_eq!(cargo_toml.dependencies.len(), 2);
-        assert!(cargo_toml.dependencies.contains_key("serde"));
-        assert!(cargo_toml.dependencies.contains_key("toml"));
+        let depfile = result.unwrap();
+        assert_eq!(depfile.dependencies.len(), 2);
+        assert!(depfile.dependencies.contains_key("serde"));
+        assert!(depfile.dependencies.contains_key("toml"));
     }
 
     #[test]

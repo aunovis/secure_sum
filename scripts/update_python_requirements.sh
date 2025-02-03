@@ -15,4 +15,8 @@ else
     source ./venv/Scripts/activate
 fi
 
+pip install --upgrade pip setuptools pip-review
+
+pip-review --auto
+
 pip freeze > requirements.txt
