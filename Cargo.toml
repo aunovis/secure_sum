@@ -14,6 +14,7 @@ reqwest = { version = "0.12.12", features = ["blocking", "default-tls"] }
 sanitize-filename = { version = "0.6.0", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
 serde_json  = { version = "1.0", default-features = false, features = ["std"]}
+quick-xml = { version = "0.37.0", features = ["serialize"] }
 simple_logger = { version = "5.0", default-features = false }
 tabled = { version = "0.17.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
