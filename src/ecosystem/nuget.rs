@@ -9,11 +9,13 @@ use super::{DepFile, Ecosystem};
 #[derive(Debug, Deserialize)]
 pub(super) struct PackagesConfig {
     #[serde(default)]
+    #[serde(rename = "package")]
     packages: Vec<Package>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Package {
+    #[serde(rename = "@id")]
     id: String,
 }
 
@@ -47,8 +49,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn empty_packages_config_can_be_parsed() {
-        let result = PackagesConfig::parse_str("{}");
+    fn almost_empty_packages_config_can_be_parsed() {
+        let content = r#"<?xml version="1.0" encoding="utf-8"?><packages/>"#;
+        let result = PackagesConfig::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let depfile = result.unwrap();
         assert!(depfile.packages.is_empty());
