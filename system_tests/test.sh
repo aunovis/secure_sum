@@ -21,7 +21,7 @@ cargo run --release -- ./system_tests/example_metrics.toml https://github.com/au
 cargo run --release -- ./system_tests/example_metrics.toml ./Cargo.toml
 
 # Run on a dependencyfile of the Node.js ecosystem
-cargo run --release -- ./system_tests/example_metrics.toml ./system_tests/example_package.json
+cargo run --release -- ./system_tests/example_metrics.toml ./system_tests/node_js_package.json
 
 # Run on packages.config file of NuGet ecosystem
-cargo run --release -- ./system_tests/example_metrics.toml ./system_tests/packages.config
+cargo run --release -- ./system_tests/example_metrics.toml ./system_tests/nuget_packages.config
