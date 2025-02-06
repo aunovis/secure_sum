@@ -4,6 +4,7 @@ use super::rust::repo_url;
 
 pub(crate) enum Ecosystem {
     NodeJs,
+    NuGet,
     Rust,
 }
 
@@ -11,13 +12,15 @@ impl Ecosystem {
     pub(crate) fn as_str(&self) -> &'static str {
         match self {
             Ecosystem::NodeJs => "Node.js",
-            Ecosystem::Rust => "rust",
+            Ecosystem::NuGet => "NuGet",
+            Ecosystem::Rust => "Rust",
         }
     }
 
     pub(crate) fn dep_to_scorecard_arg(&self, dep: &str) -> Result<String, Error> {
         match self {
             Ecosystem::NodeJs => Ok(format!("--npm={dep}")),
+            Ecosystem::NuGet => Ok(format!("--nuget={dep}")),
             Ecosystem::Rust => repo_url(dep).map(|url| format!("--repo={url}")),
         }
     }

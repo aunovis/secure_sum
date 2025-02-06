@@ -4,9 +4,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub(crate) enum Error {
-    #[error("String could not be deserialized: {0}")]
-    Deserialize(#[from] toml::de::Error),
-
     #[error("Error parsing .env file: {0}")]
     Dotenvy(#[from] dotenvy::Error),
 
@@ -27,6 +24,12 @@ pub(crate) enum Error {
 
     #[error("Serde JSON error: {0}")]
     SerdeJson(#[from] serde_json::Error),
+
+    #[error("Toml error: {0}")]
+    Toml(#[from] toml::de::Error),
+
+    #[error("Quick XML error: {0}")]
+    QuickXml(#[from] quick_xml::de::DeError),
 
     #[error("An unspecified error occurred: {0}")]
     Other(String),

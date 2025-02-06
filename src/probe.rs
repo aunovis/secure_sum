@@ -52,13 +52,14 @@ pub(crate) fn probe_file(target: &SingleTarget) -> Result<PathBuf, Error> {
         SingleTarget::Url(url) => url.str_without_protocol().to_owned(),
     };
     // Dots are valid in filenames, but without this replacement almost every probe has basename "github".
-    let no_dots = package.replace(".", "_");
+    let package = package.replace(".", "_");
+    let package = package.to_lowercase();
     let sanitise_opts = sanitize_filename::Options {
         replacement: "_", // Replace invalid characters with underscores
         windows: cfg!(windows),
         truncate: false,
     };
-    let mut filename = sanitize_filename::sanitize_with_options(no_dots, sanitise_opts);
+    let mut filename = sanitize_filename::sanitize_with_options(package, sanitise_opts);
     filename.push_str(".json");
     Ok(probe_dir.join(filename))
 }
@@ -160,10 +161,25 @@ mod tests {
 
     #[test]
     fn probe_filename_adds_ecosystem() {
-        let target = SingleTarget::Package("serde".to_owned(), Ecosystem::Rust);
-        let path = probe_file(&target).unwrap();
-        let file = path.file_name().unwrap().to_str().unwrap().to_owned();
-        assert_eq!(file, "rust_serde.json");
+        let testcases = [
+            (
+                Ecosystem::NodeJs,
+                "@xenova/transformers",
+                "node_js_@xenova_transformers.json",
+            ),
+            (
+                Ecosystem::NuGet,
+                "Microsoft.Guardian.Cli",
+                "nuget_microsoft_guardian_cli.json",
+            ),
+            (Ecosystem::Rust, "serde", "rust_serde.json"),
+        ];
+        for (ecosys, dep, expected) in testcases {
+            let target = SingleTarget::Package(dep.to_owned(), ecosys);
+            let path = probe_file(&target).unwrap();
+            let file = path.file_name().unwrap().to_str().unwrap().to_owned();
+            assert_eq!(file, expected);
+        }
     }
 
     #[test]

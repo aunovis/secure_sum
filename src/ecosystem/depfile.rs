@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::{
-    ecosystem::{node_js::PackageJson, rust::CargoToml},
+    ecosystem::{node_js::PackageJson, nuget::PackagesConfig, rust::CargoToml},
     error::Error,
     target::SingleTarget,
 };
@@ -28,6 +28,9 @@ fn try_parse_all_ecosystems(file: &Path) -> Result<Box<dyn DepFile>, Error> {
     }
     if let Ok(package_json) = PackageJson::parse(file) {
         return Ok(Box::new(package_json));
+    }
+    if let Ok(packages_config) = PackagesConfig::parse(file) {
+        return Ok(Box::new(packages_config));
     }
     static QUESTION: &str = "Is the ecosystem perhaps not yet supported?";
     static CTA: &str = "In that case, feel free to open an issue on GitHub:";
