@@ -22,6 +22,14 @@ pub(crate) fn parse(file: &Path) -> Result<Box<dyn DepFile>, Error> {
     Ok(dep_file)
 }
 
+#[cfg(test)]
+pub(crate) fn parse_str_as_depfile(str: &str) -> Box<dyn DepFile> {
+    let tempfile = tempfile::NamedTempFile::new().unwrap();
+    let filepath = tempfile.path();
+    std::fs::write(filepath, str).unwrap();
+    parse(filepath).unwrap()
+}
+
 fn try_parse_all_ecosystems(file: &Path) -> Result<Box<dyn DepFile>, Error> {
     if let Ok(cargo_toml) = CargoToml::parse(file) {
         return Ok(Box::new(cargo_toml));

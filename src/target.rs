@@ -72,10 +72,35 @@ pub(crate) fn collect_single_targets(targets: Vec<Target>) -> Vec<SingleTarget> 
 mod tests {
     use super::*;
 
+    use crate::ecosystem::parse_str_as_depfile;
+
     #[test]
     fn protocols_mark_urls() {
         assert!(is_url("https://quettapano"));
         assert!(is_url("http://andolama/mirquet"));
         assert!(!is_url("cimrinora/arquenie"));
+    }
+
+    #[test]
+    fn collect_single_targets_combines_dependencies() {
+        let file_1 =
+            parse_str_as_depfile(r#"{"dependencies": {"@xenova/transformers": "^2.17.1"}}"#);
+        let file_2 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        todo!()
+    }
+
+    #[test]
+    fn collect_single_targets_can_mix_and_match_depfiles_and_urls() {
+        let file = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let url = "https://github/somethingsomething";
+        todo!()
+    }
+
+    #[test]
+    fn collect_single_targets_dedups_the_output() {
+        let file_1 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let file_2 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let file_3 = file_2;
+        todo!()
     }
 }
