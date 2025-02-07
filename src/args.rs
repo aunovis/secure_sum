@@ -12,8 +12,8 @@ pub(crate) struct Arguments {
     pub(crate) metrics_file: PathBuf,
 
     /// Local Path to a dependencyfile or url to a single repository
-    #[arg(value_name = "FILEPATH|URL")]
-    pub(crate) dependencies: String,
+    #[arg(value_name = "FILEPATH(S)|URL(S)")]
+    pub(crate) dependencies: Vec<String>,
 
     /// Rerun all scorecard checks, even if recent results are stored locally
     #[arg(long)]

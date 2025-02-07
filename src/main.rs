@@ -31,11 +31,18 @@ fn main() -> Result<(), Error> {
     let args = Arguments::parse();
     let metrics = Metric::from_file(&args.metrics_file)?;
     log::debug!("Parsed metrics:\n{metrics}");
-    let target = Target::parse(args.dependencies)?;
-    log::debug!("Parsed target: {target}");
+    let targets: Vec<_> = args
+        .dependencies
+        .into_iter()
+        .map(|t| {
+            let target = Target::parse(t)?;
+            log::debug!("Parsed target: {target}");
+            Ok(target)
+        })
+        .collect::<Result<_, Error>>()?;
     ensure_scorecard_binary()?;
     dotenvy::dotenv()?;
-    let results = dispatch_scorecard_runs(&metrics, target, args.rerun)?;
+    let results = dispatch_scorecard_runs(&metrics, targets, args.rerun)?;
     let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metrics)).collect();
     results.sort();
     log::info!("\n{}", Table::new(results));

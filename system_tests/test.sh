@@ -26,3 +26,5 @@ cargo run --release -- ./system_tests/example_metrics.toml ./system_tests/nuget_
 cargo run --release -- ./system_tests/example_metrics.toml ./Cargo.toml ./system_tests/rust_cargo.toml
 # They may even be from different ecosystem, if for some reason that makes sense in your project
 cargo run --release -- ./system_tests/example_metrics.toml ./Cargo.toml ./system_tests/node_js_package.json
+# Or mix and match a dependencyfile with URLs
+cargo run --release -- ./system_tests/example_metrics.toml ./Cargo.toml https://github.com/aunovis/secure_sum

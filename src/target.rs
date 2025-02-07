@@ -64,6 +64,10 @@ fn is_url(str: &str) -> bool {
     str.starts_with("https://") || str.starts_with("http://")
 }
 
+pub(crate) fn collect_single_targets(targets: Vec<Target>) -> Vec<SingleTarget> {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
