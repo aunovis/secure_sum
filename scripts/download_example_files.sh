@@ -10,3 +10,6 @@ curl https://raw.githubusercontent.com/TheComamba/UnKenny/refs/heads/main/packag
 
 # NuGet packages.config
 curl https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/refs/heads/master/.nuget/packages.config > ./system_tests/nuget_packages.config
+
+# Rust (Another package's Cargo.toml)
+curl https://raw.githubusercontent.com/TheComamba/LoreCore/refs/heads/main/Cargo.toml >  ./system_tests/rust_cargo.toml
