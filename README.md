@@ -66,10 +66,11 @@ This algorithm is a choice. If you yould like Secure Sum to be configurable to u
 
 ### Program Call
 
-To run the analyses and apply the metrics, pass the metrics file as the first and the target as the second argument:
+To run the analyses and apply the metrics, pass the metrics file as the first and the target(s) as the second, third, etc. argument(s):
 ```
-secure_sum <path/to/metrics/file> <target>
+secure_sum <path/to/metrics/file> <target> <additional-targts...>
 ```
+The targets do not necessarily have to be from the same ecosystem.
 
 For example, to run Secure Sum against a single repository, run:
 ```
