@@ -2,6 +2,7 @@ use crate::Error;
 
 use super::rust::repo_url;
 
+#[derive(PartialEq, Eq)]
 pub(crate) enum Ecosystem {
     NodeJs,
     NuGet,

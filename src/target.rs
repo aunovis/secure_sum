@@ -11,6 +11,7 @@ pub(crate) enum Target {
     DepFile(PathBuf, Box<dyn DepFile>),
 }
 
+#[derive(PartialEq, Eq)]
 pub(crate) enum SingleTarget {
     Package(String, Ecosystem),
     Url(Url),
@@ -86,21 +87,65 @@ mod tests {
         let file_1 =
             parse_str_as_depfile(r#"{"dependencies": {"@xenova/transformers": "^2.17.1"}}"#);
         let file_2 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
-        todo!()
+        let targets = vec![
+            Target::DepFile(PathBuf::new(), file_1),
+            Target::DepFile(PathBuf::new(), file_2),
+        ];
+
+        let single_targets = collect_single_targets(targets);
+
+        assert_eq!(single_targets.len(), 2);
+        assert!(single_targets.contains(&SingleTarget::Package(
+            "@xenova/transformers".to_string(),
+            Ecosystem::NodeJs
+        )));
+        assert!(single_targets.contains(&SingleTarget::Package(
+            "handlebars".to_string(),
+            Ecosystem::NodeJs
+        )));
     }
 
     #[test]
     fn collect_single_targets_can_mix_and_match_depfiles_and_urls() {
         let file = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
         let url = "https://github/somethingsomething";
-        todo!()
+        let targets = vec![
+            Target::DepFile(PathBuf::new(), file),
+            Target::Url(url.into()),
+        ];
+
+        let single_targets = collect_single_targets(targets);
+
+        assert_eq!(single_targets.len(), 2);
+        assert!(single_targets.contains(&SingleTarget::Package(
+            "handlebars".to_string(),
+            Ecosystem::NodeJs
+        )));
+        assert!(single_targets.contains(&SingleTarget::Url(url.into())));
     }
 
     #[test]
     fn collect_single_targets_dedups_the_output() {
-        let file_1 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let file_1 =
+            parse_str_as_depfile(r#"{"dependencies": {"@xenova/transformers": "^4.7.8"}}"#);
         let file_2 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
-        let file_3 = file_2;
-        todo!()
+        let file_3 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let targets = vec![
+            Target::DepFile(PathBuf::new(), file_1),
+            Target::DepFile(PathBuf::new(), file_2),
+            Target::DepFile(PathBuf::new(), file_3),
+        ];
+
+        let single_targets = collect_single_targets(targets);
+
+        assert_eq!(single_targets.len(), 2);
+        assert!(single_targets.contains(&SingleTarget::Package(
+            "@xenova/transformers".to_string(),
+            Ecosystem::NodeJs
+        )));
+        assert!(single_targets.contains(&SingleTarget::Package(
+            "handlebars".to_string(),
+            Ecosystem::NodeJs
+        )));
     }
 }
