@@ -15,7 +15,8 @@ else
     source ./venv/Scripts/activate
 fi
 
-pip install --upgrade pip setuptools pip-review
+python.exe -m pip install --upgrade pip
+pip install --upgrade setuptools pip-review
 
 pip-review --auto
 
