@@ -11,6 +11,7 @@ pub(crate) enum Target {
     DepFile(PathBuf, Box<dyn DepFile>),
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum SingleTarget {
     Package(String, Ecosystem),
     Url(Url),
@@ -64,14 +65,95 @@ fn is_url(str: &str) -> bool {
     str.starts_with("https://") || str.starts_with("http://")
 }
 
+pub(crate) fn collect_single_targets(targets: Vec<Target>) -> Vec<SingleTarget> {
+    let mut targets: Vec<_> = targets
+        .into_iter()
+        .map(get_single_targets)
+        .flatten()
+        .collect();
+    targets.sort();
+    targets.dedup();
+    targets
+}
+
+fn get_single_targets(target: Target) -> Vec<SingleTarget> {
+    match target {
+        Target::Url(url) => vec![SingleTarget::Url(url)],
+        Target::DepFile(_, dep_file) => dep_file.first_level_deps(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::ecosystem::parse_str_as_depfile;
 
     #[test]
     fn protocols_mark_urls() {
         assert!(is_url("https://quettapano"));
         assert!(is_url("http://andolama/mirquet"));
         assert!(!is_url("cimrinora/arquenie"));
+    }
+
+    #[test]
+    fn collect_single_targets_combines_dependencies() {
+        let file_1 =
+            parse_str_as_depfile(r#"{"dependencies": {"@xenova/transformers": "^2.17.1"}}"#);
+        let file_2 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let targets = vec![
+            Target::DepFile(PathBuf::new(), file_1),
+            Target::DepFile(PathBuf::new(), file_2),
+        ];
+
+        let single_targets = collect_single_targets(targets);
+
+        let mut expected = vec![
+            SingleTarget::Package("@xenova/transformers".to_string(), Ecosystem::NodeJs),
+            SingleTarget::Package("handlebars".to_string(), Ecosystem::NodeJs),
+        ];
+        expected.sort();
+        assert_eq!(single_targets, expected);
+    }
+
+    #[test]
+    fn collect_single_targets_can_mix_and_match_depfiles_and_urls() {
+        let file = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let url = "https://github/somethingsomething";
+        let targets = vec![
+            Target::DepFile(PathBuf::new(), file),
+            Target::Url(url.into()),
+        ];
+
+        let single_targets = collect_single_targets(targets);
+
+        let mut expected = vec![
+            SingleTarget::Package("handlebars".to_string(), Ecosystem::NodeJs),
+            SingleTarget::Url(url.into()),
+        ];
+        expected.sort();
+        assert_eq!(single_targets, expected);
+    }
+
+    #[test]
+    fn collect_single_targets_dedups_the_output() {
+        let file_1 =
+            parse_str_as_depfile(r#"{"dependencies": {"@xenova/transformers": "^4.7.8"}}"#);
+        let file_2 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let file_3 = parse_str_as_depfile(r#"{"dependencies": {"handlebars": "^4.7.8"}}"#);
+        let targets = vec![
+            Target::DepFile(PathBuf::new(), file_1),
+            Target::DepFile(PathBuf::new(), file_2),
+            Target::DepFile(PathBuf::new(), file_3),
+        ];
+
+        let single_targets = collect_single_targets(targets);
+
+        let mut expected = vec![
+            SingleTarget::Package("@xenova/transformers".to_string(), Ecosystem::NodeJs),
+            SingleTarget::Package("handlebars".to_string(), Ecosystem::NodeJs),
+        ];
+        expected.sort();
+        assert_eq!(single_targets, expected);
     }
 }

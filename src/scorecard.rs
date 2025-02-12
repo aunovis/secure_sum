@@ -12,7 +12,7 @@ use crate::{
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
     probe::{load_stored_probe, needs_rerun, store_probe, ProbeResult},
-    target::{SingleTarget, Target},
+    target::{collect_single_targets, SingleTarget, Target},
 };
 
 static CURRENT_VERSION: &str = "5.0.0";
@@ -49,24 +49,15 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
 
 pub(crate) fn dispatch_scorecard_runs(
     metric: &Metric,
-    target: Target,
+    targets: Vec<Target>,
     force_rerun: bool,
 ) -> Result<Vec<ProbeResult>, Error> {
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
-    let results = match target {
-        Target::Url(repo) => vec![evaluate_repo(
-            &SingleTarget::Url(repo),
-            metric,
-            &scorecard,
-            force_rerun,
-        )?],
-        Target::DepFile(_, depfile) => depfile
-            .first_level_deps()
-            .iter()
-            .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun))
-            .collect::<Result<_, _>>()?,
-    };
+    let results = collect_single_targets(targets)
+        .iter()
+        .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun))
+        .collect::<Result<_, _>>()?;
     Ok(results)
 }
 
