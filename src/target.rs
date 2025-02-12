@@ -11,7 +11,7 @@ pub(crate) enum Target {
     DepFile(PathBuf, Box<dyn DepFile>),
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum SingleTarget {
     Package(String, Ecosystem),
     Url(Url),
@@ -66,7 +66,21 @@ fn is_url(str: &str) -> bool {
 }
 
 pub(crate) fn collect_single_targets(targets: Vec<Target>) -> Vec<SingleTarget> {
-    todo!()
+    let mut targets: Vec<_> = targets
+        .into_iter()
+        .map(get_single_targets)
+        .flatten()
+        .collect();
+    targets.sort();
+    targets.dedup();
+    targets
+}
+
+fn get_single_targets(target: Target) -> Vec<SingleTarget> {
+    match target {
+        Target::Url(url) => vec![SingleTarget::Url(url)],
+        Target::DepFile(_, dep_file) => dep_file.first_level_deps(),
+    }
 }
 
 #[cfg(test)]
@@ -94,15 +108,12 @@ mod tests {
 
         let single_targets = collect_single_targets(targets);
 
-        assert_eq!(single_targets.len(), 2);
-        assert!(single_targets.contains(&SingleTarget::Package(
-            "@xenova/transformers".to_string(),
-            Ecosystem::NodeJs
-        )));
-        assert!(single_targets.contains(&SingleTarget::Package(
-            "handlebars".to_string(),
-            Ecosystem::NodeJs
-        )));
+        let mut expected = vec![
+            SingleTarget::Package("@xenova/transformers".to_string(), Ecosystem::NodeJs),
+            SingleTarget::Package("handlebars".to_string(), Ecosystem::NodeJs),
+        ];
+        expected.sort();
+        assert_eq!(single_targets, expected);
     }
 
     #[test]
@@ -116,12 +127,12 @@ mod tests {
 
         let single_targets = collect_single_targets(targets);
 
-        assert_eq!(single_targets.len(), 2);
-        assert!(single_targets.contains(&SingleTarget::Package(
-            "handlebars".to_string(),
-            Ecosystem::NodeJs
-        )));
-        assert!(single_targets.contains(&SingleTarget::Url(url.into())));
+        let mut expected = vec![
+            SingleTarget::Package("handlebars".to_string(), Ecosystem::NodeJs),
+            SingleTarget::Url(url.into()),
+        ];
+        expected.sort();
+        assert_eq!(single_targets, expected);
     }
 
     #[test]
@@ -138,14 +149,11 @@ mod tests {
 
         let single_targets = collect_single_targets(targets);
 
-        assert_eq!(single_targets.len(), 2);
-        assert!(single_targets.contains(&SingleTarget::Package(
-            "@xenova/transformers".to_string(),
-            Ecosystem::NodeJs
-        )));
-        assert!(single_targets.contains(&SingleTarget::Package(
-            "handlebars".to_string(),
-            Ecosystem::NodeJs
-        )));
+        let mut expected = vec![
+            SingleTarget::Package("@xenova/transformers".to_string(), Ecosystem::NodeJs),
+            SingleTarget::Package("handlebars".to_string(), Ecosystem::NodeJs),
+        ];
+        expected.sort();
+        assert_eq!(single_targets, expected);
     }
 }
