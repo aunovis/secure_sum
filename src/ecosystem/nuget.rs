@@ -157,10 +157,10 @@ mod tests {
         let content = r#"
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPackageVersion)" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPackageVersion)" PrivateAssets="All" />
     </ItemGroup>
-    <ItemGroup>
-    <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
+        <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
     </ItemGroup>
 </Project>
     "#;
