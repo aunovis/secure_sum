@@ -10,7 +10,7 @@ curl https://raw.githubusercontent.com/TheComamba/UnKenny/refs/heads/main/packag
 
 # NuGet project.csproj
 curl https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/refs/heads/master/Src/Newtonsoft.Json/Newtonsoft.Json.csproj > ./system_tests/nuget_project_1.csproj
-curl https://raw.githubusercontent.com/protobuf-net/protobuf-net/refs/heads/main/Build.csproj > ./system_tests/nuget_project_2.csproj
+curl https://raw.githubusercontent.com/zzzprojects/html-agility-pack/refs/heads/master/src/HtmlAgilityPack.NetStandard1_6/HtmlAgilityPack.NetStandard1_6.csproj > ./system_tests/nuget_project_2.csproj
 
 # NuGet packages.config
 curl https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/refs/heads/master/.nuget/packages.config > ./system_tests/nuget_packages.config
