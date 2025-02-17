@@ -180,4 +180,40 @@ mod tests {
         );
         assert_eq!(depfile.first_level_deps().len(), 2);
     }
+
+    #[test]
+    /// This input was not properly parsed by the original implementation.
+    fn complicated_example_csproj_can_be_parsed() {
+        let content = r#"
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <None Remove="**\*.orig" />
+    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
+    <None Include="packageIcon.png" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersPackageVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPackageVersion)" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.0' OR '$(TargetFramework)' == 'netstandard1.3'">
+    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpPackageVersion)" />
+    <PackageReference Include="System.ComponentModel.TypeConverter" Version="$(SystemComponentModelTypeConverterPackageVersion)" />
+    <PackageReference Include="System.Runtime.Serialization.Primitives" Version="$(SystemRuntimeSerializationPrimitivesPackageVersion)" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.0'">
+    <AssemblyTitle>Json.NET .NET Standard 1.0</AssemblyTitle>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
+    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="$(SystemRuntimeSerializationFormattersPackageVersion)" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentPackageVersion)" />
+  </ItemGroup>
+</Project>
+    "#;
+        let result = Csproj::parse_str(&content);
+        assert!(result.is_ok(), "{}", result.err().unwrap());
+        let depfile = result.unwrap();
+        assert_eq!(depfile.item_groups.len(), 4);
+        assert_eq!(depfile.first_level_deps().len(), 7);
+    }
 }
