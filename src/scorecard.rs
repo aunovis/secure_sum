@@ -15,13 +15,22 @@ use crate::{
     target::{collect_single_targets, SingleTarget, Target},
 };
 
-static CURRENT_VERSION: &str = "5.0.0";
+static CURRENT_VERSION: &str = "5.1.1";
 
 fn scorecard_url() -> String {
     format!("https://github.com/ossf/scorecard/releases/download/v{CURRENT_VERSION}/scorecard_{CURRENT_VERSION}_{OS_STR}_{ARCH_STR}.tar.gz")
 }
 
 fn scorecard_path() -> Result<PathBuf, Error> {
+    #[cfg(target_os = "windows")]
+    let ending = ".exe";
+    #[cfg(not(target_os = "windows"))]
+    let ending = "";
+    let executable_name = format!("scorecard{ending}");
+    Ok(data_dir()?.join(executable_name))
+}
+
+fn scorecard_path_with_arch() -> Result<PathBuf, Error> {
     #[cfg(target_os = "windows")]
     let ending = ".exe";
     #[cfg(not(target_os = "windows"))]
@@ -43,6 +52,22 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     let gz_decoder = GzDecoder::new(&mut response);
     let mut archive = Archive::new(gz_decoder);
     archive.unpack(dir)?;
+    if !fs::exists(&path)? {
+        let path_with_arch = scorecard_path_with_arch()?;
+        if fs::exists(&path_with_arch)? {
+            fs::rename(path_with_arch, &path)?;
+        } else {
+            let mut message = String::new();
+            message.push_str("The downloaded archive was successfully unpacked in \"");
+            message.push_str(&path.to_string_lossy());
+            message.push_str("\", but the binary could not be located automatically. ");
+            message.push_str("Please go to the folder, and rename the binary to \"");
+            message.push_str(&path.to_string_lossy());
+            message.push_str("\".");
+            log::error!("{message}");
+            return Err(Error::Scorecard(message));
+        }
+    }
     log::info!("Stored binary under {}", path.display());
     Ok(path)
 }

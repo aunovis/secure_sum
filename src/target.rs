@@ -66,11 +66,7 @@ fn is_url(str: &str) -> bool {
 }
 
 pub(crate) fn collect_single_targets(targets: Vec<Target>) -> Vec<SingleTarget> {
-    let mut targets: Vec<_> = targets
-        .into_iter()
-        .map(get_single_targets)
-        .flatten()
-        .collect();
+    let mut targets: Vec<_> = targets.into_iter().flat_map(get_single_targets).collect();
     targets.sort();
     targets.dedup();
     targets
