@@ -1,0 +1,37 @@
+# === Repository Protection & Access Control ===
+blocksDeleteOnBranches = 2
+blocksForcePushOnBranches = 2
+branchProtectionAppliesToAdmins = 2
+branchesAreProtected = 2
+topLevelPermissions = 2
+jobLevelPermissions = 2
+webhooksUseSecrets = 2
+# === Code Review & Quality Gates ===
+codeApproved = 2
+codeReviewOneReviewers = 1
+dismissesStaleReviews = 0.5
+requiresApproversForPullRequests = 2
+requiresCodeOwnersReview = 2
+requiresPRsToChangeCode = 2
+runsStatusChecksBeforeMerging = 2
+# === Security Testing & Analysis ===
+fuzzed = 0.5
+sastToolConfigured = 2
+testsRunInCI = 2
+hasDangerousWorkflowScriptInjection = 2
+hasDangerousWorkflowUntrustedCheckout = 2
+# === Dependency Management & Supply Chain Security ===
+dependencyUpdateToolConfigured = 2
+hasOSVVulnerabilities = -2
+hasSBOM = 0.5
+# === Release Management & Verification ===
+packagedWithAutomatedWorkflow = 0.5
+# === Project Health & Maintenance ===
+archived = -1.5
+createdRecently = -0.5
+hasRecentCommits = 2
+contributorsFromOrgOrCompany = 0.5
+issueActivityByProjectMember = 1
+# === Documentation & Compliance ===
+hasOpenSSFBadge = 0.5
+securityPolicyContainsText = 0.5
