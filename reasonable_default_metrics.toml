@@ -1,19 +1,19 @@
 # === Repository Protection & Access Control ===
-blocksDeleteOnBranches = 2
-blocksForcePushOnBranches = 2
-branchProtectionAppliesToAdmins = 2
-branchesAreProtected = 2
-topLevelPermissions = 2
-jobLevelPermissions = 2
-webhooksUseSecrets = 2
+# blocksDeleteOnBranches = 2
+# blocksForcePushOnBranches = 2
+# branchProtectionAppliesToAdmins = 2
+# branchesAreProtected = 2
+# topLevelPermissions = 2
+# jobLevelPermissions = 2
+# webhooksUseSecrets = 2
 # === Code Review & Quality Gates ===
 codeApproved = 2
 codeReviewOneReviewers = 1
-dismissesStaleReviews = 0.5
-requiresApproversForPullRequests = 2
-requiresCodeOwnersReview = 2
-requiresPRsToChangeCode = 2
-runsStatusChecksBeforeMerging = 2
+# dismissesStaleReviews = 0.5
+# requiresApproversForPullRequests = 2
+# requiresCodeOwnersReview = 2
+# requiresPRsToChangeCode = 2
+# runsStatusChecksBeforeMerging = 2
 # === Security Testing & Analysis ===
 fuzzed = 0.5
 sastToolConfigured = 2

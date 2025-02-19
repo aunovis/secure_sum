@@ -2,7 +2,7 @@
 
 set -e
 
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 
 if [ ! -d ./scripts/venv ]; then
     python -m venv ./scripts/venv
