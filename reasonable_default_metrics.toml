@@ -16,7 +16,8 @@ codeReviewOneReviewers = 1
 # runsStatusChecksBeforeMerging = 2
 # === Security Testing & Analysis ===
 fuzzed = 0.5
-sastToolConfigured = 2
+# Throws exception with github.com/toml-rs/toml
+# sastToolConfigured = 2
 testsRunInCI = 2
 hasDangerousWorkflowScriptInjection = 2
 hasDangerousWorkflowUntrustedCheckout = 2
