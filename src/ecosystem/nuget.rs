@@ -8,29 +8,25 @@ use super::{DepFile, Ecosystem};
 
 #[derive(Debug, Deserialize)]
 pub(super) struct Csproj {
-    #[serde(default)]
-    #[serde(rename = "ItemGroup")]
+    #[serde(rename = "ItemGroup", default)]
     item_groups: Vec<ItemGroup>,
 }
 
 #[derive(Debug, Deserialize)]
 struct ItemGroup {
-    #[serde(default)]
-    #[serde(rename = "PackageReference")]
+    #[serde(rename = "PackageReference", default)]
     package_references: Vec<PackageReference>,
 }
 
 #[derive(Debug, Deserialize)]
 struct PackageReference {
-    #[serde(default)]
-    #[serde(rename = "@Include")]
+    #[serde(rename = "@Include", default)]
     include: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub(super) struct PackagesConfig {
-    #[serde(default)]
-    #[serde(rename = "package")]
+    #[serde(rename = "package", default)]
     packages: Vec<Package>,
 }
 
