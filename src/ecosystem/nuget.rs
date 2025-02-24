@@ -8,8 +8,16 @@ use super::{DepFile, Ecosystem};
 
 #[derive(Debug, Deserialize)]
 pub(super) struct Csproj {
+    #[serde(rename = "$value", default)]
+    elements: Vec<CsprojElement>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CsprojElement {
     #[serde(rename = "ItemGroup", default)]
-    item_groups: Vec<ItemGroup>,
+    item_group: Option<ItemGroup>,
+    #[serde(flatten)]
+    _ignore: Option<serde::de::IgnoredAny>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,10 +50,12 @@ impl DepFile for Csproj {
     }
 
     fn first_level_deps(&self) -> Vec<SingleTarget> {
-        self.item_groups
+        self.elements
             .iter()
-            .map(|p| {
-                p.package_references
+            .filter_map(|e| e.item_group.as_ref())
+            .map(|group| {
+                group
+                    .package_references
                     .iter()
                     .map(|dep| SingleTarget::Package(dep.include.to_owned(), self.ecosystem()))
             })
@@ -101,7 +111,7 @@ mod tests {
         let result = Csproj::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let depfile = result.unwrap();
-        assert!(depfile.item_groups.is_empty());
+        assert!(depfile.elements.is_empty());
     }
 
     #[test]
@@ -125,10 +135,15 @@ mod tests {
         let result = Csproj::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let depfile = result.unwrap();
-        assert_eq!(depfile.item_groups.len(), 1);
-        assert_eq!(depfile.item_groups[0].package_references.len(), 1);
+        assert_eq!(depfile.elements.len(), 1);
+        assert!(depfile.elements[0].item_group.is_some());
         assert_eq!(
-            depfile.item_groups[0].package_references[0].include,
+            depfile.elements[0]
+                .item_group
+                .as_ref()
+                .unwrap()
+                .package_references[0]
+                .include,
             "System.Xml.XPath.XmlDocument"
         );
     }
@@ -163,15 +178,25 @@ mod tests {
         let result = Csproj::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let depfile = result.unwrap();
-        assert_eq!(depfile.item_groups.len(), 2);
-        assert_eq!(depfile.item_groups[0].package_references.len(), 1);
-        assert_eq!(depfile.item_groups[1].package_references.len(), 1);
+        assert_eq!(depfile.elements.len(), 2);
+        assert!(depfile.elements[0].item_group.is_some());
+        assert!(depfile.elements[1].item_group.is_some());
         assert_eq!(
-            depfile.item_groups[0].package_references[0].include,
+            depfile.elements[0]
+                .item_group
+                .as_ref()
+                .unwrap()
+                .package_references[0]
+                .include,
             "Microsoft.SourceLink.GitHub"
         );
         assert_eq!(
-            depfile.item_groups[1].package_references[0].include,
+            depfile.elements[1]
+                .item_group
+                .as_ref()
+                .unwrap()
+                .package_references[0]
+                .include,
             "System.Xml.XPath.XmlDocument"
         );
         assert_eq!(depfile.first_level_deps().len(), 2);
@@ -179,7 +204,7 @@ mod tests {
 
     #[test]
     /// This input was not properly parsed by the original implementation.
-    fn complicated_example_csproj_can_be_parsed() {
+    fn csproj_with_separated_item_groups_can_be_parsed() {
         let content = r#"
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
@@ -198,7 +223,7 @@ mod tests {
         let result = Csproj::parse_str(&content);
         assert!(result.is_ok(), "{}", result.err().unwrap());
         let depfile = result.unwrap();
-        assert_eq!(depfile.item_groups.len(), 2);
-        assert_eq!(depfile.first_level_deps().len(), 4);
+        assert_eq!(depfile.elements.len(), 3);
+        assert_eq!(depfile.first_level_deps().len(), 4, "{:#?}", depfile);
     }
 }
