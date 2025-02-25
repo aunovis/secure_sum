@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn empty_depfile_can_be_parsed() {
         let result = CargoToml::parse_str("");
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert!(depfile.dependencies.is_empty());
     }
@@ -90,7 +90,7 @@ mod tests {
         toml = { version = "0.5", features = ["derive"] }
     "#;
         let result = CargoToml::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.dependencies.len(), 2);
         assert!(depfile.dependencies.contains_key("serde"));
@@ -102,7 +102,7 @@ mod tests {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
         assert!(path.exists());
         let result = CargoToml::parse(&path);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let cargo_toml = result.unwrap();
         assert!(cargo_toml.dependencies.contains_key("serde"));
     }
@@ -111,7 +111,7 @@ mod tests {
     fn crate_repo_url_can_be_obtained() {
         let crate_name = "serde";
         let result = repo_url(crate_name);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let repo = result.unwrap();
         assert_eq!(repo.0, "https://github.com/serde-rs/serde");
     }

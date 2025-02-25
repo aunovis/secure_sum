@@ -44,7 +44,7 @@ mod tests {
     #[test]
     fn empty_depfile_can_be_parsed() {
         let result = PackageJson::parse_str("{}");
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert!(depfile.dependencies.is_empty());
     }
@@ -60,7 +60,7 @@ mod tests {
     }
     "#;
         let result = PackageJson::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.dependencies.len(), 2);
         assert!(depfile.dependencies.contains_key("@xenova/transformers"));
