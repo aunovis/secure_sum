@@ -13,11 +13,11 @@ pub(super) struct Csproj {
 }
 
 #[derive(Debug, Deserialize)]
-struct CsprojElement {
-    #[serde(rename = "ItemGroup", default)]
-    item_group: Option<ItemGroup>,
-    #[serde(flatten)]
-    _ignore: Option<serde::de::IgnoredAny>,
+enum CsprojElement {
+    #[serde(rename = "ItemGroup")]
+    ItemGroup(ItemGroup),
+    #[serde(other)]
+    Other,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,7 +52,10 @@ impl DepFile for Csproj {
     fn first_level_deps(&self) -> Vec<SingleTarget> {
         self.elements
             .iter()
-            .filter_map(|e| e.item_group.as_ref())
+            .filter_map(|e| match e {
+                CsprojElement::ItemGroup(item_group) => Some(item_group),
+                CsprojElement::Other => None,
+            })
             .map(|group| {
                 group
                     .package_references
@@ -137,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn element_can_be_deserialized() {
+    fn element_can_deserialize_anything() {
         let content = r#"
 <ItemGroup>
   <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
@@ -146,7 +149,20 @@ mod tests {
         let result = quick_xml::de::from_str::<CsprojElement>(&content);
         assert!(result.is_ok(), "{}", result.unwrap_err());
         let element = result.unwrap();
-        assert!(element.item_group.is_some(), "{:#?}", element);
+        assert!(
+            matches!(element, CsprojElement::ItemGroup(_)),
+            "{:#?}",
+            element
+        );
+        let content = r#"
+<SomethingElse>
+  <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
+</SomethingElse>
+    "#;
+        let result = quick_xml::de::from_str::<CsprojElement>(&content);
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        let element = result.unwrap();
+        assert!(matches!(element, CsprojElement::Other), "{:#?}", element);
     }
 
     #[test]
@@ -162,14 +178,12 @@ mod tests {
         assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.elements.len(), 1);
-        assert!(depfile.elements[0].item_group.is_some(), "{:#?}", depfile);
+        let group = match &depfile.elements[0] {
+            CsprojElement::ItemGroup(item_group) => item_group,
+            CsprojElement::Other => panic!("Expected ItemGroup"),
+        };
         assert_eq!(
-            depfile.elements[0]
-                .item_group
-                .as_ref()
-                .unwrap()
-                .package_references[0]
-                .include,
+            group.package_references[0].include,
             "System.Xml.XPath.XmlDocument"
         );
     }
@@ -205,24 +219,22 @@ mod tests {
         assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.elements.len(), 2);
-        assert!(depfile.elements[0].item_group.is_some());
-        assert!(depfile.elements[1].item_group.is_some());
+
+        let group_0 = match &depfile.elements[0] {
+            CsprojElement::ItemGroup(item_group) => item_group,
+            CsprojElement::Other => panic!("Expected ItemGroup"),
+        };
+
+        let group_1 = match &depfile.elements[1] {
+            CsprojElement::ItemGroup(item_group) => item_group,
+            CsprojElement::Other => panic!("Expected ItemGroup"),
+        };
         assert_eq!(
-            depfile.elements[0]
-                .item_group
-                .as_ref()
-                .unwrap()
-                .package_references[0]
-                .include,
+            group_0.package_references[0].include,
             "Microsoft.SourceLink.GitHub"
         );
         assert_eq!(
-            depfile.elements[1]
-                .item_group
-                .as_ref()
-                .unwrap()
-                .package_references[0]
-                .include,
+            group_1.package_references[0].include,
             "System.Xml.XPath.XmlDocument"
         );
         assert_eq!(depfile.first_level_deps().len(), 2);
