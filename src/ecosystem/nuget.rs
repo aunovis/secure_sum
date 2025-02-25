@@ -109,7 +109,7 @@ mod tests {
     fn almost_empty_csproj_can_be_parsed() {
         let content = r#"<Project Sdk="Microsoft.NET.Sdk"></Project>"#;
         let result = Csproj::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert!(depfile.elements.is_empty());
     }
@@ -118,9 +118,35 @@ mod tests {
     fn almost_empty_packages_config_can_be_parsed() {
         let content = r#"<?xml version="1.0" encoding="utf-8"?><packages/>"#;
         let result = PackagesConfig::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert!(depfile.packages.is_empty());
+    }
+
+    #[test]
+    fn item_group_can_be_deserialized() {
+        let content = r#"
+<ItemGroup>
+  <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
+</ItemGroup>
+    "#;
+        let result = quick_xml::de::from_str::<ItemGroup>(&content);
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        let group = result.unwrap();
+        assert!(!group.package_references.is_empty(), "{:#?}", group);
+    }
+
+    #[test]
+    fn element_can_be_deserialized() {
+        let content = r#"
+<ItemGroup>
+  <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
+</ItemGroup>
+    "#;
+        let result = quick_xml::de::from_str::<CsprojElement>(&content);
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        let element = result.unwrap();
+        assert!(element.item_group.is_some(), "{:#?}", element);
     }
 
     #[test]
@@ -133,10 +159,10 @@ mod tests {
 </Project>
     "#;
         let result = Csproj::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.elements.len(), 1);
-        assert!(depfile.elements[0].item_group.is_some());
+        assert!(depfile.elements[0].item_group.is_some(), "{:#?}", depfile);
         assert_eq!(
             depfile.elements[0]
                 .item_group
@@ -157,7 +183,7 @@ mod tests {
 </packages>
     "#;
         let result = PackagesConfig::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.packages.len(), 1);
         assert_eq!(depfile.packages[0].id, "Microsoft.Guardian.Cli");
@@ -176,7 +202,7 @@ mod tests {
 </Project>
     "#;
         let result = Csproj::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.elements.len(), 2);
         assert!(depfile.elements[0].item_group.is_some());
@@ -221,7 +247,7 @@ mod tests {
 </Project>
     "#;
         let result = Csproj::parse_str(&content);
-        assert!(result.is_ok(), "{}", result.err().unwrap());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         let depfile = result.unwrap();
         assert_eq!(depfile.elements.len(), 3);
         assert_eq!(depfile.first_level_deps().len(), 4, "{:#?}", depfile);
