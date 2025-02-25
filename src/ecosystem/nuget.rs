@@ -56,13 +56,12 @@ impl DepFile for Csproj {
                 CsprojElement::ItemGroup(item_group) => Some(item_group),
                 CsprojElement::Other => None,
             })
-            .map(|group| {
+            .flat_map(|group| {
                 group
                     .package_references
                     .iter()
                     .map(|dep| SingleTarget::Package(dep.include.to_owned(), self.ecosystem()))
             })
-            .flatten()
             .collect()
     }
 }
