@@ -1,0 +1,2 @@
+# Meant to be used from within the test pipeline, without a Github Token.
+hasOSVVulnerabilities = -1

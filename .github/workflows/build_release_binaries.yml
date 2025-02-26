@@ -157,13 +157,13 @@ jobs:
         run: |
           set -e
           chmod +x ./artifacts/*
-          ./artifacts/secure_sum ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum
+          ./artifacts/secure_sum ./system_tests/tiny_metrics.toml https://github.com/aunovis/secure_sum
       - name: Test Server-Client Communication on Windows
         if: matrix.os == 'windows-latest'
         run: |
-          .\artifacts\secure_sum.exe ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum
+          .\artifacts\secure_sum.exe ./system_tests/tiny_metrics.toml https://github.com/aunovis/secure_sum
       - name: Test Client on MacOS
         if: matrix.os == 'macos-latest'
         run: |
           chmod +x ./artifacts/*
-          ./artifacts/secure_sum ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum
+          ./artifacts/secure_sum ./system_tests/tiny_metrics.toml https://github.com/aunovis/secure_sum
