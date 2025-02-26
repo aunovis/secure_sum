@@ -11,7 +11,7 @@ use crate::{
     error::Error,
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
-    probe::{load_stored_probe, needs_rerun, store_probe, ProbeResult},
+    probe::{load_stored_probe, needs_rerun, store_probe_json, ProbeResult},
     target::{collect_single_targets, SingleTarget, Target},
 };
 
@@ -118,7 +118,7 @@ fn run_scorecard_probe(
     }
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
-    store_probe(target, &stdout)?;
+    store_probe_json(target, &stdout)?;
     Ok(probe_result)
 }
 
@@ -249,6 +249,22 @@ mod tests {
         };
         assert!(!filepath.exists());
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
+        assert!(result.is_ok(), "{:#?}", result);
+        assert!(filepath.exists(), "{} does not exist", filepath.display())
+    }
+
+    #[test]
+    #[serial]
+    fn scorecard_probe_on_unknown_repo_stores_error_in_result() {
+        ensure_scorecard_binary().unwrap();
+        let wrong_target = SingleTarget::Url(Url("https://ffzotuwjbbuxirheajde.com".to_string()));
+        let filepath = probe_file(&wrong_target).unwrap();
+        let scorecard = scorecard_path().unwrap();
+        let metric = Metric {
+            archived: Some(1.),
+            ..Default::default()
+        };
+        let result = run_scorecard_probe(&wrong_target, &metric, &scorecard);
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
