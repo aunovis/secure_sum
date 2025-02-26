@@ -104,7 +104,7 @@ jobs:
         include:
           - platform: arch
             container: archlinux:latest
-            linking: linux-glibc
+            linking: debian-glibc
             os: ubuntu-latest
           - platform: debian_11
             container: debian:11
