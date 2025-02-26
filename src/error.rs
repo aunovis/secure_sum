@@ -19,9 +19,6 @@ pub(crate) enum Error {
     #[error("Reqwest error occurred: {0}")]
     Reqwest(#[from] reqwest::Error),
 
-    #[error("Scorecard error: {0}")]
-    Scorecard(String),
-
     #[error("Serde JSON error: {0}")]
     SerdeJson(#[from] serde_json::Error),
 

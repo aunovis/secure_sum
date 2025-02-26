@@ -11,7 +11,7 @@ use crate::{
     error::Error,
     filesystem::{data_dir, ARCH_STR, OS_STR},
     metric::Metric,
-    probe::{load_stored_probe, needs_rerun, store_probe_json, ProbeResult},
+    probe::{load_stored_probe, needs_rerun, store_probe, store_probe_json, ProbeResult},
     target::{collect_single_targets, SingleTarget, Target},
 };
 
@@ -65,7 +65,7 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
             message.push_str(&path.to_string_lossy());
             message.push_str("\".");
             log::error!("{message}");
-            return Err(Error::Scorecard(message));
+            return Err(Error::Other(message));
         }
     }
     log::info!("Stored binary under {}", path.display());
@@ -113,8 +113,10 @@ fn run_scorecard_probe(
     let output = Command::new(scorecard).args(args).output()?;
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {
-        log::error!("{stderr}");
-        return Err(Error::Scorecard(stderr));
+        log::error!("Scorecard reported an error: {stderr}");
+        let probe_result = ProbeResult::from_scorecard_error(target, stderr);
+        store_probe(target, &probe_result)?;
+        return Ok(probe_result);
     }
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
@@ -257,6 +259,7 @@ mod tests {
     #[serial]
     fn scorecard_probe_on_unknown_repo_stores_error_in_result() {
         ensure_scorecard_binary().unwrap();
+        dotenvy::dotenv().unwrap();
         let wrong_target = SingleTarget::Url(Url("https://ffzotuwjbbuxirheajde.com".to_string()));
         let filepath = probe_file(&wrong_target).unwrap();
         let scorecard = scorecard_path().unwrap();
@@ -267,27 +270,6 @@ mod tests {
         let result = run_scorecard_probe(&wrong_target, &metric, &scorecard);
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
-    }
-
-    #[test]
-    #[serial]
-    fn running_scorecard_with_nonexistent_repo_produces_error() {
-        ensure_scorecard_binary().unwrap();
-        dotenvy::dotenv().unwrap();
-        let scorecard = scorecard_path().unwrap();
-        let metric = Metric {
-            archived: Some(1.),
-            ..Default::default()
-        };
-        let url = Url("buubpvnuodypyocmqnhv".to_string());
-        let target = SingleTarget::Url(url.clone());
-        let result = run_scorecard_probe(&target, &metric, &scorecard);
-        assert!(result.is_err(), "{:#?}", result.unwrap());
-        let error_print = format!("{}", result.unwrap_err());
-        assert!(
-            error_print.contains(&url.0),
-            "Error print is: {error_print}"
-        );
     }
 
     #[test]
