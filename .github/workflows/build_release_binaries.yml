@@ -1,0 +1,169 @@
+name: Build Release Binaries
+
+on:
+  push:
+    branches: ["pipeline-build-release*"]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+env:
+  DEBIAN_FRONTEND: noninteractive # Otherwise apt-get install will hang
+  TZ: Europe/Berlin
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        linking: [debian-glibc, linux-musl, windows, macos]
+        include:
+          - linking: debian-glibc
+            os: ubuntu-latest
+            container: debian:11-slim # Linking against glibc 2.31
+          - linking: linux-musl
+            os: ubuntu-latest
+            container: rust:1-slim # Completely static linking
+          - linking: windows
+            os: windows-latest
+          - linking: macos
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    steps:
+      - name: Install dependencies for Debian
+        if: matrix.linking == 'debian-glibc'
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential cargo cmake curl git pkg-config
+      - name: Install dependencies for musl
+        if: matrix.linking == 'linux-musl'
+        run: |
+          apt-get update
+          apt-get install -y sudo cmake git musl-tools pkg-config
+          rustup target add x86_64-unknown-linux-musl
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust on non-Rust images
+        if: matrix.linking != 'linux-musl'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+            toolchain: stable
+      - name: Build Binary with dynmic linking
+        if: matrix.linking != 'linux-musl'
+        uses: clechasseur/rs-cargo@v3
+        with:
+            command: build
+            args: --release
+      - name: Build Binary for Linux with static linking
+        if: matrix.linking == 'linux-musl'
+        uses: clechasseur/rs-cargo@v3
+        with:
+            command: build
+            args: --release --target x86_64-unknown-linux-musl
+
+      - name: Make artifacts folder
+        run: mkdir artifacts
+      - name: Add dynamically linked Linux artifacts to folder
+        if: matrix.linking == 'debian-glibc'
+        run: |
+          cp target/release/secure_sum artifacts
+      - name: Add statically linked Linux artifacts to folder
+        if: matrix.linking == 'linux-musl'
+        run: |
+          cp target/x86_64-unknown-linux-musl/release/secure_sum artifacts
+      - name: Add Windows artifacts to folder
+        if: matrix.linking == 'windows'
+        run: |
+          cp target\release\secure_sum.exe artifacts
+      - name: Add MacOS artifacts to folder
+        if: matrix.linking == 'macos'
+        run: |
+          cp target/release/secure_sum artifacts
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: secure_sum-${{ matrix.linking}}
+          path: artifacts
+
+  setup-test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [arch,
+                  debian_11,
+                  debian_12,
+                  fedora,
+                  ubuntu_20, # glibc 2.31
+                  ubuntu_22, # glibc 2.35
+                  ubuntu_24,
+                  macos,
+                  windows] # Container operations are only supported on Linux runners
+        include:
+          - platform: arch
+            container: archlinux:latest
+            linking: linux-glibc
+            os: ubuntu-latest
+          - platform: debian_11
+            container: debian:11
+            linking: debian-glibc
+            os: ubuntu-latest
+          - platform: debian_12
+            container: debian:12
+            linking: debian-glibc
+            os: ubuntu-latest
+          - platform: fedora
+            container: fedora:latest
+            linking: debian-glibc
+            os: ubuntu-latest
+          - platform: ubuntu_20
+            container: ubuntu:20.04
+            linking: debian-glibc
+            os: ubuntu-latest
+          - platform: ubuntu_22
+            container: ubuntu:22.04
+            linking: debian-glibc
+            os: ubuntu-latest
+          - platform: ubuntu_24
+            container: ubuntu:24.04
+            linking: debian-glibc
+            os: ubuntu-latest
+          - platform: macos
+            linking: macos
+            os: macos-latest
+          - platform: windows
+            linking: windows
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    steps:
+      - name: Install ca-certificates for Debian derivatives
+        if: matrix.platform == 'debian_11' || matrix.platform == 'debian_12' || matrix.platform == 'ubuntu_20' || matrix.platform == 'ubuntu_22' || matrix.platform == 'ubuntu_24'
+        run: apt-get update && apt-get install -y ca-certificates
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          submodules: false
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: secure_sum-${{ matrix.linking}}
+          path: artifacts
+      - name: Test Binary on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          set -e
+          chmod +x ./artifacts/*
+          ./artifacts/secure_sum ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum
+      - name: Test Server-Client Communication on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          .\artifacts\secure_sum.exe ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum
+      - name: Test Client on MacOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          chmod +x ./artifacts/*
+          ./artifacts/secure_sum ./system_tests/example_metrics.toml https://github.com/aunovis/secure_sum
