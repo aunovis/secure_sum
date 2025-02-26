@@ -116,8 +116,19 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
     let today = Utc::now().date_naive();
     let time_since_last_check = today.signed_duration_since(stored_probe.date);
     if time_since_last_check >= PROBE_VALIDITY_PERIOD {
+        log::debug!(
+            "Probe on {} was last run on {} and thus needs to be run again",
+            stored_probe.repo.name,
+            stored_probe.date
+        );
         return true;
     }
+
+    if stored_probe.scorecard_error_message.is_some() {
+        log::debug!("Probe on {} returned an error on {}, which is recent enough to not run it again at this point", stored_probe.repo.name, stored_probe.date);
+        return false;
+    }
+
     let probe_finding_names: Vec<_> = stored_probe
         .findings
         .iter()
@@ -308,5 +319,21 @@ mod tests {
         assert!(!needs_rerun(&probe, &metric));
         probe.findings = other_findings;
         assert!(needs_rerun(&probe, &metric));
+    }
+
+    #[test]
+    fn probe_does_not_need_rerun_if_recent_probe_is_error() {
+        let today = Utc::now().date_naive();
+        let probe = ProbeResult {
+            date: today,
+            repo: Repo {
+                name: "Some Repo".into(),
+            },
+            findings: vec![],
+            scorecard_error_message: Some("Oof, something went wrong.".to_string()),
+        };
+        let metric = Metric::from_str("archived = 1").unwrap();
+
+        assert!(!needs_rerun(&probe, &metric));
     }
 }
