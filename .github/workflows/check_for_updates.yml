@@ -17,8 +17,8 @@ jobs:
             ./scripts/update.sh
         - name: Check for unstaged changes
           run: |
-                if [[ $(git status --porcelain | grep -v 'Cargo.toml') ]]; then
+                if [[ -n $(git diff --ignore-cr-at-eol -G.) ]]; then
                     echo "This repository needs to be updated. Please run ./scripts/update.sh and commit the changes."
-                    git diff
+                    git diff --ignore-cr-at-eol -G.
                     exit 1
                 fi
