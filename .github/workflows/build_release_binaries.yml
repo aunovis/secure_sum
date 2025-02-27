@@ -152,6 +152,8 @@ jobs:
         with:
           name: secure_sum-${{ matrix.linking}}
           path: artifacts
+      - name: Add GitHub Access Token to environment variables
+        run: echo "GITHUB_TOKEN=${{ secrets.PAT }}" >> $GITHUB_ENV
       - name: Test Binary on Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
