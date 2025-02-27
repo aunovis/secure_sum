@@ -1,8 +1,10 @@
 name: Check for updates
 
 on:
-    schedule:
-      - cron: "0 0 27 * *" # On the 27th of every month, at 00:00 UTC
+  push:
+    branches: ["pipeline-update-check*"]
+  schedule:
+    - cron: "0 0 27 * *" # On the 27th of every month, at 00:00 UTC
 
 jobs:
     checkForUpdates:
