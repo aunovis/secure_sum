@@ -20,7 +20,7 @@ cargo install cargo-outdated
 cargo outdated --exit-code 1
 
 echo Checking for uncommitted changes
-git diff --ignore-cr-at-eol --exit-code
+git diff --ignore-cr-at-eol -G. --exit-code
 
 echo Checking for license policy violations
 chmod +x ./scripts/check_licenses.sh
