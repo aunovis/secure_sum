@@ -2,7 +2,7 @@
 
 set -e
 
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 
 echo Updating Python Packages
 chmod +x ./scripts/update_python_requirements.sh
