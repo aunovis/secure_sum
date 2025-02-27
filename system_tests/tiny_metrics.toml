@@ -1,2 +1,2 @@
-# Meant to be used from within the test pipeline, without a Github Token.
+# Meant to be used from within the test pipeline to check the executability of the program without requiring too much time.
 hasOSVVulnerabilities = -1
