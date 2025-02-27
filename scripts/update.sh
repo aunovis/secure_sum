@@ -2,7 +2,7 @@
 
 set -e
 
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 
 echo Updating Python Packages
 chmod +x ./scripts/update_python_requirements.sh
@@ -18,6 +18,9 @@ cargo update
 echo Checking for outdated dependencies
 cargo install cargo-outdated
 cargo outdated --exit-code 1
+
+echo Checking for uncommitted changes
+git diff --ignore-cr-at-eol -G. --exit-code
 
 echo Checking for license policy violations
 chmod +x ./scripts/check_licenses.sh

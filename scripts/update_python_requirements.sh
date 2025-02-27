@@ -2,20 +2,15 @@
 
 set -e
 
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 cd scripts
 
-if [ ! -d venv ]; then
-    python -m venv venv
-fi
+source ./python_cmd.sh
 
-if [ -d ./venv/bin ]; then
-    source ./venv/bin/activate
-else
-    source ./venv/Scripts/activate
-fi
+$PYTHON -m pip install --upgrade pip
 
-python.exe -m pip install --upgrade pip
+pip install -r ./requirements.txt
+
 pip install --upgrade setuptools pip-review
 
 pip-review --auto

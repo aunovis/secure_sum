@@ -2,7 +2,7 @@
 
 set -e
 
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 
 # Check if cargo deny is installed
 code=$(cargo deny --help > /dev/null 2>&1; echo $?)
