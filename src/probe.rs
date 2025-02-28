@@ -4,32 +4,54 @@ use std::{
 };
 
 use chrono::{Duration, NaiveDate, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{error::Error, filesystem::data_dir, metric::Metric, target::SingleTarget, url::Url};
 
 static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
     date: NaiveDate,
     pub(crate) repo: Repo,
     pub(crate) findings: Vec<ProbeFinding>,
+    pub(crate) scorecard_error_message: Option<String>,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+impl ProbeResult {
+    pub(crate) fn from_scorecard_error(target: &SingleTarget, message: String) -> Self {
+        let date = Utc::now().date_naive();
+        let name = match target {
+            SingleTarget::Package(package, ecosystem) => {
+                Url(format!("{}: {package}", ecosystem.as_str()))
+            }
+            SingleTarget::Url(url) => url.clone(),
+        };
+        let repo = Repo { name };
+        let findings = vec![];
+        let scorecard_error_message = Some(message);
+        ProbeResult {
+            date,
+            repo,
+            findings,
+            scorecard_error_message,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct Repo {
     pub(crate) name: Url,
 }
 
-#[derive(Clone, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
     pub(crate) probe: String,
     pub(crate) outcome: ProbeOutcome,
 }
 
 /// Corresponds to constants defined in https://github.com/ossf/scorecard/blob/main/finding/finding.go
-#[derive(Clone, Copy, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) enum ProbeOutcome {
     False,
     NotAvailable,
@@ -64,7 +86,12 @@ pub(crate) fn probe_file(target: &SingleTarget) -> Result<PathBuf, Error> {
     Ok(probe_dir.join(filename))
 }
 
-pub(crate) fn store_probe(target: &SingleTarget, raw_output: &str) -> Result<(), Error> {
+pub(crate) fn store_probe(target: &SingleTarget, result: &ProbeResult) -> Result<(), Error> {
+    let json = serde_json::to_string_pretty(result)?;
+    store_probe_json(target, &json)
+}
+
+pub(crate) fn store_probe_json(target: &SingleTarget, raw_output: &str) -> Result<(), Error> {
     let path = probe_file(target)?;
     if let Some(dir) = path.parent() {
         if !dir.exists() {
@@ -89,8 +116,19 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
     let today = Utc::now().date_naive();
     let time_since_last_check = today.signed_duration_since(stored_probe.date);
     if time_since_last_check >= PROBE_VALIDITY_PERIOD {
+        log::debug!(
+            "Probe on {} was last run on {} and thus needs to be run again",
+            stored_probe.repo.name,
+            stored_probe.date
+        );
         return true;
     }
+
+    if stored_probe.scorecard_error_message.is_some() {
+        log::debug!("Probe on {} returned an error on {}, which is recent enough to not run it again at this point", stored_probe.repo.name, stored_probe.date);
+        return false;
+    }
+
     let probe_finding_names: Vec<_> = stored_probe
         .findings
         .iter()
@@ -190,7 +228,7 @@ mod tests {
         fs::remove_file(&path).ok();
 
         assert!(!path.exists());
-        store_probe(&repo, EXAMPLE).unwrap();
+        store_probe_json(&repo, EXAMPLE).unwrap();
         assert!(path.exists(), "{} does not exist", path.display());
     }
 
@@ -206,7 +244,7 @@ mod tests {
         let probe = load_stored_probe(&repo).unwrap();
         assert!(probe.is_none());
 
-        store_probe(&repo, EXAMPLE).unwrap();
+        store_probe_json(&repo, EXAMPLE).unwrap();
         assert!(path.exists());
 
         let probe = load_stored_probe(&repo).unwrap().unwrap();
@@ -228,6 +266,7 @@ mod tests {
                 probe: "archived".to_owned(),
                 outcome: ProbeOutcome::True,
             }],
+            scorecard_error_message: None,
         };
         let metric = Metric::from_str("archived = 1").unwrap();
 
@@ -269,6 +308,7 @@ mod tests {
                 name: "Some Repo".into(),
             },
             findings: vec![],
+            scorecard_error_message: None,
         };
 
         probe.findings = same_findings;
@@ -279,5 +319,21 @@ mod tests {
         assert!(!needs_rerun(&probe, &metric));
         probe.findings = other_findings;
         assert!(needs_rerun(&probe, &metric));
+    }
+
+    #[test]
+    fn probe_does_not_need_rerun_if_recent_probe_is_error() {
+        let today = Utc::now().date_naive();
+        let probe = ProbeResult {
+            date: today,
+            repo: Repo {
+                name: "Some Repo".into(),
+            },
+            findings: vec![],
+            scorecard_error_message: Some("Oof, something went wrong.".to_string()),
+        };
+        let metric = Metric::from_str("archived = 1").unwrap();
+
+        assert!(!needs_rerun(&probe, &metric));
     }
 }

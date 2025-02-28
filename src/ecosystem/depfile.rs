@@ -1,7 +1,11 @@
 use std::path::Path;
 
 use crate::{
-    ecosystem::{node_js::PackageJson, nuget::PackagesConfig, rust::CargoToml},
+    ecosystem::{
+        node_js::PackageJson,
+        nuget::{Csproj, PackagesConfig},
+        rust::CargoToml,
+    },
     error::Error,
     target::SingleTarget,
 };
@@ -33,6 +37,9 @@ pub(crate) fn parse_str_as_depfile(str: &str) -> Box<dyn DepFile> {
 fn try_parse_all_ecosystems(file: &Path) -> Result<Box<dyn DepFile>, Error> {
     if let Ok(cargo_toml) = CargoToml::parse(file) {
         return Ok(Box::new(cargo_toml));
+    }
+    if let Ok(csproj) = Csproj::parse(file) {
+        return Ok(Box::new(csproj));
     }
     if let Ok(package_json) = PackageJson::parse(file) {
         return Ok(Box::new(package_json));
