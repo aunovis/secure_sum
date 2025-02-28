@@ -149,8 +149,10 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
         .iter()
         .map(|f| f.probe.as_str())
         .collect();
-    let mut probes_to_run = metric.probes();
-    probes_to_run.any(|(probe, _)| !probe_finding_names.contains(&probe))
+    let probes_to_run = &metric.probes;
+    probes_to_run
+        .iter()
+        .any(|probe| !probe_finding_names.contains(&probe.name.to_string().as_str()))
 }
 
 #[cfg(test)]

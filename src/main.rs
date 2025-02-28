@@ -5,7 +5,6 @@ mod ecosystem;
 mod error;
 mod filesystem;
 mod metric;
-mod metric_impl;
 mod probe;
 mod probe_name;
 mod repodata;

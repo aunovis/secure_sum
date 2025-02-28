@@ -38,12 +38,12 @@ impl PartialOrd for WeighedFinding {
 
 pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
     let mut weighed = vec![];
-    for (probe, weight) in metric.probes() {
-        let finding = findings.iter().find(|f| f.probe == probe);
+    for probe in metric.probes {
+        let finding = findings.iter().find(|f| f.probe == &probe.name);
         let outcome = match finding {
             Some(finding) => finding.outcome,
             None => {
-                log::error!("Findings contain no outcome for probe \"{probe}\"");
+                log::error!("Findings contain no outcome for probe \"{}\"", probe.name);
                 continue;
             }
         };
