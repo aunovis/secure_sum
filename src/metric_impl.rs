@@ -2,12 +2,12 @@ use std::{fs::read_to_string, path::Path};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, metric::Metric, probe::ProbeInput};
+use crate::{error::Error, metric::Metric, probe::ProbeInput, probe_name::ProbeName};
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub(crate) struct MetricNew {
     #[serde(rename = "probe")]
-    probes: Vec<ProbeInput>,
+    pub(crate) probes: Vec<ProbeInput>,
 }
 
 impl MetricNew {
@@ -17,14 +17,43 @@ impl MetricNew {
     }
 
     pub(crate) fn from_str(str: &str) -> Result<Self, Error> {
-        let metric: MetricNew = toml::from_str(str)?;
+        let mut metric: MetricNew = toml::from_str(str)?;
+        metric.probes.retain(|p| !p.is_zeroweight());
+
         if metric.probes.is_empty() {
-            Err(Error::Other(
+            return Err(Error::Other(
                 "Metric needs to contain at least one probe".to_string(),
-            ))
-        } else {
-            Ok(metric)
+            ));
         }
+
+        let probe_names = metric.probe_names();
+        let duplicates: Vec<_> = probe_names
+            .windows(2)
+            .filter_map(|window| {
+                if window[0] == window[1] {
+                    Some(window[0])
+                } else {
+                    None
+                }
+            })
+            .collect();
+        if !duplicates.is_empty() {
+            let duplicates = duplicates
+                .iter()
+                .map(|p| p.to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
+            let message = format!("Metric contains duplicate probes: {duplicates}");
+            return Err(Error::Other(message));
+        }
+
+        Ok(metric)
+    }
+
+    pub(crate) fn probe_names(&self) -> Vec<ProbeName> {
+        let mut names: Vec<_> = self.probes.iter().map(|p| p.name).collect();
+        names.sort();
+        names
     }
 }
 
