@@ -13,7 +13,7 @@ use crate::{
 
 static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub(crate) struct ProbeInput {
     pub(crate) name: ProbeName,
     pub(crate) weight: f32,
