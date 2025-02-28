@@ -1,6 +1,23 @@
 use std::{fs::read_to_string, path::Path};
 
-use crate::{error::Error, metric::Metric};
+use serde::{Deserialize, Serialize};
+
+use crate::{error::Error, metric::Metric, probe::ProbeInput};
+
+#[derive(Deserialize, Serialize, Debug)]
+pub(crate) struct MetricNew {
+    #[serde(rename = "probe")]
+    probes: Vec<ProbeInput>,
+}
+
+impl std::fmt::Display for MetricNew {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match toml::to_string(self) {
+            Ok(toml_str) => write!(f, "{}", toml_str),
+            Err(err) => write!(f, "Error serializing to TOML: {}", err),
+        }
+    }
+}
 
 impl Metric {
     pub(crate) fn from_file(filepath: &Path) -> Result<Self, Error> {
@@ -34,7 +51,10 @@ mod tests {
 
     use tempfile::NamedTempFile;
 
-    use crate::metric::{EXAMPLE_METRIC, EXAMPLE_METRIC_STR};
+    use crate::{
+        metric::{EXAMPLE_METRIC, EXAMPLE_METRIC_STR},
+        probe_name::ProbeName,
+    };
 
     use super::*;
 
@@ -103,5 +123,37 @@ mod tests {
             definetelyNotAFieldThatSecureSumWouldExpectGivenThePresentStateOfTheEconomy = 0.2
         "#;
         assert!(Metric::from_str(WEIRD_METRIC).is_err());
+    }
+
+    #[test]
+    fn metric_serialization_almost_roundtrip() {
+        let expected_serialized = r#"
+[[probe]]
+name = "archived"
+weight = -1.0
+
+[[probe]]
+name = "codeApproved"
+weight = 1.0
+"#;
+
+        let metric = MetricNew {
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: -1.,
+                },
+                ProbeInput {
+                    name: ProbeName::codeApproved,
+                    weight: 1.,
+                },
+            ],
+        };
+        let serialized = toml::to_string(&metric).unwrap();
+
+        assert_eq!(serialized.trim(), expected_serialized.trim());
+
+        let result = toml::from_str::<MetricNew>(&serialized);
+        assert!(result.is_ok());
     }
 }

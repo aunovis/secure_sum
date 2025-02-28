@@ -6,9 +6,24 @@ use std::{
 use chrono::{Duration, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, filesystem::data_dir, metric::Metric, target::SingleTarget, url::Url};
+use crate::{
+    error::Error, filesystem::data_dir, metric::Metric, probe_name::ProbeName,
+    target::SingleTarget, url::Url,
+};
 
 static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
+
+#[derive(Deserialize, Serialize, Debug)]
+pub(crate) struct ProbeInput {
+    pub(crate) name: ProbeName,
+    pub(crate) weight: f32,
+}
+
+impl ProbeInput {
+    pub(crate) fn is_zeroweight(&self) -> bool {
+        self.weight == 0.
+    }
+}
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
