@@ -61,7 +61,7 @@ pub(crate) struct Repo {
 
 #[derive(Clone, Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
-    pub(crate) probe: String,
+    pub(crate) probe: ProbeName,
     pub(crate) outcome: ProbeOutcome,
 }
 

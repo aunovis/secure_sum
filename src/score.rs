@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use crate::{
     metric::Metric,
     probe::{ProbeFinding, ProbeOutcome},
+    probe_name::ProbeName,
 };
 
 static NORM: f32 = 10.;
@@ -10,7 +11,7 @@ static ZERO_ACCURACY: f32 = 1e-10;
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct WeighedFinding {
-    probe: String,
+    probe: ProbeName,
     weight: f32,
     outcome: ProbeOutcome,
 }

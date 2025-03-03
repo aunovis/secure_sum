@@ -36,13 +36,17 @@ pub(crate) enum ProbeName {{
     {probes}
 }}
 
+impl ProbeName {{
+    fn as_str(&self) -> &'static str {{
+        match self {{
+            {as_str}
+        }}
+    }}
+}}
+
 impl Display for ProbeName {{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
-        let name = serde_json::to_string(self)
-            .unwrap_or_else(|_| String::new())
-            .trim_matches('"')
-            .to_string();
-        write!(f, "{{name}}")
+        write!(f, "{{}}", self.as_str())
     }}
 }}
 
@@ -57,6 +61,7 @@ mod tests {{
 }}
 """
 
+AS_STR_TEMPLATE = "ProbeName::{probe} => \"{probe}\""
 
 def get_probes():
     try:
@@ -73,6 +78,11 @@ def get_probes():
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
 
+def get_as_str_parts(probes):
+    return [AS_STR_TEMPLATE.format(probe = probe) for probe in probes]
+
 probes = get_probes()
+as_str_parts = get_as_str_parts(probes)
 with open(TARGET_PATH, 'w') as file:
-    file.write(TEMPLATE.format(probes = ",".join(probes)))
+    file.write(TEMPLATE.format(probes = ",".join(probes),
+                               as_str = ",".join(as_str_parts)))
