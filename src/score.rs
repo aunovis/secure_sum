@@ -193,6 +193,48 @@ mod tests {
     }
 
     #[test]
+    fn weigh_findings_contain_multiple_outcomes_of_same_probe() {
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::hasOSVVulnerabilities,
+                weight: 1.,
+                max_times: None,
+            }],
+        };
+        let findings = vec![
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+        ];
+
+        let weighed = weighed_findings(&findings, &metric);
+
+        let expected = vec![
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+        ];
+        assert_eq!(weighed, expected);
+    }
+
+    #[test]
+    fn weigh_findings_contain_multiple_outcomes_up_to_max_times() {
+        todo!()
+    }
+
+    #[test]
     fn total_score_ignores_non_boolean_outcomes() {
         let findings = vec![
             WeighedFinding {
