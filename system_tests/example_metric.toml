@@ -1,5 +1,15 @@
-hasRecentCommits = 1 # We care about this probe
-fuzzed = 0.4 # Good practice, but not as important for us as other criteria.
-archived = -1 # Using archived repos is deprecated, so this probe gets a negative value
-hasOSVVulnerabilities = -2.1 # Very important *not* to have this
-hasPermissiveLicense = 0 # A value of zero is treated as if the field is not present, the probe is not run
+[[probe]]
+name = "hasRecentCommits"
+weight = 1 # We care about this probe
+[[probe]]
+name = "fuzzed"
+weight = 0.4 # Good practice, but not as important for us as other criteria.
+[[probe]]
+name = "archived"
+weight = -1 # Using archived repos is deprecated, so this probe gets a negative value
+[[probe]]
+name = "hasOSVVulnerabilities"
+weight = -2.1 # Very important *not* to have this
+[[probe]]
+name = "hasPermissiveLicense"
+weight = 0 # A value of zero is treated as if the field is not present, the probe is not run

@@ -1,4 +1,4 @@
 # Meant to be used from within the test pipeline to check the executability of the program without requiring too much time.
-[probe]
+[[probe]]
 name = "hasOSVVulnerabilities"
 weight = -1
