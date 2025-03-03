@@ -285,7 +285,12 @@ mod tests {
             }],
             scorecard_error_message: None,
         };
-        let metric = Metric::from_str("archived = 1").unwrap();
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+            }],
+        };
 
         assert!(!needs_rerun(&probe, &metric));
 
@@ -298,7 +303,18 @@ mod tests {
 
     #[test]
     fn probe_needs_rerun_if_metric_contains_probes_without_finding() {
-        let metric = Metric::from_str("archived = 1\ncodeApproved = 1").unwrap();
+        let metric = Metric {
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: 1.,
+                },
+                ProbeInput {
+                    name: ProbeName::codeApproved,
+                    weight: 1.,
+                },
+            ],
+        };
         let same_findings = vec![
             ProbeFinding {
                 probe: ProbeName::archived,
@@ -349,7 +365,12 @@ mod tests {
             findings: vec![],
             scorecard_error_message: Some("Oof, something went wrong.".to_string()),
         };
-        let metric = Metric::from_str("archived = 1").unwrap();
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+            }],
+        };
 
         assert!(!needs_rerun(&probe, &metric));
     }
