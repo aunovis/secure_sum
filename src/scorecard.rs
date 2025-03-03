@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     #[serial]
-    fn running_scorecard_without_metrics_produces_error() {
+    fn running_scorecard_without_metric_produces_error() {
         ensure_scorecard_binary().unwrap();
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();

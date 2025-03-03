@@ -46,7 +46,7 @@ A more persistent way is to write create a fiel called `.env` with the content `
 
 ### Metric File
 
-First, you have to define a metrics file. This tells Secure Sum your priorities when evaluating projects. The file is written in [TOML format](https://toml.io/) and contains all probes you want to run, paired with a weight factor. The `system_tests` folder contains [an example file](https://github.com/aunovis/secure_sum/blob/main/system_tests/example_metrics.toml).
+First, you have to define a metric file. This tells Secure Sum your priorities when evaluating projects. The file is written in [TOML format](https://toml.io/) and contains all probes you want to run, paired with a weight factor. The `system_tests` folder contains [an example file](https://github.com/aunovis/secure_sum/blob/main/system_tests/example_metric.toml).
 
 A probe is some kind of check with an outcome that is either true, false, or a variation of "the probe check didn't work properly". The "fuzzed" probe for example checks if a repository is automatically fuzzed. The "archived" probe checks whether or not the repository is marked as archived.
 
@@ -66,27 +66,27 @@ This algorithm is a choice. If you yould like Secure Sum to be configurable to u
 
 ### Program Call
 
-To run the analyses and apply the metrics, pass the metrics file as the first and the target(s) as the second, third, etc. argument(s):
+To run the analyses and apply the metric, pass the metric file as the first and the target(s) as the second, third, etc. argument(s):
 ```
-secure_sum <path/to/metrics/file> <target> <additional-targts...>
+secure_sum <path/to/metric/file> <target> <additional-targts...>
 ```
 The targets do not necessarily have to be from the same ecosystem.
 
 For example, to run Secure Sum against a single repository, run:
 ```
-secure_sum example_metrics.toml https://github.com/aunovis/secure_sum
+secure_sum example_metric.toml https://github.com/aunovis/secure_sum
 ```
 The URL of the target has to start with `https://` or `http://`, otherwise Secure Sum will look for a local file.
 
 To run Secure Sum against the Rust ecosystem, target the Cargo.toml file:
 ```
-secure_sum example_metrics.toml Cargo.toml
+secure_sum example_metric.toml Cargo.toml
 ```
 It will then collect all first level dependencies and analyse them.
 
-If a check containing the required metrics has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` flag.
+If a check containing the required metric has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` flag.
 ```
-secure_sum example_metrics.toml https://github.com/aunovis/secure_sum --rerun
+secure_sum example_metric.toml https://github.com/aunovis/secure_sum --rerun
 ```
 
 ### Supported Ecosystems
