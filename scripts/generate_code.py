@@ -37,7 +37,7 @@ pub(crate) enum ProbeName {{
 }}
 
 impl ProbeName {{
-    fn as_str(&self) -> &'static str {{
+    pub fn as_str(&self) -> &'static str {{
         match self {{
             {as_str}
         }}

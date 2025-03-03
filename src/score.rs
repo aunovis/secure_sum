@@ -39,8 +39,8 @@ impl PartialOrd for WeighedFinding {
 
 pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
     let mut weighed = vec![];
-    for probe in metric.probes {
-        let finding = findings.iter().find(|f| f.probe == &probe.name);
+    for probe in &metric.probes {
+        let finding = findings.iter().find(|f| f.probe == probe.name);
         let outcome = match finding {
             Some(finding) => finding.outcome,
             None => {
@@ -49,8 +49,8 @@ pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Ve
             }
         };
         weighed.push(WeighedFinding {
-            probe: probe.to_owned(),
-            weight,
+            probe: probe.name,
+            weight: probe.weight,
             outcome,
         });
     }
@@ -100,21 +100,25 @@ fn lowest_and_highest_possible_value(findings: &[WeighedFinding]) -> (f32, f32) 
 
 #[cfg(test)]
 mod tests {
+    use crate::probe::ProbeInput;
+
     use super::*;
 
     #[test]
     fn weigh_findings_ignores_probes_not_in_metric() {
         let metric = Metric {
-            archived: Some(1.),
-            ..Default::default()
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+            }],
         };
         let findings = vec![
             ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
             },
         ];
@@ -122,7 +126,7 @@ mod tests {
         let weighed = weighed_findings(&findings, &metric);
 
         let expected = vec![WeighedFinding {
-            probe: "archived".to_owned(),
+            probe: ProbeName::archived,
             outcome: ProbeOutcome::True,
             weight: 1.,
         }];
@@ -132,22 +136,32 @@ mod tests {
     #[test]
     fn weighed_findings_are_sorted_by_weight_amplitude() {
         let metric = Metric {
-            archived: Some(1.),
-            fuzzed: Some(2.),
-            codeApproved: Some(-3.),
-            ..Default::default()
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: 1.,
+                },
+                ProbeInput {
+                    name: ProbeName::fuzzed,
+                    weight: 2.,
+                },
+                ProbeInput {
+                    name: ProbeName::codeApproved,
+                    weight: -3.,
+                },
+            ],
         };
         let findings = vec![
             ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
             },
         ];
@@ -156,17 +170,17 @@ mod tests {
 
         let expected = vec![
             WeighedFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
                 weight: -3.,
             },
             WeighedFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
                 weight: 2.,
             },
             WeighedFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
@@ -178,17 +192,17 @@ mod tests {
     fn total_score_ignores_non_boolean_outcomes() {
         let findings = vec![
             WeighedFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
             WeighedFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::False,
                 weight: 1.,
             },
             WeighedFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::NotSupported,
                 weight: 1.,
             },
@@ -203,7 +217,7 @@ mod tests {
     #[test]
     fn total_score_is_normed() {
         let findings = vec![WeighedFinding {
-            probe: "archived".to_owned(),
+            probe: ProbeName::archived,
             outcome: ProbeOutcome::True,
             weight: 1.234,
         }];
@@ -218,17 +232,17 @@ mod tests {
     fn total_score_is_normed_between_min_and_max_value() {
         let findings = vec![
             WeighedFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
                 weight: -1.,
             },
             WeighedFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
             WeighedFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },

@@ -280,7 +280,7 @@ mod tests {
                 name: "Some Repo".into(),
             },
             findings: vec![ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             }],
             scorecard_error_message: None,
@@ -301,16 +301,16 @@ mod tests {
         let metric = Metric::from_str("archived = 1\ncodeApproved = 1").unwrap();
         let same_findings = vec![
             ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
             },
         ];
         let other_finding = ProbeFinding {
-            probe: "fuzzed".to_owned(),
+            probe: ProbeName::fuzzed,
             outcome: ProbeOutcome::True,
         };
         let less_findings = same_findings[1..].to_vec();
