@@ -86,12 +86,28 @@ weight = -1.0
 [[probe]]
 name = "codeApproved"
 weight = 1.0
+max_times = 12
         "#;
+        let expected = Metric {
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: -1.,
+                    max_times: None,
+                },
+                ProbeInput {
+                    name: ProbeName::codeApproved,
+                    weight: 1.,
+                    max_times: Some(12),
+                },
+            ],
+        };
+
         let tempfile = NamedTempFile::new().unwrap();
         let filepath = tempfile.path();
         write(filepath, EXAMPLE_METRIC_STR).unwrap();
-        let result = Metric::from_file(filepath);
-        assert!(result.is_ok());
+        let metric = Metric::from_file(filepath).unwrap();
+        assert_eq!(metric, expected);
 
         remove_file(filepath).ok();
     }
@@ -137,6 +153,7 @@ weight = -1.0
 [[probe]]
 name = "codeApproved"
 weight = 1.0
+max_times = 12
         "#;
 
         let expected_metric = Metric {
@@ -144,10 +161,12 @@ weight = 1.0
                 ProbeInput {
                     name: ProbeName::archived,
                     weight: -1.,
+                    max_times: None,
                 },
                 ProbeInput {
                     name: ProbeName::codeApproved,
                     weight: 1.,
+                    max_times: Some(12),
                 },
             ],
         };

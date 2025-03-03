@@ -17,6 +17,7 @@ static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
 pub(crate) struct ProbeInput {
     pub(crate) name: ProbeName,
     pub(crate) weight: f32,
+    pub(crate) max_times: Option<usize>,
 }
 
 impl ProbeInput {
@@ -289,6 +290,7 @@ mod tests {
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
+                max_times: None,
             }],
         };
 
@@ -308,10 +310,12 @@ mod tests {
                 ProbeInput {
                     name: ProbeName::archived,
                     weight: 1.,
+                    max_times: None,
                 },
                 ProbeInput {
                     name: ProbeName::codeApproved,
                     weight: 1.,
+                    max_times: None,
                 },
             ],
         };
@@ -369,6 +373,7 @@ mod tests {
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
+                max_times: None,
             }],
         };
 

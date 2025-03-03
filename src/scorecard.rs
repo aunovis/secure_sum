@@ -217,6 +217,7 @@ mod tests {
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
+                max_times: None,
             }],
         };
         let args = scorecard_args(&metric, &example_target()).unwrap();
@@ -235,10 +236,12 @@ mod tests {
                 ProbeInput {
                     name: ProbeName::archived,
                     weight: 1.,
+                    max_times: None,
                 },
                 ProbeInput {
                     name: ProbeName::fuzzed,
                     weight: 1.3,
+                    max_times: None,
                 },
             ],
         };
@@ -263,6 +266,7 @@ mod tests {
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
+                max_times: None,
             }],
         };
         assert!(!filepath.exists());
@@ -283,6 +287,7 @@ mod tests {
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
+                max_times: None,
             }],
         };
         let result = run_scorecard_probe(&wrong_target, &metric, &scorecard);

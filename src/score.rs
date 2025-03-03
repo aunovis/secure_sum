@@ -110,6 +110,7 @@ mod tests {
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
+                max_times: None,
             }],
         };
         let findings = vec![
@@ -140,14 +141,17 @@ mod tests {
                 ProbeInput {
                     name: ProbeName::archived,
                     weight: 1.,
+                    max_times: None,
                 },
                 ProbeInput {
                     name: ProbeName::fuzzed,
                     weight: 2.,
+                    max_times: None,
                 },
                 ProbeInput {
                     name: ProbeName::codeApproved,
                     weight: -3.,
+                    max_times: None,
                 },
             ],
         };
