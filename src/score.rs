@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use crate::{
     metric::Metric,
-    probe::{ProbeFinding, ProbeOutcome},
+    probe::{ProbeFinding, ProbeInput, ProbeOutcome},
     probe_name::ProbeName,
 };
 
@@ -37,22 +37,34 @@ impl PartialOrd for WeighedFinding {
     }
 }
 
+fn weighed_finding(input: &ProbeInput, finding: &ProbeFinding) -> Option<WeighedFinding> {
+    if finding.probe == input.name {
+        let weighed = WeighedFinding {
+            probe: input.name,
+            weight: input.weight,
+            outcome: finding.outcome,
+        };
+        Some(weighed)
+    } else {
+        None
+    }
+}
+
 pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
     let mut weighed = vec![];
     for probe in &metric.probes {
-        let finding = findings.iter().find(|f| f.probe == probe.name);
-        let outcome = match finding {
-            Some(finding) => finding.outcome,
-            None => {
-                log::error!("Findings contain no outcome for probe \"{}\"", probe.name);
-                continue;
-            }
-        };
-        weighed.push(WeighedFinding {
-            probe: probe.name,
-            weight: probe.weight,
-            outcome,
-        });
+        let mut findings: Vec<_> = findings
+            .iter()
+            .filter_map(|finding| weighed_finding(probe, finding))
+            .collect();
+        if findings.is_empty() {
+            log::error!("Findings contain no outcome for probe \"{}\"", probe.name);
+            continue;
+        }
+        if let Some(max_times) = probe.max_times {
+            findings = findings.into_iter().take(max_times).collect();
+        }
+        weighed.append(&mut findings);
     }
     weighed.sort();
     weighed

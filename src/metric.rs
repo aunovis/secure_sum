@@ -121,7 +121,23 @@ weight = 0.0
 
 [[probe]]
 name = "blocksDeleteOnBranches"
-weight = 0.2
+weight = 1
+        "#;
+        let metric = Metric::from_str(METRIC_WITH_ZERO_STR).expect("Failed to parse metric!");
+        assert_eq!(metric.probes.len(), 1);
+    }
+
+    #[test]
+    fn max_times_of_zero_is_treated_as_none() {
+        static METRIC_WITH_ZERO_STR: &str = r#"
+[[probe]]
+name = "archived"
+weight = 1
+max_times = 0
+
+[[probe]]
+name = "blocksDeleteOnBranches"
+weight = 1
         "#;
         let metric = Metric::from_str(METRIC_WITH_ZERO_STR).expect("Failed to parse metric!");
         assert_eq!(metric.probes.len(), 1);
