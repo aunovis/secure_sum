@@ -2,7 +2,8 @@ use std::cmp::Ordering;
 
 use crate::{
     metric::Metric,
-    probe::{ProbeFinding, ProbeOutcome},
+    probe::{ProbeFinding, ProbeInput, ProbeOutcome},
+    probe_name::ProbeName,
 };
 
 static NORM: f32 = 10.;
@@ -10,7 +11,7 @@ static ZERO_ACCURACY: f32 = 1e-10;
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct WeighedFinding {
-    probe: String,
+    probe: ProbeName,
     weight: f32,
     outcome: ProbeOutcome,
 }
@@ -36,22 +37,34 @@ impl PartialOrd for WeighedFinding {
     }
 }
 
+fn weighed_finding(input: &ProbeInput, finding: &ProbeFinding) -> Option<WeighedFinding> {
+    if finding.probe == input.name {
+        let weighed = WeighedFinding {
+            probe: input.name,
+            weight: input.weight,
+            outcome: finding.outcome,
+        };
+        Some(weighed)
+    } else {
+        None
+    }
+}
+
 pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Vec<WeighedFinding> {
     let mut weighed = vec![];
-    for (probe, weight) in metric.probes() {
-        let finding = findings.iter().find(|f| f.probe == probe);
-        let outcome = match finding {
-            Some(finding) => finding.outcome,
-            None => {
-                log::error!("Findings contain no outcome for probe \"{probe}\"");
-                continue;
-            }
-        };
-        weighed.push(WeighedFinding {
-            probe: probe.to_owned(),
-            weight,
-            outcome,
-        });
+    for probe in &metric.probes {
+        let mut findings: Vec<_> = findings
+            .iter()
+            .filter_map(|finding| weighed_finding(probe, finding))
+            .collect();
+        if findings.is_empty() {
+            log::error!("Findings contain no outcome for probe \"{}\"", probe.name);
+            continue;
+        }
+        if let Some(max_times) = probe.max_times {
+            findings = findings.into_iter().take(max_times).collect();
+        }
+        weighed.append(&mut findings);
     }
     weighed.sort();
     weighed
@@ -99,21 +112,26 @@ fn lowest_and_highest_possible_value(findings: &[WeighedFinding]) -> (f32, f32) 
 
 #[cfg(test)]
 mod tests {
+    use crate::probe::ProbeInput;
+
     use super::*;
 
     #[test]
     fn weigh_findings_ignores_probes_not_in_metric() {
         let metric = Metric {
-            archived: Some(1.),
-            ..Default::default()
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+                max_times: None,
+            }],
         };
         let findings = vec![
             ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
             },
         ];
@@ -121,7 +139,7 @@ mod tests {
         let weighed = weighed_findings(&findings, &metric);
 
         let expected = vec![WeighedFinding {
-            probe: "archived".to_owned(),
+            probe: ProbeName::archived,
             outcome: ProbeOutcome::True,
             weight: 1.,
         }];
@@ -131,22 +149,35 @@ mod tests {
     #[test]
     fn weighed_findings_are_sorted_by_weight_amplitude() {
         let metric = Metric {
-            archived: Some(1.),
-            fuzzed: Some(2.),
-            codeApproved: Some(-3.),
-            ..Default::default()
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: 1.,
+                    max_times: None,
+                },
+                ProbeInput {
+                    name: ProbeName::fuzzed,
+                    weight: 2.,
+                    max_times: None,
+                },
+                ProbeInput {
+                    name: ProbeName::codeApproved,
+                    weight: -3.,
+                    max_times: None,
+                },
+            ],
         };
         let findings = vec![
             ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
             },
         ];
@@ -155,17 +186,95 @@ mod tests {
 
         let expected = vec![
             WeighedFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
                 weight: -3.,
             },
             WeighedFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
                 weight: 2.,
             },
             WeighedFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+        ];
+        assert_eq!(weighed, expected);
+    }
+
+    #[test]
+    fn weighed_findings_contain_multiple_outcomes_of_same_probe() {
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::hasOSVVulnerabilities,
+                weight: 1.,
+                max_times: None,
+            }],
+        };
+        let findings = vec![
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+        ];
+
+        let weighed = weighed_findings(&findings, &metric);
+
+        let expected = vec![
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+        ];
+        assert_eq!(weighed, expected);
+    }
+
+    #[test]
+    fn weighed_findings_contain_multiple_outcomes_up_to_max_times() {
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::hasOSVVulnerabilities,
+                weight: 1.,
+                max_times: Some(2),
+            }],
+        };
+        let findings = vec![
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+        ];
+
+        let weighed = weighed_findings(&findings, &metric);
+
+        let expected = vec![
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
@@ -177,17 +286,17 @@ mod tests {
     fn total_score_ignores_non_boolean_outcomes() {
         let findings = vec![
             WeighedFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
             WeighedFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::False,
                 weight: 1.,
             },
             WeighedFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::NotSupported,
                 weight: 1.,
             },
@@ -202,7 +311,7 @@ mod tests {
     #[test]
     fn total_score_is_normed() {
         let findings = vec![WeighedFinding {
-            probe: "archived".to_owned(),
+            probe: ProbeName::archived,
             outcome: ProbeOutcome::True,
             weight: 1.234,
         }];
@@ -217,17 +326,17 @@ mod tests {
     fn total_score_is_normed_between_min_and_max_value() {
         let findings = vec![
             WeighedFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
                 weight: -1.,
             },
             WeighedFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
             WeighedFinding {
-                probe: "fuzzed".to_owned(),
+                probe: ProbeName::fuzzed,
                 outcome: ProbeOutcome::True,
                 weight: 1.,
             },
@@ -246,5 +355,36 @@ mod tests {
         assert_eq!(lowest, 0.,);
         assert_eq!(highest, 0.);
         assert_eq!(calculate_total_score(&vec![]), 0.);
+    }
+
+    #[test]
+    fn total_score_respects_findings_of_same_type() {
+        let findings = vec![
+            WeighedFinding {
+                probe: ProbeName::archived,
+                outcome: ProbeOutcome::False,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+        ];
+
+        let (lowest, highest) = lowest_and_highest_possible_value(&findings);
+        assert_eq!(lowest, -4.);
+        assert_eq!(highest, 0.);
+        assert_eq!(calculate_total_score(&findings), NORM / 4.);
     }
 }

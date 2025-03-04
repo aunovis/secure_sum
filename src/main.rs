@@ -5,8 +5,8 @@ mod ecosystem;
 mod error;
 mod filesystem;
 mod metric;
-mod metric_impl;
 mod probe;
+mod probe_name;
 mod repodata;
 mod score;
 mod scorecard;
@@ -29,8 +29,8 @@ fn main() -> Result<(), Error> {
         .init()
         .map_err(|e| Error::Other(e.to_string()))?;
     let args = Arguments::parse();
-    let metrics = Metric::from_file(&args.metrics_file)?;
-    log::debug!("Parsed metrics:\n{metrics}");
+    let metric = Metric::from_file(&args.metric_file)?;
+    log::debug!("Parsed metric:\n{metric}");
     let targets: Vec<_> = args
         .dependencies
         .into_iter()
@@ -42,8 +42,8 @@ fn main() -> Result<(), Error> {
         .collect::<Result<_, Error>>()?;
     ensure_scorecard_binary()?;
     dotenvy::dotenv().ok();
-    let results = dispatch_scorecard_runs(&metrics, targets, args.rerun)?;
-    let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metrics)).collect();
+    let results = dispatch_scorecard_runs(&metric, targets, args.rerun)?;
+    let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metric)).collect();
     results.sort();
     log::info!("\n{}", Table::new(results));
     Ok(())

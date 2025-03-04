@@ -20,7 +20,7 @@
                 }
             },
             "args": [
-                "./system_tests/example_metrics.toml",
+                "./system_tests/example_metric.toml",
                 "https://github.com/aunovis/secure_sum"
             ],
             "cwd": "${workspaceFolder}"

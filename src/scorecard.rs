@@ -128,8 +128,9 @@ fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>,
     let mut args = vec![];
     args.push(target.to_scorecard_arg()?);
     let probes = metric
-        .probes()
-        .map(|(name, _)| name.to_string())
+        .probes
+        .iter()
+        .map(|input| input.name.to_string())
         .collect::<Vec<_>>();
     if probes.is_empty() {
         return Err(Error::Input(
@@ -147,7 +148,11 @@ mod tests {
     use reqwest::blocking::Client;
     use serial_test::serial;
 
-    use crate::{probe::probe_file, url::Url};
+    use crate::{
+        probe::{probe_file, ProbeInput},
+        probe_name::ProbeName,
+        url::Url,
+    };
 
     use super::*;
 
@@ -201,7 +206,7 @@ mod tests {
 
     #[test]
     fn scorecard_args_without_probes_is_err() {
-        let metric = Metric::default();
+        let metric = Metric { probes: vec![] };
         let args_result = scorecard_args(&metric, &example_target());
         assert!(args_result.is_err())
     }
@@ -209,8 +214,11 @@ mod tests {
     #[test]
     fn scorecard_args_one_probe() {
         let metric = Metric {
-            archived: Some(1.),
-            ..Default::default()
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+                max_times: None,
+            }],
         };
         let args = scorecard_args(&metric, &example_target()).unwrap();
         let expected = vec![
@@ -224,9 +232,18 @@ mod tests {
     #[test]
     fn scorecard_args_several_probes() {
         let metric = Metric {
-            archived: Some(1.),
-            fuzzed: Some(1.3),
-            ..Default::default()
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: 1.,
+                    max_times: None,
+                },
+                ProbeInput {
+                    name: ProbeName::fuzzed,
+                    weight: 1.3,
+                    max_times: None,
+                },
+            ],
         };
         let args = scorecard_args(&metric, &example_target()).unwrap();
         let expected = vec![
@@ -246,8 +263,11 @@ mod tests {
         let filepath = probe_file(&example_target()).unwrap();
         fs::remove_file(&filepath).ok();
         let metric = Metric {
-            archived: Some(1.),
-            ..Default::default()
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+                max_times: None,
+            }],
         };
         assert!(!filepath.exists());
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
@@ -264,8 +284,11 @@ mod tests {
         let filepath = probe_file(&wrong_target).unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric {
-            archived: Some(1.),
-            ..Default::default()
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+                max_times: None,
+            }],
         };
         let result = run_scorecard_probe(&wrong_target, &metric, &scorecard);
         assert!(result.is_ok(), "{:#?}", result);
@@ -274,11 +297,11 @@ mod tests {
 
     #[test]
     #[serial]
-    fn running_scorecard_without_metrics_produces_error() {
+    fn running_scorecard_without_metric_produces_error() {
         ensure_scorecard_binary().unwrap();
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
-        let metric = Metric::default();
+        let metric = Metric { probes: vec![] };
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
