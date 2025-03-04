@@ -193,7 +193,7 @@ mod tests {
     }
 
     #[test]
-    fn weigh_findings_contain_multiple_outcomes_of_same_probe() {
+    fn weighed_findings_contain_multiple_outcomes_of_same_probe() {
         let metric = Metric {
             probes: vec![ProbeInput {
                 name: ProbeName::hasOSVVulnerabilities,
@@ -230,8 +230,44 @@ mod tests {
     }
 
     #[test]
-    fn weigh_findings_contain_multiple_outcomes_up_to_max_times() {
-        todo!()
+    fn weighed_findings_contain_multiple_outcomes_up_to_max_times() {
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::hasOSVVulnerabilities,
+                weight: 1.,
+                max_times: Some(2),
+            }],
+        };
+        let findings = vec![
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+            ProbeFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+            },
+        ];
+
+        let weighed = weighed_findings(&findings, &metric);
+
+        let expected = vec![
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: 1.,
+            },
+        ];
+        assert_eq!(weighed, expected);
     }
 
     #[test]
@@ -307,5 +343,36 @@ mod tests {
         assert_eq!(lowest, 0.,);
         assert_eq!(highest, 0.);
         assert_eq!(calculate_total_score(&vec![]), 0.);
+    }
+
+    #[test]
+    fn total_score_respects_findings_of_same_type() {
+        let findings = vec![
+            WeighedFinding {
+                probe: ProbeName::archived,
+                outcome: ProbeOutcome::False,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+            WeighedFinding {
+                probe: ProbeName::hasOSVVulnerabilities,
+                outcome: ProbeOutcome::True,
+                weight: -1.,
+            },
+        ];
+
+        let (lowest, highest) = lowest_and_highest_possible_value(&findings);
+        assert_eq!(lowest, -4.);
+        assert_eq!(highest, 0.);
+        assert_eq!(calculate_total_score(&findings), NORM / 4.);
     }
 }
