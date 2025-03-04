@@ -24,6 +24,13 @@ impl ProbeInput {
     pub(crate) fn is_zeroweight(&self) -> bool {
         self.weight == 0.
     }
+
+    pub(crate) fn is_zero_times(&self) -> bool {
+        match self.max_times {
+            Some(times) => times == 0,
+            None => false,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]

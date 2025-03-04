@@ -19,6 +19,7 @@ impl Metric {
     pub(crate) fn from_str(str: &str) -> Result<Self, Error> {
         let mut metric: Metric = toml::from_str(str)?;
         metric.probes.retain(|p| !p.is_zeroweight());
+        metric.probes.retain(|p| !p.is_zero_times());
 
         if metric.probes.is_empty() {
             return Err(Error::Other(

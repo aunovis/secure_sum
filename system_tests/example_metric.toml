@@ -10,6 +10,11 @@ weight = -1 # Using archived repos is deprecated, so this probe gets a negative 
 [[probe]]
 name = "hasOSVVulnerabilities"
 weight = -2.1 # Very important *not* to have this
+max_times = 10 # You can choose to limit the number of times this probe contributes to the score
 [[probe]]
 name = "hasPermissiveLicense"
-weight = 0 # A value of zero is treated as if the field is not present, the probe is not run
+weight = 0 # A weight of zero is treated as if the field is not present, the probe is not run
+[[probe]]
+name = "securityPolicyPresent"
+weight = 1
+max_times = 0 # A max number of contirbution times of 0 is treated as if the field is not present

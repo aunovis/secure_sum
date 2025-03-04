@@ -99,6 +99,8 @@ weight = 1
 max_times = 2
 ```
 
+Setting the value of `max_times` to 0 is equivalent to not including the probe in the metric at all.
+
 ### Algorithm
 
 Secure Sum's algorithm for calculating the total score is as follows:
