@@ -6,9 +6,32 @@ use std::{
 use chrono::{Duration, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, filesystem::data_dir, metric::Metric, target::SingleTarget, url::Url};
+use crate::{
+    error::Error, filesystem::data_dir, metric::Metric, probe_name::ProbeName,
+    target::SingleTarget, url::Url,
+};
 
 static PROBE_VALIDITY_PERIOD: Duration = Duration::weeks(1);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub(crate) struct ProbeInput {
+    pub(crate) name: ProbeName,
+    pub(crate) weight: f32,
+    pub(crate) max_times: Option<usize>,
+}
+
+impl ProbeInput {
+    pub(crate) fn is_zeroweight(&self) -> bool {
+        self.weight == 0.
+    }
+
+    pub(crate) fn is_zero_times(&self) -> bool {
+        match self.max_times {
+            Some(times) => times == 0,
+            None => false,
+        }
+    }
+}
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeResult {
@@ -46,7 +69,7 @@ pub(crate) struct Repo {
 
 #[derive(Clone, Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub(crate) struct ProbeFinding {
-    pub(crate) probe: String,
+    pub(crate) probe: ProbeName,
     pub(crate) outcome: ProbeOutcome,
 }
 
@@ -134,8 +157,10 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
         .iter()
         .map(|f| f.probe.as_str())
         .collect();
-    let mut probes_to_run = metric.probes();
-    probes_to_run.any(|(probe, _)| !probe_finding_names.contains(&probe))
+    let probes_to_run = &metric.probes;
+    probes_to_run
+        .iter()
+        .any(|probe| !probe_finding_names.contains(&probe.name.to_string().as_str()))
 }
 
 #[cfg(test)]
@@ -263,12 +288,18 @@ mod tests {
                 name: "Some Repo".into(),
             },
             findings: vec![ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             }],
             scorecard_error_message: None,
         };
-        let metric = Metric::from_str("archived = 1").unwrap();
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+                max_times: None,
+            }],
+        };
 
         assert!(!needs_rerun(&probe, &metric));
 
@@ -281,19 +312,32 @@ mod tests {
 
     #[test]
     fn probe_needs_rerun_if_metric_contains_probes_without_finding() {
-        let metric = Metric::from_str("archived = 1\ncodeApproved = 1").unwrap();
+        let metric = Metric {
+            probes: vec![
+                ProbeInput {
+                    name: ProbeName::archived,
+                    weight: 1.,
+                    max_times: None,
+                },
+                ProbeInput {
+                    name: ProbeName::codeApproved,
+                    weight: 1.,
+                    max_times: None,
+                },
+            ],
+        };
         let same_findings = vec![
             ProbeFinding {
-                probe: "archived".to_owned(),
+                probe: ProbeName::archived,
                 outcome: ProbeOutcome::True,
             },
             ProbeFinding {
-                probe: "codeApproved".to_owned(),
+                probe: ProbeName::codeApproved,
                 outcome: ProbeOutcome::True,
             },
         ];
         let other_finding = ProbeFinding {
-            probe: "fuzzed".to_owned(),
+            probe: ProbeName::fuzzed,
             outcome: ProbeOutcome::True,
         };
         let less_findings = same_findings[1..].to_vec();
@@ -332,7 +376,13 @@ mod tests {
             findings: vec![],
             scorecard_error_message: Some("Oof, something went wrong.".to_string()),
         };
-        let metric = Metric::from_str("archived = 1").unwrap();
+        let metric = Metric {
+            probes: vec![ProbeInput {
+                name: ProbeName::archived,
+                weight: 1.,
+                max_times: None,
+            }],
+        };
 
         assert!(!needs_rerun(&probe, &metric));
     }
