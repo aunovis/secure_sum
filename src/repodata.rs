@@ -1,20 +1,27 @@
 use std::cmp::Ordering;
 
-use tabled::Tabled;
+use tabled::{settings::Style, Table, Tabled};
 
 use crate::{
+    cumulated_probe::{cumulated_outcomes, CumulatedProbeOutcome},
     metric::Metric,
     probe::ProbeResult,
-    score::{boolean_outcomes, calculate_total_score, weighed_findings},
+    score::{calculate_total_score, weighed_findings},
     url::Url,
 };
 
 #[derive(Debug, PartialEq, Tabled)]
 pub(crate) struct RepoData {
+    #[tabled(rename = "Repository URL")]
     repo: Url,
+    #[tabled(rename = "Total Score")]
     total_score: f32,
-    number_of_probes: usize,
-    successful_probes: usize,
+    #[tabled(display = "display_length", rename = "Successfully run probes")]
+    probe_outcomes: Vec<CumulatedProbeOutcome>,
+}
+
+fn display_length(vec: &Vec<CumulatedProbeOutcome>) -> String {
+    vec.len().to_string()
 }
 
 impl Eq for RepoData {}
@@ -24,14 +31,20 @@ impl RepoData {
         let findings = weighed_findings(&result.findings, metric);
         let total_score = calculate_total_score(&findings);
         let repo = result.repo.name.clone();
-        let number_of_probes = findings.len();
-        let successful_probes = boolean_outcomes(&findings).len();
+        let probe_outcomes = cumulated_outcomes(&findings);
         Self {
             total_score,
             repo,
-            number_of_probes,
-            successful_probes,
+            probe_outcomes,
         }
+    }
+
+    pub(crate) fn print_detailed_output(&self) {
+        println!("Detailed output for {}:", self.repo);
+        println!(
+            "{}",
+            Table::new(&self.probe_outcomes).with(Style::rounded())
+        );
     }
 }
 
@@ -61,14 +74,12 @@ mod tests {
             RepoData {
                 total_score: 1.,
                 repo: "1".into(),
-                number_of_probes: 1,
-                successful_probes: 1,
+                probe_outcomes: vec![],
             },
             RepoData {
                 total_score: 2.,
                 repo: "2".into(),
-                number_of_probes: 1,
-                successful_probes: 1,
+                probe_outcomes: vec![],
             },
         ];
         data.sort();
