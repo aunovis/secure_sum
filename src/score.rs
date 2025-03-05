@@ -11,9 +11,9 @@ static ZERO_ACCURACY: f32 = 1e-10;
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct WeighedFinding {
-    probe: ProbeName,
-    weight: f32,
-    outcome: ProbeOutcome,
+    pub(crate) probe: ProbeName,
+    pub(crate) weight: f32,
+    pub(crate) outcome: ProbeOutcome,
 }
 
 impl Eq for WeighedFinding {}
@@ -94,7 +94,7 @@ pub(crate) fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
     weighed_sum
 }
 
-pub(crate) fn boolean_outcomes(findings: &[WeighedFinding]) -> Vec<&WeighedFinding> {
+fn boolean_outcomes(findings: &[WeighedFinding]) -> Vec<&WeighedFinding> {
     findings.iter().filter(|f| f.outcome.is_boolean()).collect()
 }
 

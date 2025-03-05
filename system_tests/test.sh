@@ -15,6 +15,8 @@ cargo run --release -- example_metric.toml https://github.com/aunovis/secure_sum
 cargo run --release -- example_metric.toml https://github.com/aunovis/secure_sum
 # Unless the --rerun flag is used
 cargo run --release -- example_metric.toml https://github.com/aunovis/secure_sum --rerun
+# The --details flag offers more detailed output on how each probe contributed
+cargo run --release -- example_metric.toml https://github.com/aunovis/secure_sum --details
 
 # Run on a dependencyfile of the Rust ecosystem
 cargo run --release -- example_metric.toml rust_cargo.toml

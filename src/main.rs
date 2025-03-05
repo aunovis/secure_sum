@@ -1,6 +1,7 @@
 #![warn(clippy::unwrap_used)]
 
 mod args;
+mod cumulated_probe;
 mod ecosystem;
 mod error;
 mod filesystem;
@@ -19,7 +20,7 @@ use metric::Metric;
 use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use simple_logger::SimpleLogger;
-use tabled::Table;
+use tabled::{settings::Style, Table};
 use target::Target;
 
 use crate::error::Error;
@@ -45,6 +46,11 @@ fn main() -> Result<(), Error> {
     let results = dispatch_scorecard_runs(&metric, targets, args.rerun)?;
     let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metric)).collect();
     results.sort();
-    log::info!("\n{}", Table::new(results));
+    println!("{}", Table::new(&results).with(Style::rounded()));
+    if args.details {
+        for repo in results {
+            repo.print_detailed_output();
+        }
+    }
     Ok(())
 }
