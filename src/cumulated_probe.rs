@@ -6,9 +6,11 @@ use crate::{probe::ProbeOutcome, probe_name::ProbeName, score::WeighedFinding};
 
 #[derive(Debug, PartialEq, Tabled)]
 pub(crate) struct CumulatedProbeOutcome {
+    #[tabled(rename = "Probe")]
     probe: ProbeName,
+    #[tabled(rename = "Weight")]
     weight: f32,
-    #[tabled(display = "display_option_usize")]
+    #[tabled(display = "display_option_usize", rename = "True Outcomes")]
     true_outcomes: Option<usize>,
 }
 
@@ -17,11 +19,6 @@ fn display_option_usize(option: &Option<usize>) -> String {
         Some(value) => value.to_string(),
         None => "N/A".to_string(),
     }
-}
-
-pub(crate) fn display_true_outcomes(cumulated: &[CumulatedProbeOutcome]) -> String {
-    let total: usize = cumulated.iter().map(|p| p.true_outcomes.unwrap_or(0)).sum();
-    total.to_string()
 }
 
 pub(crate) fn cumulated_outcomes(findings: &[WeighedFinding]) -> Vec<CumulatedProbeOutcome> {

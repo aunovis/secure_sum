@@ -142,26 +142,49 @@ This algorithm is a choice. If you yould like Secure Sum to be configurable to u
 ### Program Call
 
 To run the analyses and apply the metric, pass the metric file as the first and the target(s) as the second, third, etc. argument(s):
-```
+```bash
 secure_sum <path/to/metric/file> <target> <additional-targts...>
 ```
 The targets do not necessarily have to be from the same ecosystem.
 
 For example, to run Secure Sum against a single repository, run:
-```
+```bash
 secure_sum example_metric.toml https://github.com/aunovis/secure_sum
+```
+```
+╭───────────────────────────────┬─────────────┬─────────────────────────╮
+│ Repository URL                │ Total Score │ Successfully run probes │
+├───────────────────────────────┼─────────────┼─────────────────────────┤
+│ github.com/aunovis/secure_sum │ 9.111112    │ 4                       │
+╰───────────────────────────────┴─────────────┴─────────────────────────╯
 ```
 The URL of the target has to start with `https://` or `http://`, otherwise Secure Sum will look for a local file.
 
 To run Secure Sum against the Rust ecosystem, target the Cargo.toml file:
-```
+```bash
 secure_sum example_metric.toml Cargo.toml
 ```
 It will then collect all first level dependencies and analyse them.
 
-If a check containing the required metric has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` flag.
-```
+If a check containing the required metric has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` or `-r` flag.
+```bash
 secure_sum example_metric.toml https://github.com/aunovis/secure_sum --rerun
+```
+
+By using the `--details` or `-d` flag, you can make Secure Sum print a more detailed output which probe contributed how much to the total score.
+```bash
+secure_sum example_metric.toml https://github.com/aunovis/secure_sum --details
+```
+```
+Detailed output for github.com/aunovis/secure_sum:
+╭───────────────────────┬────────┬───────────────╮
+│ Probe                 │ Weight │ True Outcomes │
+├───────────────────────┼────────┼───────────────┤
+│ archived              │ -1     │ 0             │
+│ fuzzed                │ 0.4    │ 0             │
+│ hasOSVVulnerabilities │ -2.1   │ 0             │
+│ hasRecentCommits      │ 1      │ 1             │
+╰───────────────────────┴────────┴───────────────╯
 ```
 
 ### Supported Ecosystems

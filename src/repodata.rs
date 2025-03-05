@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use tabled::{settings::Style, Table, Tabled};
 
 use crate::{
-    cumulated_probe::{cumulated_outcomes, display_true_outcomes, CumulatedProbeOutcome},
+    cumulated_probe::{cumulated_outcomes, CumulatedProbeOutcome},
     metric::Metric,
     probe::ProbeResult,
     score::{calculate_total_score, weighed_findings},
@@ -12,10 +12,16 @@ use crate::{
 
 #[derive(Debug, PartialEq, Tabled)]
 pub(crate) struct RepoData {
+    #[tabled(rename = "Repository URL")]
     repo: Url,
+    #[tabled(rename = "Total Score")]
     total_score: f32,
-    #[tabled(display = "display_true_outcomes")]
+    #[tabled(display = "display_length", rename = "Successfully run probes")]
     probe_outcomes: Vec<CumulatedProbeOutcome>,
+}
+
+fn display_length(vec: &Vec<CumulatedProbeOutcome>) -> String {
+    vec.len().to_string()
 }
 
 impl Eq for RepoData {}
