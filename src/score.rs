@@ -94,7 +94,7 @@ pub(crate) fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
     weighed_sum
 }
 
-pub(crate) fn boolean_outcomes(findings: &[WeighedFinding]) -> Vec<&WeighedFinding> {
+fn boolean_outcomes(findings: &[WeighedFinding]) -> Vec<&WeighedFinding> {
     findings.iter().filter(|f| f.outcome.is_boolean()).collect()
 }
 

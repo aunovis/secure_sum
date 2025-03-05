@@ -3,9 +3,10 @@ use std::cmp::Ordering;
 use tabled::Tabled;
 
 use crate::{
+    cumulated_probe::{cumulated_outcomes, display_true_outcomes, CumulatedProbeOutcome},
     metric::Metric,
     probe::ProbeResult,
-    score::{boolean_outcomes, calculate_total_score, weighed_findings},
+    score::{calculate_total_score, weighed_findings},
     url::Url,
 };
 
@@ -13,7 +14,8 @@ use crate::{
 pub(crate) struct RepoData {
     repo: Url,
     total_score: f32,
-    probe_outcomes: usize,
+    #[tabled(display = "display_true_outcomes")]
+    probe_outcomes: Vec<CumulatedProbeOutcome>,
 }
 
 impl Eq for RepoData {}
@@ -23,7 +25,7 @@ impl RepoData {
         let findings = weighed_findings(&result.findings, metric);
         let total_score = calculate_total_score(&findings);
         let repo = result.repo.name.clone();
-        let probe_outcomes = boolean_outcomes(&findings).len();
+        let probe_outcomes = cumulated_outcomes(&findings);
         Self {
             total_score,
             repo,
@@ -58,12 +60,12 @@ mod tests {
             RepoData {
                 total_score: 1.,
                 repo: "1".into(),
-                probe_outcomes: 1,
+                probe_outcomes: vec![],
             },
             RepoData {
                 total_score: 2.,
                 repo: "2".into(),
-                probe_outcomes: 1,
+                probe_outcomes: vec![],
             },
         ];
         data.sort();

@@ -19,7 +19,12 @@ fn display_option_usize(option: &Option<usize>) -> String {
     }
 }
 
-fn cumulated_outcomes(findings: &[WeighedFinding]) -> Vec<CumulatedProbeOutcome> {
+pub(crate) fn display_true_outcomes(cumulated: &[CumulatedProbeOutcome]) -> String {
+    let total: usize = cumulated.iter().map(|p| p.true_outcomes.unwrap_or(0)).sum();
+    total.to_string()
+}
+
+pub(crate) fn cumulated_outcomes(findings: &[WeighedFinding]) -> Vec<CumulatedProbeOutcome> {
     let mut outcomes_map: HashMap<ProbeName, (f32, Option<usize>)> = HashMap::new();
 
     for finding in findings {
