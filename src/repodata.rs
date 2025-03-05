@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use tabled::Tabled;
+use tabled::{settings::Style, Table, Tabled};
 
 use crate::{
     cumulated_probe::{cumulated_outcomes, display_true_outcomes, CumulatedProbeOutcome},
@@ -31,6 +31,14 @@ impl RepoData {
             repo,
             probe_outcomes,
         }
+    }
+
+    pub(crate) fn print_detailed_output(&self) {
+        println!("Detailed output for {}:", self.repo);
+        println!(
+            "{}",
+            Table::new(&self.probe_outcomes).with(Style::rounded())
+        );
     }
 }
 

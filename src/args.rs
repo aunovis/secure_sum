@@ -16,6 +16,10 @@ pub(crate) struct Arguments {
     pub(crate) dependencies: Vec<String>,
 
     /// Rerun all scorecard checks, even if recent results are stored locally
-    #[arg(long)]
+    #[arg(long, short)]
     pub(crate) rerun: bool,
+
+    /// Print a detailed output which probes yielded which results for which repo
+    #[arg(long, short)]
+    pub(crate) details: bool,
 }
