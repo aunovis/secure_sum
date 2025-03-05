@@ -1,6 +1,7 @@
 #![warn(clippy::unwrap_used)]
 
 mod args;
+mod cumulated_probe;
 mod ecosystem;
 mod error;
 mod filesystem;
