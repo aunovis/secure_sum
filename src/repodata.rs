@@ -13,8 +13,7 @@ use crate::{
 pub(crate) struct RepoData {
     repo: Url,
     total_score: f32,
-    number_of_probes: usize,
-    successful_probes: usize,
+    probe_outcomes: usize,
 }
 
 impl Eq for RepoData {}
@@ -24,13 +23,11 @@ impl RepoData {
         let findings = weighed_findings(&result.findings, metric);
         let total_score = calculate_total_score(&findings);
         let repo = result.repo.name.clone();
-        let number_of_probes = findings.len();
-        let successful_probes = boolean_outcomes(&findings).len();
+        let probe_outcomes = boolean_outcomes(&findings).len();
         Self {
             total_score,
             repo,
-            number_of_probes,
-            successful_probes,
+            probe_outcomes,
         }
     }
 }
@@ -61,14 +58,12 @@ mod tests {
             RepoData {
                 total_score: 1.,
                 repo: "1".into(),
-                number_of_probes: 1,
-                successful_probes: 1,
+                probe_outcomes: 1,
             },
             RepoData {
                 total_score: 2.,
                 repo: "2".into(),
-                number_of_probes: 1,
-                successful_probes: 1,
+                probe_outcomes: 1,
             },
         ];
         data.sort();
