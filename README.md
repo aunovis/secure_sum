@@ -16,7 +16,11 @@ This is what Secure Sum does.
 
 ## Setup
 
-Most checks that scorecard runs require a personal access token (PAT) for the GitHub API. The [GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) explain how to generate one. We recommend a fine-grained access token with public-repo read-only access, as this is all that is needed by most scorecard checks.
+Most checks that scorecard runs require a personal access token (PAT) for the GitHub API. The [GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) explain how to generate one.
+
+You need a Personal access tokens (classic) with the "public_repo" scope. 
+
+> Regrettably, several probes do not support fine-grained access tokens at the moment.
 
 When executed, scorecard looks for an environment variable called `GITHUB_TOKEN`. The fastest way to get it to work is to temporarily export the variable:
 <details>
@@ -207,3 +211,11 @@ Scorecard requires you to have a personal access token (PAT) for the GitHub API.
 - Your PAT expired.
 - The email stored in your PAT does not correspond to the one in your `~/.gitconfig`. A solution is offered at the end of [ossf/scorecard#2559](https://github.com/ossf/scorecard/issues/2559).
 - You have an expired token stored in a similar environment variable. Scorecard checks them in a specific order, and uses the first one (compare [ossf/scorecard#4475](https://github.com/ossf/scorecard/issues/4475)). The ideal solution is to find out what part of your system is exporting this old PAT. The quick and dirty solution is to export your new token as `GITHUB_AUTH_TOKEN`, because that is the first value that scorecard checks.
+
+### Resource not accessible by personal access token
+
+This error message appears if you have generated a fine-grained access token and are running a probe that does not support it. Generate a classic access token instead.
+
+### Your token has not been granted the required scopes to execute this query.
+
+You have forgotten to tick a checkbox for the permissions of your access token. You can edit it even after creation. The rest of the error message will tell you which box it would like ticked.
