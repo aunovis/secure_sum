@@ -16,11 +16,6 @@ weight = 2
 name = "branchesAreProtected"
 weight = 2
 
-# Throws " Error: scorecard.Run: internal error: internal error: Client.Repositories.ListWebhooks"
-# [[probe]]
-# name = "webhooksUseSecrets"
-# weight = 2
-
 # === Code Review & Quality Gates ===
 
 [[probe]]
