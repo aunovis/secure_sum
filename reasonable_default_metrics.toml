@@ -1,32 +1,24 @@
 # === Repository Protection & Access Control ===
 
-# [[probe]]
-# name = "blocksDeleteOnBranches"
-# weight = 2
+[[probe]]
+name = "blocksDeleteOnBranches"
+weight = 2
 
-# [[probe]]
-# name = "blocksForcePushOnBranches"
-# weight = 2
+[[probe]]
+name = "blocksForcePushOnBranches"
+weight = 2
 
-# [[probe]]
-# name = "branchProtectionAppliesToAdmins"
-# weight = 2
+[[probe]]
+name = "branchProtectionAppliesToAdmins"
+weight = 2
 
-# [[probe]]
-# name = "branchesAreProtected"
-# weight = 2
+[[probe]]
+name = "branchesAreProtected"
+weight = 2
 
-# [[probe]]
-# name = "topLevelPermissions"
-# weight = 2
-
-# [[probe]]
-# name = "jobLevelPermissions"
-# weight = 2
-
-# [[probe]]
-# name = "webhooksUseSecrets"
-# weight = 2
+[[probe]]
+name = "webhooksUseSecrets"
+weight = 2
 
 # === Code Review & Quality Gates ===
 
@@ -38,25 +30,25 @@ weight = 2
 name = "codeReviewOneReviewers"
 weight = 1
 
-# [[probe]]
-# name = "dismissesStaleReviews"
-# weight = 0.5
+[[probe]]
+name = "dismissesStaleReviews"
+weight = 0.5
 
-# [[probe]]
-# name = "requiresApproversForPullRequests"
-# weight = 2
+[[probe]]
+name = "requiresApproversForPullRequests"
+weight = 2
 
-# [[probe]]
-# name = "requiresCodeOwnersReview"
-# weight = 2
+[[probe]]
+name = "requiresCodeOwnersReview"
+weight = 2
 
-# [[probe]]
-# name = "requiresPRsToChangeCode"
-# weight = 2
+[[probe]]
+name = "requiresPRsToChangeCode"
+weight = 2
 
-# [[probe]]
-# name = "runsStatusChecksBeforeMerging"
-# weight = 2
+[[probe]]
+name = "runsStatusChecksBeforeMerging"
+weight = 2
 
 # === Security Testing & Analysis ===
 [[probe]]
@@ -64,6 +56,7 @@ name = "fuzzed"
 weight = 0.5
 
 # Throws exception with github.com/toml-rs/toml
+# https://github.com/ossf/scorecard/issues/4531
 # [[probe]]
 # name = "sastToolConfigured"
 # weight = 2
