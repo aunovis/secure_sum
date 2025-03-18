@@ -5,6 +5,7 @@ mod cumulated_probe;
 mod ecosystem;
 mod error;
 mod filesystem;
+mod github_token;
 mod metric;
 mod probe;
 mod probe_name;
@@ -16,6 +17,7 @@ mod url;
 
 use args::Arguments;
 use clap::Parser;
+use github_token::ensure_valid_github_token;
 use metric::Metric;
 use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
@@ -42,7 +44,7 @@ fn main() -> Result<(), Error> {
         })
         .collect::<Result<_, Error>>()?;
     ensure_scorecard_binary()?;
-    dotenvy::dotenv().ok();
+    ensure_valid_github_token()?;
     let results = dispatch_scorecard_runs(&metric, targets, args.rerun)?;
     let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metric)).collect();
     results.sort();
