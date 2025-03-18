@@ -20,7 +20,7 @@ pub(crate) struct RepoData {
     probe_outcomes: Vec<CumulatedProbeOutcome>,
 }
 
-fn display_length(vec: &Vec<CumulatedProbeOutcome>) -> String {
+fn display_length(vec: &[CumulatedProbeOutcome]) -> String {
     vec.len().to_string()
 }
 
