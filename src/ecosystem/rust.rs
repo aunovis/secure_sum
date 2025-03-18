@@ -3,7 +3,12 @@ use std::{collections::HashMap, fs, path::Path};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 
-use crate::{error::Error, target::SingleTarget, url::Url};
+use crate::{
+    error::Error,
+    github_token::{USER_AGENT, USER_AGENT_HEADER},
+    target::SingleTarget,
+    url::Url,
+};
 
 use super::{depfile::DepFile, Ecosystem};
 
@@ -54,7 +59,7 @@ pub(super) fn repo_url(crate_name: &str) -> Result<Url, Error> {
     let client = Client::new();
     let response = client
         .get(&url)
-        .header("User-Agent", "secure_sum (info@aunovis.de)")
+        .header(USER_AGENT_HEADER, USER_AGENT)
         .send()?
         .text()?;
 

@@ -1,6 +1,8 @@
 use crate::Error;
 
-static GITHUB_TOKEN_NAME: &str = "GITHUB_TOKEN";
+pub(crate) static GITHUB_TOKEN_NAME: &str = "GITHUB_TOKEN";
+pub(crate) static USER_AGENT_HEADER: &str = "User-Agent";
+pub(crate) static USER_AGENT: &str = "secure_sum (info@aunovis.de)";
 
 pub(crate) fn ensure_valid_github_token() -> Result<(), Error> {
     let token = get_token()?;
@@ -22,7 +24,7 @@ fn check_token_validity(token: &str) -> Result<(), Error> {
     let response = reqwest::blocking::Client::new()
         .get(ENDPOINT)
         .header(AUTH_HEADER, header_value)
-        // .bearer_auth(token)
+        .header(USER_AGENT_HEADER, USER_AGENT)
         .send()?
         .error_for_status();
     match response {
@@ -70,13 +72,13 @@ mod tests {
     fn valid_token_is_valid() {
         let token = get_token().unwrap();
         let result = check_token_validity(&token);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
     }
 
     #[test]
     #[serial]
     fn invalid_token_is_invalid() {
         let result = check_token_validity(TOY_TOKEN);
-        assert!(result.is_err());
+        assert!(result.is_err(), "{}", result.unwrap_err());
     }
 }
