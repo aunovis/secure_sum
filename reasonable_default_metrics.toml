@@ -1,0 +1,120 @@
+# === Repository Protection & Access Control ===
+
+[[probe]]
+name = "blocksDeleteOnBranches"
+weight = 2
+
+[[probe]]
+name = "blocksForcePushOnBranches"
+weight = 2
+
+[[probe]]
+name = "branchProtectionAppliesToAdmins"
+weight = 2
+
+[[probe]]
+name = "branchesAreProtected"
+weight = 2
+
+# === Code Review & Quality Gates ===
+
+[[probe]]
+name = "codeApproved"
+weight = 2
+
+[[probe]]
+name = "codeReviewOneReviewers"
+weight = 1
+
+[[probe]]
+name = "dismissesStaleReviews"
+weight = 0.5
+
+[[probe]]
+name = "requiresApproversForPullRequests"
+weight = 2
+
+[[probe]]
+name = "requiresCodeOwnersReview"
+weight = 2
+
+[[probe]]
+name = "requiresPRsToChangeCode"
+weight = 2
+
+[[probe]]
+name = "runsStatusChecksBeforeMerging"
+weight = 2
+
+# === Security Testing & Analysis ===
+[[probe]]
+name = "fuzzed"
+weight = 0.5
+
+# Throws exception with github.com/toml-rs/toml
+# https://github.com/ossf/scorecard/issues/4531
+# [[probe]]
+# name = "sastToolConfigured"
+# weight = 2
+
+[[probe]]
+name = "testsRunInCI"
+weight = 1
+max_times = 2
+
+[[probe]]
+name = "hasDangerousWorkflowScriptInjection"
+weight = 2
+
+[[probe]]
+name = "hasDangerousWorkflowUntrustedCheckout"
+weight = 2
+
+# === Dependency Management & Supply Chain Security ===
+[[probe]]
+name = "dependencyUpdateToolConfigured"
+weight = 2
+
+[[probe]]
+name = "hasOSVVulnerabilities"
+weight = -2
+
+[[probe]]
+name = "hasSBOM"
+weight = 0.5
+
+# === Release Management & Verification ===
+[[probe]]
+name = "packagedWithAutomatedWorkflow"
+weight = 0.5
+
+# === Project Health & Maintenance ===
+[[probe]]
+name = "archived"
+weight = -1.5
+
+[[probe]]
+name = "createdRecently"
+weight = -0.5
+
+[[probe]]
+name = "hasRecentCommits"
+weight = 2
+
+[[probe]]
+name = "contributorsFromOrgOrCompany"
+weight = 0.1
+max_times = 5
+
+[[probe]]
+name = "issueActivityByProjectMember"
+weight = 1
+
+# === Documentation & Compliance ===
+[[probe]]
+name = "hasOpenSSFBadge"
+weight = 0.5
+
+[[probe]]
+name = "securityPolicyContainsText"
+weight = 0.5
