@@ -2,6 +2,13 @@
 name = "secure_sum"
 version = "0.1.0"
 edition = "2021"
+authors = ["Simon Heidrich (heidrich@aunovis.de)"]
+description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
+readme = "README.md"
+repository = "https://github.com/aunovis/secure_sum"
+license = "MIT"
+keywords = ["scorecard", "supplychain", "cybersecurity"]
+categories = ["development-tools"]
 
 [dependencies]
 clap = { version = "4.5", default-features = false, features = ["color", "error-context", "derive", "help", "std", "suggestions"] }
@@ -24,3 +31,8 @@ toml ={ version = "0.8.19", default-features = false, features = ["display", "pa
 [dev-dependencies]
 serial_test = { version = "3.2", default-features = false }
 tempfile = { version = "3.15", default-features = false }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
