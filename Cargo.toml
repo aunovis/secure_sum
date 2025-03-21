@@ -1,6 +1,6 @@
 [package]
 name = "secure_sum"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Simon Heidrich (heidrich@aunovis.de)"]
 description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
@@ -15,7 +15,7 @@ clap = { version = "4.5", default-features = false, features = ["color", "error-
 chrono = { version = "0.4.39", default-features = false, features = ["now", "serde"]}
 dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.10.0", default-features = false }
-flate2 = { version = "1.0", default-features = false, features = ["zlib-ng-compat"] } # Decompression
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
 log ={ version = "0.4.22", default-features = false }
 reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
 sanitize-filename = { version = "0.6.0", default-features = false }
