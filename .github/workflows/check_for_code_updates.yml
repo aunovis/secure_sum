@@ -7,14 +7,14 @@ on:
     - cron: "0 0 27 * *" # On the 27th of every month, at 00:00 UTC
 
 jobs:
-    checkForUpdates:
+    checkForCodeUpdates:
         runs-on: ubuntu-latest
 
         steps:
         - uses: actions/checkout@v2
         - run: |
-            chmod +x ./scripts/update.sh
-            ./scripts/update.sh
+            chmod +x ./scripts/generate_code.sh
+            ./scripts/generate_code.sh
         - name: Check for unstaged changes
           run: |
                 if [[ -n $(git diff --ignore-cr-at-eol -G.) ]]; then

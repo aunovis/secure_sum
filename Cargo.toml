@@ -1,14 +1,21 @@
 [package]
 name = "secure_sum"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+authors = ["Simon Heidrich (heidrich@aunovis.de)"]
+description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
+readme = "README.md"
+repository = "https://github.com/aunovis/secure_sum"
+license = "MIT"
+keywords = ["scorecard", "supplychain", "cybersecurity"]
+categories = ["development-tools"]
 
 [dependencies]
 clap = { version = "4.5", default-features = false, features = ["color", "error-context", "derive", "help", "std", "suggestions"] }
 chrono = { version = "0.4.39", default-features = false, features = ["now", "serde"]}
 dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.10.0", default-features = false }
-flate2 = { version = "1.0", default-features = false, features = ["zlib-ng-compat"] } # Decompression
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
 log ={ version = "0.4.22", default-features = false }
 reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
 sanitize-filename = { version = "0.6.0", default-features = false }
@@ -24,3 +31,8 @@ toml ={ version = "0.8.19", default-features = false, features = ["display", "pa
 [dev-dependencies]
 serial_test = { version = "3.2", default-features = false }
 tempfile = { version = "3.15", default-features = false }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
