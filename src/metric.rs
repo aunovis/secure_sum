@@ -5,7 +5,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, probe::ProbeInput, probe_name::ProbeName};
+use crate::{error::Error, filesystem::data_dir, probe::ProbeInput, probe_name::ProbeName};
+
+static DEFAULT_METRIC_URL: &str = "https://github.com/aunovis/secure_sum/blob/main/default_metric.toml";
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub(crate) struct Metric {
@@ -14,7 +16,7 @@ pub(crate) struct Metric {
 }
 
 fn default_metric_file_path() -> Result<PathBuf, Error> {
-    todo!()
+    Ok(data_dir()?.join("default_metric.toml"))
 }
 
 fn ensure_default_metric_file() -> Result<PathBuf, Error> {
