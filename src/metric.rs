@@ -1,4 +1,7 @@
-use std::{fs::read_to_string, path::Path};
+use std::{
+    fs::read_to_string,
+    path::{Path, PathBuf},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -10,8 +13,27 @@ pub(crate) struct Metric {
     pub(crate) probes: Vec<ProbeInput>,
 }
 
+fn default_metric_file_path() -> Result<PathBuf, Error> {
+    todo!()
+}
+
+fn ensure_default_metric_file() -> Result<(), Error> {
+    todo!()
+}
+
 impl Metric {
-    pub(crate) fn from_file(filepath: &Path) -> Result<Self, Error> {
+    pub(crate) fn new(filepath: Option<&Path>) -> Result<Self, Error> {
+        match filepath {
+            Some(path) => Self::from_file(path),
+            None => {
+                ensure_default_metric_file()?;
+                let path = default_metric_file_path()?;
+                Self::from_file(&path)
+            }
+        }
+    }
+
+    fn from_file(filepath: &Path) -> Result<Self, Error> {
         let content = read_to_string(filepath)?;
         Self::from_str(&content)
     }

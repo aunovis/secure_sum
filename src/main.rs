@@ -32,7 +32,7 @@ fn main() -> Result<(), Error> {
         .init()
         .map_err(|e| Error::Other(e.to_string()))?;
     let args = Arguments::parse();
-    let metric = Metric::from_file(&args.metric_file)?;
+    let metric = Metric::new(args.metric_file.as_deref())?;
     log::debug!("Parsed metric:\n{metric}");
     let targets: Vec<_> = args
         .dependencies
