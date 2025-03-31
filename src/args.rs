@@ -9,7 +9,7 @@ use clap::Parser;
 pub(crate) struct Arguments {
     /// Path to the metric file that defines the probes to analyse
     #[arg(long, short, value_name = "FILEPATH")]
-    pub(crate) metric_file: Option<PathBuf>,
+    pub(crate) metric: Option<PathBuf>,
 
     /// Local Path to a dependencyfile or url to a single repository
     #[arg(value_name = "FILEPATH(S)|URL(S)")]
