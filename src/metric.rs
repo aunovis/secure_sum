@@ -17,7 +17,7 @@ fn default_metric_file_path() -> Result<PathBuf, Error> {
     todo!()
 }
 
-fn ensure_default_metric_file() -> Result<(), Error> {
+fn ensure_default_metric_file() -> Result<PathBuf, Error> {
     todo!()
 }
 
@@ -26,8 +26,7 @@ impl Metric {
         match filepath {
             Some(path) => Self::from_file(path),
             None => {
-                ensure_default_metric_file()?;
-                let path = default_metric_file_path()?;
+                let path = ensure_default_metric_file()?;
                 Self::from_file(&path)
             }
         }
@@ -93,6 +92,7 @@ impl std::fmt::Display for Metric {
 mod tests {
     use std::fs::{remove_file, write};
 
+    use serial_test::serial;
     use tempfile::NamedTempFile;
 
     use crate::probe_name::ProbeName;
@@ -245,5 +245,25 @@ name = "definetelyNotAFieldThatSecureSumWouldExpectGivenThePresentStateOfTheEcon
 weight = 1.0
         "#;
         assert!(Metric::from_str(WEIRD_METRIC).is_err());
+    }
+
+    #[test]
+    #[serial]
+    fn ensure_metric_file_ensures_metric_file() {
+        let path = default_metric_file_path().unwrap();
+        std::fs::remove_file(&path).ok();
+
+        assert!(ensure_default_metric_file().is_ok());
+        assert!(path.exists());
+        assert!(ensure_default_metric_file().is_ok());
+        assert!(path.exists());
+    }
+
+    #[test]
+    #[serial]
+    fn default_metric_file_can_be_read() {
+        let path = ensure_default_metric_file().unwrap();
+        let result = Metric::from_file(&path);
+        assert!(result.is_ok(), "{}", result.unwrap_err())
     }
 }
