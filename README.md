@@ -48,9 +48,102 @@ A more persistent way is to write create a fiel called `.env` with the content `
 
 ## Usage
 
+Secure Sum runs Scorecard probes defined in a [metric file](#metric-file) and the combines the results to a single score according to its [algorithm](#algorithm). You can either use the default metric defined in the [GitHub Repo](https://github.com/aunovis/secure_sum/blob/main/default_metric.toml), or use your own custom metric as [described below](#custom-metric).
+
+### Program Call
+
+To run the analyses and apply the [default metric](https://github.com/aunovis/secure_sum/blob/main/default_metric.toml), pass the target(s) as the argument(s):
+```bash
+secure_sum <target> <additional-targts...>
+```
+The targets do not necessarily have to be from the same ecosystem.
+
+For example, to run Secure Sum against a single repository, run:
+```bash
+secure_sum https://github.com/aunovis/secure_sum
+```
+```
+╭───────────────────────────────┬─────────────┬─────────────────────────╮
+│ Repository URL                │ Total Score │ Successfully run probes │
+├───────────────────────────────┼─────────────┼─────────────────────────┤
+│ github.com/aunovis/secure_sum │ 6.5732093   │ 26                      │
+╰───────────────────────────────┴─────────────┴─────────────────────────╯
+```
+The URL of the target has to start with `https://` or `http://`, otherwise Secure Sum will look for a local file.
+
+To run Secure Sum against the Rust ecosystem, target the Cargo.toml file:
+```bash
+secure_sum Cargo.toml
+```
+It will then collect all first level dependencies and analyse them.
+
+If a check has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` or `-r` flag.
+```bash
+secure_sum https://github.com/aunovis/secure_sum --rerun
+```
+
+By using the `--details` or `-d` flag, you can make Secure Sum print a more detailed output which probe contributed how much to the total score.
+```bash
+secure_sum https://github.com/aunovis/secure_sum --details
+```
+```
+Detailed output for github.com/aunovis/secure_sum:
+╭───────────────────────────────────────┬────────┬───────────────╮
+│ Probe                                 │ Weight │ True Outcomes │
+├───────────────────────────────────────┼────────┼───────────────┤
+│ archived                              │ -1.5   │ 0             │
+│ blocksDeleteOnBranches                │ 2      │ 1             │
+│ blocksForcePushOnBranches             │ 2      │ 1             │
+│ branchProtectionAppliesToAdmins       │ 2      │ 0             │
+│ branchesAreProtected                  │ 2      │ 1             │
+│ codeApproved                          │ 2      │ 0             │
+│ codeReviewOneReviewers                │ 1      │ N/A           │
+│ contributorsFromOrgOrCompany          │ 0.1    │ 1             │
+│ createdRecently                       │ -0.5   │ 0             │
+│ dependencyUpdateToolConfigured        │ 2      │ 1             │
+│ dismissesStaleReviews                 │ 0.5    │ 1             │
+│ fuzzed                                │ 0.5    │ 0             │
+│ hasDangerousWorkflowScriptInjection   │ 2      │ N/A           │
+│ hasDangerousWorkflowUntrustedCheckout │ 2      │ N/A           │
+│ hasOSVVulnerabilities                 │ -2     │ 0             │
+│ hasOpenSSFBadge                       │ 0.5    │ 0             │
+│ hasRecentCommits                      │ 2      │ 1             │
+│ hasSBOM                               │ 0.5    │ 0             │
+│ issueActivityByProjectMember          │ 1      │ 1             │
+│ packagedWithAutomatedWorkflow         │ 0.5    │ 0             │
+│ requiresApproversForPullRequests      │ 2      │ 1             │
+│ requiresCodeOwnersReview              │ 2      │ 0             │
+│ requiresPRsToChangeCode               │ 2      │ 1             │
+│ runsStatusChecksBeforeMerging         │ 2      │ 0             │
+│ securityPolicyContainsText            │ 0.5    │ 1             │
+│ testsRunInCI                          │ 1      │ 0             │
+╰───────────────────────────────────────┴────────┴───────────────╯
+```
+
+#### Custom Metric
+
+To use a custom metric tailored to your needs, point Secure Sum to a metric file using the optional argument "--metric" / "-m":
+``` bash
+secure_sum --metric <path/to/metric.toml> <targets>
+secure_sum --metric=<path/to/metric.toml> <targets> # Does the same
+secure_sum -m <path/to/metric.toml> <targets> # Does the same
+```
+The metric file needs to be in a specific [TOML format](https://toml.io/), which is [described below](#metric-file).
+
+### Supported Ecosystems
+
+Secure Sum can parse the following types of dependency files:
+- **Node.js:** Provide a `package.json` file.
+- **NuGet:** 
+  - Provide all `.csproj` XML files at your disposal, for example by using `$(find . -iname "*.csproj")` as an argument.
+  - Alternatively (or additionally, really), provide a `packages.configs` XML file.
+- **Rust:** Provide a `Cargo.toml` file.
+
+Is your favourite ecosystem missing? Create an [issue](https://github.com/aunovis/secure_sum/issues) and we'll see what we can do about that.
+
 ### Metric File
 
-First, you have to define a metric file. This tells Secure Sum your priorities when evaluating projects. The file is written in [TOML format](https://toml.io/) and contains:
+A metric file tells Secure Sum your priorities when evaluating projects. It is written in [TOML format](https://toml.io/) and contains:
 - the names of all [probes](#probe-name) you want to run
 - a [weight](#weight) factor
 - an optional [maximum number of times](#max-times) this probe can contribute to the overall score.
@@ -62,7 +155,7 @@ name = "<name of the probe>"
 weight = <any real number>
 max_times = <any natural number> # Optional
 ```
-The `system_tests` folder contains an [example metric file](https://github.com/aunovis/secure_sum/blob/main/system_tests/example_metric.toml) that is used in the tests.
+The `system_tests` folder contains an [example metric file](https://github.com/aunovis/secure_sum/blob/main/system_tests/example_metric.toml) that is sometimes used in the tests.
 
 #### Probe Name
 
@@ -142,64 +235,6 @@ max_times = 3
 6. All values are shifted by 7, so that the final result is in the range 0 to 10. The total score of our repo thus becomes 4.0 of 10.
 
 This algorithm is a choice. If you yould like Secure Sum to be configurable to use another algorithm, please [create an issue](https://github.com/aunovis/secure_sum/issues) and we will see what we can do.
-
-### Program Call
-
-To run the analyses and apply the metric, pass the metric file as the first and the target(s) as the second, third, etc. argument(s):
-```bash
-secure_sum <path/to/metric/file> <target> <additional-targts...>
-```
-The targets do not necessarily have to be from the same ecosystem.
-
-For example, to run Secure Sum against a single repository, run:
-```bash
-secure_sum example_metric.toml https://github.com/aunovis/secure_sum
-```
-```
-╭───────────────────────────────┬─────────────┬─────────────────────────╮
-│ Repository URL                │ Total Score │ Successfully run probes │
-├───────────────────────────────┼─────────────┼─────────────────────────┤
-│ github.com/aunovis/secure_sum │ 9.111112    │ 4                       │
-╰───────────────────────────────┴─────────────┴─────────────────────────╯
-```
-The URL of the target has to start with `https://` or `http://`, otherwise Secure Sum will look for a local file.
-
-To run Secure Sum against the Rust ecosystem, target the Cargo.toml file:
-```bash
-secure_sum example_metric.toml Cargo.toml
-```
-It will then collect all first level dependencies and analyse them.
-
-If a check containing the required metric has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` or `-r` flag.
-```bash
-secure_sum example_metric.toml https://github.com/aunovis/secure_sum --rerun
-```
-
-By using the `--details` or `-d` flag, you can make Secure Sum print a more detailed output which probe contributed how much to the total score.
-```bash
-secure_sum example_metric.toml https://github.com/aunovis/secure_sum --details
-```
-```
-Detailed output for github.com/aunovis/secure_sum:
-╭───────────────────────┬────────┬───────────────╮
-│ Probe                 │ Weight │ True Outcomes │
-├───────────────────────┼────────┼───────────────┤
-│ archived              │ -1     │ 0             │
-│ fuzzed                │ 0.4    │ 0             │
-│ hasOSVVulnerabilities │ -2.1   │ 0             │
-│ hasRecentCommits      │ 1      │ 1             │
-╰───────────────────────┴────────┴───────────────╯
-```
-
-### Supported Ecosystems
-
-- **Node.js:** Provide a `package.json` file.
-- **NuGet:** 
-  - Provide all `.csproj` XML files at your disposal, for example by using `$(find . -iname "*.csproj")` as an argument.
-  - Alternatively (or additionally, really), provide a `packages.configs` XML file.
-- **Rust:** Provide a `Cargo.toml` file.
-
-Is your favourite ecosystem missing? Create an [issue](https://github.com/aunovis/secure_sum/issues) and we'll see what we can do about that.
 
 ## Known Issues
 
