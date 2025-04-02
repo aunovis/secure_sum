@@ -47,7 +47,7 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     let dir = data_dir()?;
     fs::create_dir_all(&dir)?;
     let url = scorecard_url();
-    log::info!("Downloading Scorecard binary from {url}");
+    log::info!("Downloading Scorecard binary from {url}.");
     let mut response = reqwest::blocking::get(url)?;
     let gz_decoder = GzDecoder::new(&mut response);
     let mut archive = Archive::new(gz_decoder);
@@ -68,7 +68,7 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
             return Err(Error::Other(message));
         }
     }
-    log::info!("Stored binary under {}", path.display());
+    log::info!("Stored binary under \"{}\".", path.display());
     Ok(path)
 }
 

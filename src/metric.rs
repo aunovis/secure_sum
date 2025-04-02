@@ -1,8 +1,14 @@
-use std::{fs::read_to_string, path::Path};
+use std::{
+    fs::{self, read_to_string},
+    path::{Path, PathBuf},
+};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, probe::ProbeInput, probe_name::ProbeName};
+use crate::{error::Error, filesystem::data_dir, probe::ProbeInput, probe_name::ProbeName};
+
+static DEFAULT_METRIC_URL: &str =
+    "https://raw.githubusercontent.com/aunovis/secure_sum/refs/heads/main/default_metric.toml";
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub(crate) struct Metric {
@@ -10,8 +16,38 @@ pub(crate) struct Metric {
     pub(crate) probes: Vec<ProbeInput>,
 }
 
+fn default_metric_file_path() -> Result<PathBuf, Error> {
+    Ok(data_dir()?.join("default_metric.toml"))
+}
+
+fn ensure_default_metric_file() -> Result<PathBuf, Error> {
+    let path = default_metric_file_path()?;
+    if path.exists() {
+        return Ok(path);
+    }
+    let dir = data_dir()?;
+    fs::create_dir_all(&dir)?;
+    log::info!("Downloading Default Metric from {DEFAULT_METRIC_URL}.");
+    let response = reqwest::blocking::get(DEFAULT_METRIC_URL)?;
+    let metric_text = response.text()?;
+    fs::write(&path, metric_text)?;
+    log::info!("Stored default metric file under \"{}\".", path.display());
+    Ok(path)
+}
+
 impl Metric {
-    pub(crate) fn from_file(filepath: &Path) -> Result<Self, Error> {
+    pub(crate) fn new(filepath: Option<&Path>) -> Result<Self, Error> {
+        match filepath {
+            Some(path) => Self::from_file(path),
+            None => {
+                let path = ensure_default_metric_file()?;
+                Self::from_file(&path)
+            }
+        }
+    }
+
+    fn from_file(filepath: &Path) -> Result<Self, Error> {
+        log::debug!("Reading metric file from \"{}\".", filepath.display());
         let content = read_to_string(filepath)?;
         Self::from_str(&content)
     }
@@ -20,19 +56,24 @@ impl Metric {
         let mut metric: Metric = toml::from_str(str)?;
         metric.probes.retain(|p| !p.is_zeroweight());
         metric.probes.retain(|p| !p.is_zero_times());
+        log::debug!("Parsed metric:\n{metric}");
+        metric.consistency_check()?;
+        Ok(metric)
+    }
 
-        if metric.probes.is_empty() {
+    fn consistency_check(&self) -> Result<(), Error> {
+        if self.probes.is_empty() {
             return Err(Error::Other(
                 "Metric needs to contain at least one probe".to_string(),
             ));
         }
 
-        let probe_names = metric.probe_names();
+        let probe_names = self.probe_names();
         let duplicates: Vec<_> = probe_names
             .windows(2)
-            .filter_map(|window| {
-                if window[0] == window[1] {
-                    Some(window[0])
+            .filter_map(|names| {
+                if names[0] == names[1] {
+                    Some(names[0])
                 } else {
                     None
                 }
@@ -48,7 +89,7 @@ impl Metric {
             return Err(Error::Other(message));
         }
 
-        Ok(metric)
+        Ok(())
     }
 
     pub(crate) fn probe_names(&self) -> Vec<ProbeName> {
@@ -71,6 +112,7 @@ impl std::fmt::Display for Metric {
 mod tests {
     use std::fs::{remove_file, write};
 
+    use serial_test::serial;
     use tempfile::NamedTempFile;
 
     use crate::probe_name::ProbeName;
@@ -223,5 +265,25 @@ name = "definetelyNotAFieldThatSecureSumWouldExpectGivenThePresentStateOfTheEcon
 weight = 1.0
         "#;
         assert!(Metric::from_str(WEIRD_METRIC).is_err());
+    }
+
+    #[test]
+    #[serial]
+    fn ensure_metric_file_ensures_metric_file() {
+        let path = default_metric_file_path().unwrap();
+        fs::remove_file(&path).ok();
+
+        assert!(ensure_default_metric_file().is_ok());
+        assert!(path.exists());
+        assert!(ensure_default_metric_file().is_ok());
+        assert!(path.exists());
+    }
+
+    #[test]
+    #[serial]
+    fn default_metric_file_can_be_read() {
+        let path = ensure_default_metric_file().unwrap();
+        let result = Metric::from_file(&path);
+        assert!(result.is_ok(), "{}", result.unwrap_err())
     }
 }
