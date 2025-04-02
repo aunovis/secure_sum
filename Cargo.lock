@@ -1243,7 +1243,7 @@ checksum = "584e070911c7017da6cb2eb0788d09f43d789029b5877d3e5ecc8acf86ceee21"
 
 [[package]]
 name = "secure_sum"
-version = "0.1.1"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "clap",
