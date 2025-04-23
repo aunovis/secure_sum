@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs, path::Path};
 
 use serde::Deserialize;
 
-use crate::{target::SingleTarget, Error};
+use crate::{Error, target::SingleTarget};
 
 use super::{DepFile, Ecosystem};
 

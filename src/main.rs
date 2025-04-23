@@ -22,7 +22,7 @@ use metric::Metric;
 use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use simple_logger::SimpleLogger;
-use tabled::{settings::Style, Table};
+use tabled::{Table, settings::Style};
 use target::Target;
 
 use crate::error::Error;

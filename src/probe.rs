@@ -97,7 +97,7 @@ fn sanitize_filename(filename: &str) -> Result<String, Error> {
         Err(e) => {
             return Err(Error::Other(format!(
                 "Failed to create regular expression: {e}"
-            )))
+            )));
         }
     };
     let filename = re.replace_all(filename, "_").to_string();
@@ -154,7 +154,11 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
     }
 
     if stored_probe.scorecard_error_message.is_some() {
-        log::debug!("Probe on {} returned an error on {}, which is recent enough to not run it again at this point", stored_probe.repo.name, stored_probe.date);
+        log::debug!(
+            "Probe on {} returned an error on {}, which is recent enough to not run it again at this point",
+            stored_probe.repo.name,
+            stored_probe.date
+        );
         return false;
     }
 

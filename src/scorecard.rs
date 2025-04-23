@@ -9,16 +9,18 @@ use tar::Archive;
 
 use crate::{
     error::Error,
-    filesystem::{data_dir, ARCH_STR, OS_STR},
+    filesystem::{ARCH_STR, OS_STR, data_dir},
     metric::Metric,
-    probe::{load_stored_probe, needs_rerun, store_probe, store_probe_json, ProbeResult},
-    target::{collect_single_targets, SingleTarget, Target},
+    probe::{ProbeResult, load_stored_probe, needs_rerun, store_probe, store_probe_json},
+    target::{SingleTarget, Target, collect_single_targets},
 };
 
 static CURRENT_VERSION: &str = "5.1.1";
 
 fn scorecard_url() -> String {
-    format!("https://github.com/ossf/scorecard/releases/download/v{CURRENT_VERSION}/scorecard_{CURRENT_VERSION}_{OS_STR}_{ARCH_STR}.tar.gz")
+    format!(
+        "https://github.com/ossf/scorecard/releases/download/v{CURRENT_VERSION}/scorecard_{CURRENT_VERSION}_{OS_STR}_{ARCH_STR}.tar.gz"
+    )
 }
 
 fn scorecard_path() -> Result<PathBuf, Error> {
@@ -149,7 +151,7 @@ mod tests {
     use serial_test::serial;
 
     use crate::{
-        probe::{probe_file, ProbeInput},
+        probe::{ProbeInput, probe_file},
         probe_name::ProbeName,
         url::Url,
     };
