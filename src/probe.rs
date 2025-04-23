@@ -92,7 +92,7 @@ impl ProbeOutcome {
 }
 
 fn sanitize_filename(filename: &str) -> Result<String, Error> {
-    let re = match Regex::new(r"[^a-zA-Z0-9-_]") {
+    let re = match Regex::new(r"[^a-zA-Z0-9-_@]") {
         Ok(re) => re,
         Err(e) => {
             return Err(Error::Other(format!(
@@ -110,7 +110,8 @@ pub(crate) fn probe_file(target: &SingleTarget) -> Result<PathBuf, Error> {
         SingleTarget::Package(package, ecosystem) => format!("{}_{package}", ecosystem.as_str()),
         SingleTarget::Url(url) => url.str_without_protocol().to_owned(),
     };
-    let mut filename = sanitize_filename(&package)?;
+    let lowercase = package.to_lowercase();
+    let mut filename = sanitize_filename(&lowercase)?;
     filename.push_str(".json");
     Ok(probe_dir.join(filename))
 }
