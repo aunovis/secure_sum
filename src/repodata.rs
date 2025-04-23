@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
 
-use tabled::{settings::Style, Table, Tabled};
+use tabled::{Table, Tabled, settings::Style};
 
 use crate::{
-    cumulated_probe::{cumulated_outcomes, CumulatedProbeOutcome},
+    cumulated_probe::{CumulatedProbeOutcome, cumulated_outcomes},
     metric::Metric,
     probe::ProbeResult,
     score::{calculate_total_score, weighed_findings},

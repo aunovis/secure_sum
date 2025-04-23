@@ -1,7 +1,7 @@
 use std::{fmt::Display, path::PathBuf};
 
 use crate::{
-    ecosystem::{parse, DepFile, Ecosystem},
+    ecosystem::{DepFile, Ecosystem, parse},
     error::Error,
     url::Url,
 };

@@ -4,6 +4,7 @@ use std::{
 };
 
 use chrono::{Duration, NaiveDate, Utc};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -90,21 +91,27 @@ impl ProbeOutcome {
     }
 }
 
+fn sanitize_filename(filename: &str) -> Result<String, Error> {
+    let re = match Regex::new(r"[^a-zA-Z0-9-_@]") {
+        Ok(re) => re,
+        Err(e) => {
+            return Err(Error::Other(format!(
+                "Failed to create regular expression: {e}"
+            )));
+        }
+    };
+    let filename = re.replace_all(filename, "_").to_string();
+    Ok(filename)
+}
+
 pub(crate) fn probe_file(target: &SingleTarget) -> Result<PathBuf, Error> {
     let probe_dir = data_dir()?.join("probes");
     let package = match target {
         SingleTarget::Package(package, ecosystem) => format!("{}_{package}", ecosystem.as_str()),
         SingleTarget::Url(url) => url.str_without_protocol().to_owned(),
     };
-    // Dots are valid in filenames, but without this replacement almost every probe has basename "github".
-    let package = package.replace(".", "_");
-    let package = package.to_lowercase();
-    let sanitise_opts = sanitize_filename::Options {
-        replacement: "_", // Replace invalid characters with underscores
-        windows: cfg!(windows),
-        truncate: false,
-    };
-    let mut filename = sanitize_filename::sanitize_with_options(package, sanitise_opts);
+    let lowercase = package.to_lowercase();
+    let mut filename = sanitize_filename(&lowercase)?;
     filename.push_str(".json");
     Ok(probe_dir.join(filename))
 }
@@ -148,7 +155,11 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
     }
 
     if stored_probe.scorecard_error_message.is_some() {
-        log::debug!("Probe on {} returned an error on {}, which is recent enough to not run it again at this point", stored_probe.repo.name, stored_probe.date);
+        log::debug!(
+            "Probe on {} returned an error on {}, which is recent enough to not run it again at this point",
+            stored_probe.repo.name,
+            stored_probe.date
+        );
         return false;
     }
 
@@ -243,6 +254,14 @@ mod tests {
             let file = path.file_name().unwrap().to_str().unwrap().to_owned();
             assert_eq!(file, expected);
         }
+    }
+
+    #[test]
+    fn filenames_are_sanitized() {
+        let input = "a$b?c👍d e/f\\g";
+        let expected = "a_b_c_d_e_f_g";
+        let actual = sanitize_filename(input).unwrap();
+        assert_eq!(expected, actual);
     }
 
     #[test]

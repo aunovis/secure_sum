@@ -10,7 +10,7 @@ use crate::{
     url::Url,
 };
 
-use super::{depfile::DepFile, Ecosystem};
+use super::{Ecosystem, depfile::DepFile};
 
 #[derive(Debug, Deserialize)]
 pub(super) struct CargoToml {

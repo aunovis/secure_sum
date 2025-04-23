@@ -75,7 +75,9 @@ pub(crate) fn calculate_total_score(findings: &[WeighedFinding]) -> f32 {
     let translation_offset = -lowest;
     let scale = highest - lowest;
     if scale.abs() < ZERO_ACCURACY {
-        log::warn!("A finding has a difference of {scale} between lowest and highest possible value. Most probably too many probes yielded no boolean result.");
+        log::warn!(
+            "A finding has a difference of {scale} between lowest and highest possible value. Most probably too many probes yielded no boolean result."
+        );
         return 0.;
     }
     let factor = NORM / scale;
