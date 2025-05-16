@@ -109,7 +109,7 @@ fn run_scorecard_probe(
     metric: &Metric,
     scorecard: &Path,
 ) -> Result<ProbeResult, Error> {
-    log::debug!("Checking {target}");
+    log::info!("Evaluating {target}.");
     let args = scorecard_args(metric, target)?;
     log::trace!("Args: {:#?}", args);
     let output = Command::new(scorecard).args(args).output()?;
@@ -136,7 +136,7 @@ fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>,
         .collect::<Vec<_>>();
     if probes.is_empty() {
         return Err(Error::Input(
-            "At least one probe needs to be specified".to_owned(),
+            "At least one probe needs to be specified.".to_owned(),
         ));
     }
     let probes = probes.join(",");

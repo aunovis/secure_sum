@@ -58,7 +58,7 @@ pub(crate) fn weighed_findings(findings: &[ProbeFinding], metric: &Metric) -> Ve
             .filter_map(|finding| weighed_finding(probe, finding))
             .collect();
         if findings.is_empty() {
-            log::error!("Findings contain no outcome for probe \"{}\"", probe.name);
+            log::warn!("Findings contain no outcome for probe \"{}\".", probe.name);
             continue;
         }
         if let Some(max_times) = probe.max_times {
