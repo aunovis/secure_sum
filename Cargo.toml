@@ -16,13 +16,13 @@ chrono = { version = "0.4.39", default-features = false, features = ["now", "ser
 dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.10.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
+flexi_logger = { version = "0.30.0", default-features = false, features = ["colors"]}
 log ={ version = "0.4.22", default-features = false }
 reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
 serde_json  = { version = "1.0", default-features = false, features = ["std"]}
 quick-xml = { version = "0.37.0", features = ["serialize"] }
 regex = { version = "1.0", default-features = false }
-simple_logger = { version = "5.0", default-features = false }
 tabled = { version = "0.19.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression

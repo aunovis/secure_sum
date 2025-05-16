@@ -16,6 +16,9 @@ pub(crate) enum Error {
     #[error("IO error occurred: {0}")]
     Io(#[from] std::io::Error),
 
+    #[error("FlexiLogger error occurred: {0}")]
+    Logger(#[from] flexi_logger::FlexiLoggerError),
+
     #[error("Reqwest error occurred: {0}")]
     Reqwest(#[from] reqwest::Error),
 

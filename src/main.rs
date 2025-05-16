@@ -6,6 +6,7 @@ mod ecosystem;
 mod error;
 mod filesystem;
 mod github_token;
+mod logging;
 mod metric;
 mod probe;
 mod probe_name;
@@ -18,20 +19,18 @@ mod url;
 use args::Arguments;
 use clap::Parser;
 use github_token::ensure_valid_github_token;
+use logging::init_logging;
 use metric::Metric;
 use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
-use simple_logger::SimpleLogger;
 use tabled::{Table, settings::Style};
 use target::Target;
 
 use crate::error::Error;
 
 fn main() -> Result<(), Error> {
-    SimpleLogger::new()
-        .init()
-        .map_err(|e| Error::Other(e.to_string()))?;
     let args = Arguments::parse();
+    init_logging()?;
     let metric = Metric::new(args.metric.as_deref())?;
     let targets: Vec<_> = args
         .dependencies
