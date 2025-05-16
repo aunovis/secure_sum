@@ -1,6 +1,6 @@
 [package]
 name = "secure_sum"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
 authors = ["Simon Heidrich (heidrich@aunovis.de)"]
 description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
@@ -23,7 +23,7 @@ serde_json  = { version = "1.0", default-features = false, features = ["std"]}
 quick-xml = { version = "0.37.0", features = ["serialize"] }
 regex = { version = "1.0", default-features = false }
 simple_logger = { version = "5.0", default-features = false }
-tabled = { version = "0.18.0", default-features = false, features = ["derive", "macros"] }
+tabled = { version = "0.19.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression
 toml ={ version = "0.8.19", default-features = false, features = ["display", "parse"]}
