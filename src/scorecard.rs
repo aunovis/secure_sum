@@ -111,7 +111,7 @@ fn run_scorecard_probe(
 ) -> Result<ProbeResult, Error> {
     log::info!("Evaluating {target}.");
     let args = scorecard_args(metric, target)?;
-    log::trace!("Args: {:#?}", args);
+    log::debug!("Args: {:#?}", args);
     let output = Command::new(scorecard).args(args).output()?;
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {

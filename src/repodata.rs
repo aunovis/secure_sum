@@ -41,6 +41,7 @@ impl RepoData {
 
     pub(crate) fn print_detailed_output(&self) {
         println!("Detailed output for {}:", self.repo);
+        println!("Total score: {}", self.total_score);
         println!(
             "{}",
             Table::new(&self.probe_outcomes).with(Style::rounded())

@@ -1,11 +1,17 @@
 use flexi_logger::{DeferredNow, Logger, style};
 use log::Record;
 
-use crate::Error;
+use crate::{Arguments, Error};
 
-pub(crate) fn init_logging() -> Result<(), Error> {
-    let level = log::Level::Info.to_string();
-    Logger::try_with_str(level)?
+pub(crate) fn init_logging(args: &Arguments) -> Result<(), Error> {
+    let level = if args.quiet {
+        log::Level::Error
+    } else if args.verbose {
+        log::Level::Debug
+    } else {
+        log::Level::Info
+    };
+    Logger::try_with_str(level.to_string())?
         .log_to_stdout()
         .format(log_format)
         .start()?;

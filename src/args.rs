@@ -15,11 +15,19 @@ pub(crate) struct Arguments {
     #[arg(value_name = "FILEPATH(S)|URL(S)")]
     pub(crate) dependencies: Vec<String>,
 
+    /// Print a detailed output which probes yielded which results for which repo
+    #[arg(long, short)]
+    pub(crate) details: bool,
+
     /// Rerun all scorecard checks, even if recent results are stored locally
     #[arg(long, short)]
     pub(crate) rerun: bool,
 
-    /// Print a detailed output which probes yielded which results for which repo
+    /// Supress all output except for results and errors
     #[arg(long, short)]
-    pub(crate) details: bool,
+    pub(crate) quiet: bool,
+
+    /// Print a lot of detailed output
+    #[arg(long, short)]
+    pub(crate) verbose: bool,
 }

@@ -30,7 +30,12 @@ use crate::error::Error;
 
 fn main() -> Result<(), Error> {
     let args = Arguments::parse();
-    init_logging()?;
+    if args.quiet && args.verbose {
+        return Err(Error::Other(
+            "Commandline arguments --quiet and --verbose can not be combined.".to_string(),
+        ));
+    }
+    init_logging(&args)?;
     let metric = Metric::new(args.metric.as_deref())?;
     let targets: Vec<_> = args
         .dependencies
