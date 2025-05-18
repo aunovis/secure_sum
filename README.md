@@ -88,6 +88,7 @@ secure_sum https://github.com/aunovis/secure_sum --details
 ```
 ```
 Detailed output for github.com/aunovis/secure_sum:
+Total score: 5.844876
 ╭───────────────────────────────────────┬────────┬───────────────╮
 │ Probe                                 │ Weight │ True Outcomes │
 ├───────────────────────────────────────┼────────┼───────────────┤
@@ -119,6 +120,8 @@ Detailed output for github.com/aunovis/secure_sum:
 │ testsRunInCI                          │ 1      │ 0             │
 ╰───────────────────────────────────────┴────────┴───────────────╯
 ```
+
+If you want to see more (or less) output, use the "--verbose" / "-v" (or "--quiet" / "-q") option. They are not combinable.
 
 #### Custom Metric
 
