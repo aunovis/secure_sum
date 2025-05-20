@@ -5,6 +5,7 @@ use std::{
 };
 
 use flate2::read::GzDecoder;
+use rayon::prelude::*;
 use tar::Archive;
 
 use crate::{
@@ -82,7 +83,7 @@ pub(crate) fn dispatch_scorecard_runs(
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     let results = collect_single_targets(targets)
-        .iter()
+        .par_iter()
         .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun))
         .collect::<Result<_, _>>()?;
     Ok(results)
@@ -123,6 +124,7 @@ fn run_scorecard_probe(
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
     store_probe_json(target, &stdout)?;
+    log::info!("Finished evaluation {target}.");
     Ok(probe_result)
 }
 
