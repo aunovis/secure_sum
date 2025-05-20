@@ -210,7 +210,11 @@ mod tests {
 
     #[test]
     fn scorecard_args_without_probes_is_err() {
-        let metric = Metric { probes: vec![] };
+        let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
+            probes: vec![],
+        };
         let args_result = scorecard_args(&metric, &example_target());
         assert!(args_result.is_err())
     }
@@ -218,6 +222,8 @@ mod tests {
     #[test]
     fn scorecard_args_one_probe() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
@@ -236,6 +242,8 @@ mod tests {
     #[test]
     fn scorecard_args_several_probes() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![
                 ProbeInput {
                     name: ProbeName::archived,
@@ -267,6 +275,8 @@ mod tests {
         let filepath = probe_file(&example_target()).unwrap();
         fs::remove_file(&filepath).ok();
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
@@ -288,6 +298,8 @@ mod tests {
         let filepath = probe_file(&wrong_target).unwrap();
         let scorecard = scorecard_path().unwrap();
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
@@ -305,7 +317,11 @@ mod tests {
         ensure_scorecard_binary().unwrap();
         dotenvy::dotenv().unwrap();
         let scorecard = scorecard_path().unwrap();
-        let metric = Metric { probes: vec![] };
+        let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
+            probes: vec![],
+        };
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
