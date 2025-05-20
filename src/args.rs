@@ -6,6 +6,7 @@ use clap::Parser;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
+#[derive(Default)]
 pub(crate) struct Arguments {
     /// Path to the metric file that defines the probes to analyse
     #[arg(long, short, value_name = "FILEPATH")]
@@ -30,4 +31,12 @@ pub(crate) struct Arguments {
     /// Print a lot of detailed output
     #[arg(long, short)]
     pub(crate) verbose: bool,
+
+    /// Overwrite the minimal score a repo must reach before an error is displayed.
+    #[arg(long, short)]
+    pub(crate) error_threshold: Option<f32>,
+
+    /// Overwrite the minimal score a repo must reach before a warning is displayed.
+    #[arg(long, short)]
+    pub(crate) warn_threshold: Option<f32>,
 }
