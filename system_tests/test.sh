@@ -30,10 +30,10 @@ cargo run --release -- --metric example_metric.toml nuget_project_1.csproj --qui
 cargo run --release -- --metric example_metric.toml nuget_packages.config
 
 # You can specify more than one dependencyfile
-cargo run --release -- --metric example_metric.toml ../Cargo.toml rust_cargo.toml
+cargo run --release -- --metric example_metric.toml ../Cargo.toml rust_cargo.toml -e 0.5
 # They may even be from different ecosystem, if for some reason that makes sense in your project
-cargo run --release -- --metric example_metric.toml rust_cargo.toml node_js_package.json
+cargo run --release -- --metric example_metric.toml rust_cargo.toml nuget_project_1.csproj -e 0.5
 # Or mix and match a dependencyfile with URLs
-cargo run --release -- --metric example_metric.toml rust_cargo.toml https://github.com/aunovis/secure_sum
+cargo run --release -- --metric example_metric.toml rust_cargo.toml https://github.com/aunovis/secure_sum -e 0.5
 # You can use some bash scripting to include all .csproj files
-cargo run --release -- --metric example_metric.toml $(find . -iname "*.csproj")
+cargo run --release -- --metric example_metric.toml $(find . -iname "*.csproj") -e 0.5
