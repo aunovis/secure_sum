@@ -8,6 +8,7 @@ mod filesystem;
 mod github_token;
 mod logging;
 mod metric;
+mod post_evaluate;
 mod probe;
 mod probe_name;
 mod repodata;
@@ -21,6 +22,7 @@ use clap::Parser;
 use github_token::ensure_valid_github_token;
 use logging::init_logging;
 use metric::Metric;
+use post_evaluate::post_evaluate_repos;
 use repodata::RepoData;
 use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use tabled::{Table, settings::Style};
@@ -39,6 +41,7 @@ fn main() -> Result<(), Error> {
     let metric = Metric::new(args.metric.as_deref())?;
     let targets: Vec<_> = args
         .dependencies
+        .clone()
         .into_iter()
         .map(|t| {
             let target = Target::parse(t)?;
@@ -53,9 +56,9 @@ fn main() -> Result<(), Error> {
     results.sort();
     println!("{}", Table::new(&results).with(Style::rounded()));
     if args.details {
-        for repo in results {
+        for repo in &results {
             repo.print_detailed_output();
         }
     }
-    Ok(())
+    post_evaluate_repos(&results, &metric, &args)
 }

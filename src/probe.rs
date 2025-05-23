@@ -313,6 +313,8 @@ mod tests {
             scorecard_error_message: None,
         };
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
@@ -332,6 +334,8 @@ mod tests {
     #[test]
     fn probe_needs_rerun_if_metric_contains_probes_without_finding() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![
                 ProbeInput {
                     name: ProbeName::archived,
@@ -396,6 +400,8 @@ mod tests {
             scorecard_error_message: Some("Oof, something went wrong.".to_string()),
         };
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,

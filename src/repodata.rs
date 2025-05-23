@@ -47,6 +47,18 @@ impl RepoData {
             Table::new(&self.probe_outcomes).with(Style::rounded())
         );
     }
+
+    pub(crate) fn repo(&self) -> &Url {
+        &self.repo
+    }
+
+    pub(crate) fn score(&self) -> f32 {
+        self.total_score
+    }
+
+    pub(crate) fn num_successful_probes(&self) -> usize {
+        self.probe_outcomes.len()
+    }
 }
 
 impl Ord for RepoData {

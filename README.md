@@ -52,6 +52,8 @@ Secure Sum runs Scorecard probes defined in a [metric file](#metric-file) and th
 
 ### Program Call
 
+#### Targets
+
 To run the analyses and apply the [default metric](https://github.com/aunovis/secure_sum/blob/main/default_metric.toml), pass the target(s) as the argument(s):
 ```bash
 secure_sum <target> <additional-targts...>
@@ -77,10 +79,14 @@ secure_sum Cargo.toml
 ```
 It will then collect all first level dependencies and analyse them.
 
+#### Force re-evaluation
+
 If a check has been run for a repository within the last week, Secure Sum will use the locally stored results. To overwrite this behavioiur and enforce a complete re-evaluation, you can use the `--rerun` or `-r` flag.
 ```bash
 secure_sum https://github.com/aunovis/secure_sum --rerun
 ```
+
+#### Output Details
 
 By using the `--details` or `-d` flag, you can make Secure Sum print a more detailed output which probe contributed how much to the total score.
 ```bash
@@ -121,6 +127,8 @@ Total score: 5.844876
 ╰───────────────────────────────────────┴────────┴───────────────╯
 ```
 
+#### Verbosity
+
 If you want to see more (or less) output, use the "--verbose" / "-v" (or "--quiet" / "-q") option. They are not combinable.
 
 #### Custom Metric
@@ -132,6 +140,34 @@ secure_sum --metric=<path/to/metric.toml> <targets> # Does the same
 secure_sum -m <path/to/metric.toml> <targets> # Does the same
 ```
 The metric file needs to be in a specific [TOML format](https://toml.io/), which is [described below](#metric-file).
+
+#### Thresholds
+
+Secure Sum will display an error message and exit with an error code if a repo's score is below a threshold. By default, this threshold is 3. It can be overwritten, in the [metric file](#metric-file), by providing the `error_threshold` argument in the global scope:
+``` toml
+error_threshold = 4.2 # This needs to go before any [[probe]] entries.
+
+[[probe]]
+...
+```
+
+```
+13:48:55 [ERROR] Repo github.com/handlebars-lang/handlebars.js has a score of 0.4273504, which is below the error threshold of 4.2.
+```
+
+You can additionally or alternatively overwrite the threshold with a command line argument:
+``` bash
+secure_sum --error-threshold=4.2
+secure_sum -e 4.2 # Does the same thing
+```
+
+The command line argument will overwrite any value provided in the metric file.
+
+Cou can also specify a `warn_threshold`, where Secure Sum will not throw an error, but display a warning. Analogously, do that by specifying `warn_threshold` in the metric file, or provide the `--warn-threshold` / `-w` command line option. If you don't the warn threshold will default to `error_threshold + 1`.
+
+```
+13:49:21 [WARN] Repo github.com/jquery/jquery has a score of 4.4444447, which is dangerously close to the error threshold of 4.2.;
+```
 
 ### Supported Ecosystems
 

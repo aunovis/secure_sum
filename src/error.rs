@@ -31,6 +31,9 @@ pub(crate) enum Error {
     #[error("Quick XML error: {0}")]
     QuickXml(#[from] quick_xml::de::DeError),
 
+    #[error("At least one probed repo has a score that is unacceptably low.")]
+    ScoreTooLow,
+
     #[error("An unspecified error occurred: {0}")]
     Other(String),
 }

@@ -12,6 +12,10 @@ static DEFAULT_METRIC_URL: &str =
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub(crate) struct Metric {
+    #[serde(default)]
+    pub(crate) error_threshold: Option<f32>,
+    #[serde(default)]
+    pub(crate) warn_threshold: Option<f32>,
     #[serde(rename = "probe")]
     pub(crate) probes: Vec<ProbeInput>,
 }
@@ -122,6 +126,9 @@ mod tests {
     #[test]
     fn metric_can_be_read_from_file() {
         static EXAMPLE_METRIC_STR: &str = r#"
+error_threshold = 4
+warn_threshold = 5
+
 [[probe]]
 name = "archived"
 weight = -1.0
@@ -132,6 +139,8 @@ weight = 1.0
 max_times = 12
         "#;
         let expected = Metric {
+            error_threshold: Some(4.),
+            warn_threshold: Some(5.),
             probes: vec![
                 ProbeInput {
                     name: ProbeName::archived,
@@ -205,6 +214,8 @@ weight = 1.0
     #[test]
     fn metric_serialization_roundtrip() {
         static EXPECTED_SERIALIZED: &str = r#"
+warn_threshold = 5.0
+
 [[probe]]
 name = "archived"
 weight = -1.0
@@ -216,6 +227,8 @@ max_times = 12
         "#;
 
         let expected_metric = Metric {
+            error_threshold: None,
+            warn_threshold: Some(5.),
             probes: vec![
                 ProbeInput {
                     name: ProbeName::archived,

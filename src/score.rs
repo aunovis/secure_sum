@@ -121,6 +121,8 @@ mod tests {
     #[test]
     fn weigh_findings_ignores_probes_not_in_metric() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::archived,
                 weight: 1.,
@@ -151,6 +153,8 @@ mod tests {
     #[test]
     fn weighed_findings_are_sorted_by_weight_amplitude() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![
                 ProbeInput {
                     name: ProbeName::archived,
@@ -209,6 +213,8 @@ mod tests {
     #[test]
     fn weighed_findings_contain_multiple_outcomes_of_same_probe() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::hasOSVVulnerabilities,
                 weight: 1.,
@@ -246,6 +252,8 @@ mod tests {
     #[test]
     fn weighed_findings_contain_multiple_outcomes_up_to_max_times() {
         let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
             probes: vec![ProbeInput {
                 name: ProbeName::hasOSVVulnerabilities,
                 weight: 1.,
