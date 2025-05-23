@@ -26,7 +26,7 @@ pub(crate) fn post_evaluate_repos(
             contains_error = true;
         } else if score < warn_threshold {
             log::warn!(
-                "Repo {repo} has a score of {score}, which is dangerously close to the error threshold of {error_threshold}.1;"
+                "Repo {repo} has a score of {score}, which is dangerously close to the error threshold of {error_threshold}.;"
             )
         }
     }
