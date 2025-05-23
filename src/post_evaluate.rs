@@ -17,6 +17,9 @@ pub(crate) fn post_evaluate_repos(
     let warn_threshold = thresholds.warn;
     let mut contains_error = false;
     for result in results {
+        if result.num_successful_probes() == 0 {
+            continue;
+        }
         let score = result.score();
         let repo = result.repo();
         if score < error_threshold {
@@ -31,7 +34,9 @@ pub(crate) fn post_evaluate_repos(
         }
     }
     if contains_error {
-        Err(Error::ScoreTooLow)
+        let err = Error::ScoreTooLow;
+        log::error!("{err}");
+        Err(err)
     } else {
         Ok(())
     }

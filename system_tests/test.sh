@@ -22,10 +22,10 @@ cargo run --release -- --metric example_metric.toml https://github.com/aunovis/s
 
 # Run on a dependencyfile of the Rust ecosystem
 cargo run --release -- --metric example_metric.toml rust_cargo.toml
-# Run on a dependencyfile of the Node.js ecosystem, with verbose output
-cargo run --release -- --metric example_metric.toml node_js_package.json --verbose
+# Run on a dependencyfile of the Node.js ecosystem, with verbose output and radically low error thresholds
+cargo run --release -- --metric example_metric.toml node_js_package.json --verbose --error-threshold=0.1
 # Run on a project.csproj file of the NuGet ecosystem, with less output
-cargo run --release -- --metric example_metric.toml nuget_project_1.csproj --quiet
+cargo run --release -- --metric example_metric.toml nuget_project_1.csproj --quiet -e 1.5
 # Run on a (somewhat old-fashioned) packages.config file of the NuGet ecosystem
 cargo run --release -- --metric example_metric.toml nuget_packages.config
 
