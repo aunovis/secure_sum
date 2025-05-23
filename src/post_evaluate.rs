@@ -12,7 +12,29 @@ pub(crate) fn post_evaluate_repos(
     metric: &Metric,
     args: &Arguments,
 ) -> Result<(), Error> {
-    todo!()
+    let thresholds = get_thresholds(metric, args);
+    let error_threshold = thresholds.error;
+    let warn_threshold = thresholds.warn;
+    let mut contains_error = false;
+    for result in results {
+        let score = result.score();
+        let repo = result.repo();
+        if score < error_threshold {
+            log::error!(
+                "Repo {repo} has a score of {score}, which is below the error threshold of {error_threshold}."
+            );
+            contains_error = true;
+        } else if score < warn_threshold {
+            log::warn!(
+                "Repo {repo} has a score of {score}, which is dangerously close to the error threshold of {error_threshold}.1;"
+            )
+        }
+    }
+    if contains_error {
+        Err(Error::ScoreTooLow)
+    } else {
+        Ok(())
+    }
 }
 
 fn get_thresholds(metric: &Metric, args: &Arguments) -> Thresholds {
