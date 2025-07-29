@@ -73,10 +73,13 @@ def get_probes():
 
         pattern = r"probes/([^/]+)/def\.yml"
         probes = [match.group(1) for filepath in filepaths if (match := re.search(pattern, filepath))]
+        num_probes = len(probes)
+
+        print(f"Found {num_probes} probes.")
         
         return probes
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
+        print(f"\nError: {e}\n")
 
 def get_as_str_parts(probes):
     return [AS_STR_TEMPLATE.format(probe = probe) for probe in probes]

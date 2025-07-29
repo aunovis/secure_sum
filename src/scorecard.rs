@@ -16,7 +16,7 @@ use crate::{
     target::{SingleTarget, Target, collect_single_targets},
 };
 
-static CURRENT_VERSION: &str = "5.1.1";
+static CURRENT_VERSION: &str = "5.2.1";
 
 fn scorecard_url() -> String {
     format!(

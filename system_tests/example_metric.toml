@@ -1,19 +1,28 @@
 [[probe]]
 name = "hasRecentCommits"
 weight = 1 # We care about this probe
+
 [[probe]]
 name = "fuzzed"
 weight = 0.4 # Good practice, but not as important for us as other criteria.
+
 [[probe]]
 name = "archived"
 weight = -1 # Using archived repos is deprecated, so this probe gets a negative value
+
+[[probe]]
+name = "branchesAreProtected"
+weight = 2 # It is very important to have this
+
 [[probe]]
 name = "hasOSVVulnerabilities"
-weight = -2.1 # Very important *not* to have this
+weight = -1.8 # Very important *not* to have this
 max_times = 10 # You can choose to limit the number of times this probe contributes to the score
+
 [[probe]]
 name = "hasPermissiveLicense"
 weight = 0 # A weight of zero is treated as if the field is not present, the probe is not run
+
 [[probe]]
 name = "securityPolicyPresent"
 weight = 1
