@@ -30,7 +30,7 @@ fn check_token_validity(token: &str) -> Result<(), Error> {
     match response {
         Ok(_) => Ok(()),
         Err(e) => {
-            let message = format!("Your GITHBU_TOKEN is apparently not valid: {e}");
+            let message = format!("Your GITHUB_TOKEN is apparently not valid: {e}");
             Err(Error::Other(message))
         }
     }
