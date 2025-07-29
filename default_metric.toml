@@ -53,6 +53,7 @@ weight = 0.5
 
 # Throws exception with github.com/toml-rs/toml
 # https://github.com/ossf/scorecard/issues/4531
+# Will be fixed with the next release.
 # [[probe]]
 # name = "sastToolConfigured"
 # weight = 2
