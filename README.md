@@ -1,6 +1,6 @@
 # AUNOVIS Secure Sum
 
-<img align="right" src="https://raw.githubusercontent.com/aunovis/secure_sum/main/img/secure_sam.svg" alt="Secure Sam, Secure Sum's mascot" width="200"/>
+<img align="right" src="img/secure_sam.svg" alt="Secure Sam, Secure Sum's mascot" width="200"/>
 
 ## About
 
