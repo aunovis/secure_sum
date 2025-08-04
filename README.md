@@ -1,8 +1,8 @@
 # AUNOVIS Secure Sum
 
-<img align="right" src="https://raw.githubusercontent.com/aunovis/secure_sum/main/img/secure_sam.svg" alt="Secure Sam, Secure Sum's mascot" width="200"/>
-
 ## About
+
+<img align="right" src="img/secure_sam.svg" alt="Secure Sam, Secure Sum's mascot" width="200"/>
 
 Most modern software depends on numerous open source packages scattered over various ecosystems. A vulnerability deep within the dependency tree can potentially affect the whole supply chain. Which dependencies should you trust, and which should you rather avoid?
 
@@ -13,6 +13,16 @@ However, you may not agree with Scorecard's prioritisation of security aspects. 
 To solve this issue, Scorecard has exposed the results of the various evaluations as machine-readable output. All that is left to do is to parse and combine them to a single score according to a customisable metric.
 
 This is what Secure Sum does.
+
+## Installation
+
+The [Releases](https://github.com/aunovis/secure_sum/releases/) section describes several installation options via shell or powershell.
+
+Alternatively, if you have the Rust toolchain installed, you can build Secure Sum from sources:
+
+```sh
+cargo install secure_sum
+```
 
 ## Setup
 

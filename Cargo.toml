@@ -1,6 +1,6 @@
 [package]
 name = "secure_sum"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2024"
 authors = ["Simon Heidrich (heidrich@aunovis.de)"]
 description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
