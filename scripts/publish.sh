@@ -28,7 +28,8 @@ cargo install cargo-release
 
 if [[ "$1" == "--execute" ]]; then
     cargo release --execute
-    echo "The GitHub release needs to be executed manually."
+    echo "The GitHub release is handled by the dist pipeline."
+    echo "Do NOT execute it manually, or it will interfere with that."
 else
     cargo release
     echo "The script was run without --execute argument. If you want to execute the release, run the script with --execute argument."
