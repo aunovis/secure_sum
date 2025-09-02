@@ -18,20 +18,20 @@ etcetera = { version = "0.10.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
 flexi_logger = { version = "0.31.0", default-features = false, features = ["colors"]}
 log = { version = "0.4.22", default-features = false }
-rayon = { version = "1.10", default-features = false } # Parallelisation
-reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
+rayon = { version = "1.11", default-features = false } # Parallelisation
+reqwest = { version = "0.12.23", features = ["blocking", "native-tls-vendored"] }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
 serde_json  = { version = "1.0", default-features = false, features = ["std"]}
-quick-xml = { version = "0.38.0", features = ["serialize"] }
-regex = { version = "1.0", default-features = false }
+quick-xml = { version = "0.38.3", features = ["serialize"] }
+regex = { version = "1.11", default-features = false }
 tabled = { version = "0.20.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression
-toml ={ version = "0.9.4", default-features = false, features = ["display", "parse", "serde"]}
+toml ={ version = "0.9.5", default-features = false, features = ["display", "parse", "serde"]}
 
 [dev-dependencies]
 serial_test = { version = "3.2", default-features = false }
-tempfile = { version = "3.15", default-features = false }
+tempfile = { version = "3.21", default-features = false }
 
 # The profile that 'dist' will build with
 [profile.dist]
