@@ -65,11 +65,13 @@ max_times = 2
 
 [[probe]]
 name = "hasDangerousWorkflowScriptInjection"
-weight = 2
+weight = -2
+max_times = 2
 
 [[probe]]
 name = "hasDangerousWorkflowUntrustedCheckout"
-weight = 2
+weight = -2
+max_times = 2
 
 # === Dependency Management & Supply Chain Security ===
 [[probe]]
