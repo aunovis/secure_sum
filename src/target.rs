@@ -23,6 +23,10 @@ impl Target {
             return Ok(Self::Url(path.into()));
         }
         let depfile_path = PathBuf::from(&path);
+        if !depfile_path.exists() {
+            let message = format!("Could not open path '{}'.", depfile_path.display());
+            return Err(Error::Other(message));
+        }
         let depfile = parse(&depfile_path);
         if let Ok(depfile) = depfile {
             return Ok(Self::DepFile(depfile_path, depfile));
@@ -84,6 +88,19 @@ mod tests {
     use super::*;
 
     use crate::ecosystem::parse_str_as_depfile;
+
+    #[test]
+    fn parse_with_nonexistent_path_is_informative_error() {
+        let no_such_path = "this/path/hopefully/does/not/exist";
+        assert!(!PathBuf::from(no_such_path).exists());
+        let res = Target::parse(no_such_path.to_string());
+        let err = match res {
+            Ok(_) => panic!("Expected an error!"),
+            Err(e) => e,
+        };
+        let print = format!("{err}");
+        assert!(print.contains(no_such_path));
+    }
 
     #[test]
     fn protocols_mark_urls() {
