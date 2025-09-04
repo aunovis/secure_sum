@@ -152,7 +152,7 @@ fn wait_for_scorecard_evaluation(
         .spawn()?;
     let output = match child.wait_timeout(timeout)? {
         Some(code) => {
-            log::debug!("Scorecard process finished in time with code {code}.");
+            log::debug!("Scorecard process finished in time with {code}.");
             child.wait_with_output()?
         }
         None => {
