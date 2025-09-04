@@ -1,7 +1,7 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
     time,
 };
 
@@ -144,7 +144,11 @@ fn wait_for_scorecard_evaluation(
     timeout: time::Duration,
     args: Vec<String>,
 ) -> Result<std::process::Output, Error> {
-    let mut child = Command::new(scorecard).args(args).spawn()?;
+    let mut child = Command::new(scorecard)
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
     let output = match child.wait_timeout(timeout)? {
         Some(code) => {
             log::debug!("Scorecard process finished in time with code {code}.");
