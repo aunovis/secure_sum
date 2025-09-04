@@ -184,7 +184,9 @@ mod tests {
     fn scorecard_url_exists() {
         let url = scorecard_url();
         let client = Client::new();
+
         let response = client.head(&url).send().unwrap();
+
         assert!(response.status().is_success(), "URL is: {url}")
     }
 
@@ -204,7 +206,9 @@ mod tests {
     #[serial]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
+
         assert!(path.exists(), "Path is: {}", path.display());
+
         assert!(path.is_file(), "Path is: {}", path.display());
     }
 
@@ -212,7 +216,9 @@ mod tests {
     #[serial]
     fn scorecard_binary_can_be_executed_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().unwrap();
+
         let result = Command::new(path).arg("--version").output();
+
         assert!(result.is_ok(), "Error occurred: {}", result.unwrap_err())
     }
 
@@ -223,7 +229,9 @@ mod tests {
             error_threshold: None,
             probes: vec![],
         };
+
         let args_result = scorecard_args(&metric, &example_target());
+
         assert!(args_result.is_err())
     }
 
@@ -238,7 +246,9 @@ mod tests {
                 max_times: None,
             }],
         };
+
         let args = scorecard_args(&metric, &example_target()).unwrap();
+
         let expected = vec![
             example_target_arg(),
             "--probes=archived".to_string(),
@@ -265,7 +275,9 @@ mod tests {
                 },
             ],
         };
+
         let args = scorecard_args(&metric, &example_target()).unwrap();
+
         let expected = vec![
             example_target_arg(),
             "--probes=archived,fuzzed".to_string(),
@@ -292,7 +304,9 @@ mod tests {
             }],
         };
         assert!(!filepath.exists());
+
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard, DEFAULT_TIMEOUT);
+
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -314,7 +328,9 @@ mod tests {
                 max_times: None,
             }],
         };
+
         let result = run_scorecard_probe(&wrong_target, &metric, &scorecard, DEFAULT_TIMEOUT);
+
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -330,12 +346,38 @@ mod tests {
             error_threshold: None,
             probes: vec![],
         };
+
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard, DEFAULT_TIMEOUT);
+
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
             error_print.contains("probe"),
             "Error print is: {error_print}"
         );
+    }
+
+    #[test]
+    #[serial]
+    fn evaluation_is_aborted_after_timeout() {
+        ensure_scorecard_binary().unwrap();
+        dotenvy::dotenv().unwrap();
+        let scorecard = scorecard_path().unwrap();
+        let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
+            probes: vec![ProbeInput {
+                name: ProbeName::dependencyUpdateToolConfigured,
+                weight: 1.,
+                max_times: None,
+            }],
+        };
+        let way_too_short = TimeDelta::nanoseconds(10);
+
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard, way_too_short);
+
+        assert!(result.is_err(), "{:#?}", result.unwrap());
+        let err = result.unwrap_err();
+        assert!(matches!(err, Error::Timeout));
     }
 }
