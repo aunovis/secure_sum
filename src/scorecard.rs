@@ -19,7 +19,8 @@ use crate::{
 };
 
 static CURRENT_VERSION: &str = "5.2.1";
-static DEFAULT_TIMEOUT: time::Duration = time::Duration::from_secs(60);
+/// The default timeout seems very high. That's because scorecard can be really slow.
+static DEFAULT_TIMEOUT: time::Duration = time::Duration::from_secs(180);
 
 fn scorecard_url() -> String {
     format!(
@@ -135,7 +136,7 @@ fn run_scorecard_probe(
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
     store_probe_json(target, &stdout)?;
-    log::info!("Finished evaluation {target}.");
+    log::info!("Finished evaluation of {target}.");
     Ok(probe_result)
 }
 
