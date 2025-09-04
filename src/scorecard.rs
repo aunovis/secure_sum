@@ -4,6 +4,7 @@ use std::{
     process::Command,
 };
 
+use chrono::TimeDelta;
 use flate2::read::GzDecoder;
 use rayon::prelude::*;
 use tar::Archive;
@@ -17,6 +18,7 @@ use crate::{
 };
 
 static CURRENT_VERSION: &str = "5.2.1";
+static DEFAULT_TIMEOUT: TimeDelta = TimeDelta::seconds(60);
 
 fn scorecard_url() -> String {
     format!(
@@ -79,12 +81,13 @@ pub(crate) fn dispatch_scorecard_runs(
     metric: &Metric,
     targets: Vec<Target>,
     force_rerun: bool,
+    timeout: Option<humantime::Duration>,
 ) -> Result<Vec<ProbeResult>, Error> {
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     let results = collect_single_targets(targets)
         .par_iter()
-        .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun))
+        .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun, timeout))
         .collect::<Result<_, _>>()?;
     Ok(results)
 }
@@ -94,6 +97,7 @@ fn evaluate_repo(
     metric: &Metric,
     scorecard: &Path,
     force_rerun: bool,
+    timeout: Option<humantime::Duration>,
 ) -> Result<ProbeResult, Error> {
     if !force_rerun {
         if let Some(stored_probe) = load_stored_probe(target)? {
@@ -102,13 +106,17 @@ fn evaluate_repo(
             }
         }
     }
-    run_scorecard_probe(target, metric, scorecard)
+    let timeout = timeout
+        .map(|duration| TimeDelta::seconds(duration.as_secs() as i64))
+        .unwrap_or(DEFAULT_TIMEOUT);
+    run_scorecard_probe(target, metric, scorecard, timeout)
 }
 
 fn run_scorecard_probe(
     target: &SingleTarget,
     metric: &Metric,
     scorecard: &Path,
+    timeout: TimeDelta,
 ) -> Result<ProbeResult, Error> {
     log::info!("Evaluating {target}.");
     let args = scorecard_args(metric, target)?;
@@ -284,7 +292,7 @@ mod tests {
             }],
         };
         assert!(!filepath.exists());
-        let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard, DEFAULT_TIMEOUT);
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -306,7 +314,7 @@ mod tests {
                 max_times: None,
             }],
         };
-        let result = run_scorecard_probe(&wrong_target, &metric, &scorecard);
+        let result = run_scorecard_probe(&wrong_target, &metric, &scorecard, DEFAULT_TIMEOUT);
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -322,7 +330,7 @@ mod tests {
             error_threshold: None,
             probes: vec![],
         };
-        let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard, DEFAULT_TIMEOUT);
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(

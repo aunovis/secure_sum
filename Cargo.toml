@@ -17,6 +17,7 @@ dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.10.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
 flexi_logger = { version = "0.31.0", default-features = false, features = ["colors"]}
+humantime = { version = "2.0", default-features = false }
 log = { version = "0.4.22", default-features = false }
 rayon = { version = "1.10", default-features = false } # Parallelisation
 reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
