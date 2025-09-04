@@ -51,7 +51,7 @@ fn main() -> Result<(), Error> {
         .collect::<Result<_, Error>>()?;
     ensure_scorecard_binary()?;
     ensure_valid_github_token()?;
-    let results = dispatch_scorecard_runs(&metric, targets, args.rerun)?;
+    let results = dispatch_scorecard_runs(&metric, targets, args.rerun, args.timeout)?;
     let mut results: Vec<_> = results.iter().map(|r| RepoData::new(r, &metric)).collect();
     results.sort();
     println!("{}", Table::new(&results).with(Style::rounded()));

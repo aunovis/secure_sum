@@ -1,6 +1,6 @@
 [package]
 name = "secure_sum"
-version = "1.1.1"
+version = "1.2.0"
 edition = "2024"
 authors = ["Simon Heidrich (heidrich@aunovis.de)"]
 description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
@@ -17,6 +17,7 @@ dotenvy = { version = "0.15.0", default-features = false }
 etcetera = { version = "0.10.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
 flexi_logger = { version = "0.31.0", default-features = false, features = ["colors"]}
+humantime = { version = "2.0", default-features = false }
 log = { version = "0.4.22", default-features = false }
 rayon = { version = "1.10", default-features = false } # Parallelisation
 reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
@@ -27,7 +28,8 @@ regex = { version = "1.0", default-features = false }
 tabled = { version = "0.20.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression
-toml ={ version = "0.9.4", default-features = false, features = ["display", "parse", "serde"]}
+toml = { version = "0.9.4", default-features = false, features = ["display", "parse", "serde"]}
+wait-timeout = { version = "0.2", default-features = false }
 
 [dev-dependencies]
 serial_test = { version = "3.2", default-features = false }

@@ -34,6 +34,9 @@ pub(crate) enum Error {
     #[error("At least one probed repo has a score that is unacceptably low.")]
     ScoreTooLow,
 
+    #[error("The evaluation timed out. Perhaps you have hit a rate limit.")]
+    Timeout,
+
     #[error("An unspecified error occurred: {0}")]
     Other(String),
 }

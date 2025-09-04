@@ -37,3 +37,9 @@ cargo run --release -- --metric example_metric.toml rust_cargo.toml nuget_projec
 cargo run --release -- --metric example_metric.toml rust_cargo.toml https://github.com/aunovis/secure_sum -e 0.5
 # You can use some bash scripting to include all .csproj files
 cargo run --release -- --metric example_metric.toml $(find . -iname "*.csproj") -e 0.5
+
+# It can happen that the scorecard evaluation hangs, for example if you've hit a rate limit.
+# To prevent it from hanging forever, secure_sum uses a timeout. It can be configured.
+cargo run --release -- https://github.com/aunovis/secure_sum --timeout "3m"
+cargo run --release -- https://github.com/aunovis/secure_sum --timeout "30s"
+cargo run --release -- https://github.com/aunovis/secure_sum --timeout "2h"

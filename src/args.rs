@@ -32,11 +32,15 @@ pub(crate) struct Arguments {
     #[arg(long, short)]
     pub(crate) verbose: bool,
 
-    /// Overwrite the minimal score a repo must reach before an error is displayed.
+    /// Overwrite the minimal score a repo must reach before an error is displayed
     #[arg(long, short)]
     pub(crate) error_threshold: Option<f32>,
 
-    /// Overwrite the minimal score a repo must reach before a warning is displayed.
+    /// Overwrite the minimal score a repo must reach before a warning is displayed
     #[arg(long, short)]
     pub(crate) warn_threshold: Option<f32>,
+
+    /// Overwrite the timeout before the evaluation of a single target is aborted
+    #[arg(long, short)]
+    pub(crate) timeout: Option<humantime::Duration>,
 }

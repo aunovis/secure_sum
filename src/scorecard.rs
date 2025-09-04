@@ -1,12 +1,14 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
+    time,
 };
 
 use flate2::read::GzDecoder;
 use rayon::prelude::*;
 use tar::Archive;
+use wait_timeout::ChildExt;
 
 use crate::{
     error::Error,
@@ -17,6 +19,8 @@ use crate::{
 };
 
 static CURRENT_VERSION: &str = "5.2.1";
+/// The default timeout seems very high. That's because scorecard can be really slow.
+static DEFAULT_TIMEOUT: time::Duration = time::Duration::from_secs(180);
 
 fn scorecard_url() -> String {
     format!(
@@ -79,12 +83,13 @@ pub(crate) fn dispatch_scorecard_runs(
     metric: &Metric,
     targets: Vec<Target>,
     force_rerun: bool,
+    timeout: Option<humantime::Duration>,
 ) -> Result<Vec<ProbeResult>, Error> {
     let scorecard = scorecard_path()?;
     log::debug!("Running scorecard binary {}", scorecard.display());
     let results = collect_single_targets(targets)
         .par_iter()
-        .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun))
+        .map(|target| evaluate_repo(target, metric, &scorecard, force_rerun, timeout))
         .collect::<Result<_, _>>()?;
     Ok(results)
 }
@@ -94,6 +99,7 @@ fn evaluate_repo(
     metric: &Metric,
     scorecard: &Path,
     force_rerun: bool,
+    timeout: Option<humantime::Duration>,
 ) -> Result<ProbeResult, Error> {
     if !force_rerun {
         if let Some(stored_probe) = load_stored_probe(target)? {
@@ -102,18 +108,24 @@ fn evaluate_repo(
             }
         }
     }
-    run_scorecard_probe(target, metric, scorecard)
+    let timeout = timeout
+        .map(|duration| time::Duration::from_secs(duration.as_secs()))
+        .unwrap_or(DEFAULT_TIMEOUT);
+    run_scorecard_probe(target, metric, scorecard, timeout)
 }
 
 fn run_scorecard_probe(
     target: &SingleTarget,
     metric: &Metric,
     scorecard: &Path,
+    timeout: time::Duration,
 ) -> Result<ProbeResult, Error> {
     log::info!("Evaluating {target}.");
     let args = scorecard_args(metric, target)?;
     log::debug!("Args: {:#?}", args);
-    let output = Command::new(scorecard).args(args).output()?;
+
+    let output = wait_for_scorecard_evaluation(scorecard, timeout, args)?;
+
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {
         log::error!("Scorecard reported an error: {stderr}");
@@ -124,8 +136,33 @@ fn run_scorecard_probe(
     let stdout = String::from_utf8(output.stdout)?;
     let probe_result = serde_json::from_str(&stdout)?;
     store_probe_json(target, &stdout)?;
-    log::info!("Finished evaluation {target}.");
+    log::info!("Finished evaluation of {target}.");
     Ok(probe_result)
+}
+
+fn wait_for_scorecard_evaluation(
+    scorecard: &Path,
+    timeout: time::Duration,
+    args: Vec<String>,
+) -> Result<std::process::Output, Error> {
+    let mut child = Command::new(scorecard)
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let output = match child.wait_timeout(timeout)? {
+        Some(code) => {
+            log::debug!("Scorecard process finished in time with {code}.");
+            child.wait_with_output()?
+        }
+        None => {
+            let timeout = humantime::Duration::from(timeout);
+            log::error!("Scorecard process timed out after {timeout}.");
+            child.kill()?;
+            return Err(Error::Timeout);
+        }
+    };
+    Ok(output)
 }
 
 fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>, Error> {
@@ -176,7 +213,9 @@ mod tests {
     fn scorecard_url_exists() {
         let url = scorecard_url();
         let client = Client::new();
+
         let response = client.head(&url).send().unwrap();
+
         assert!(response.status().is_success(), "URL is: {url}")
     }
 
@@ -196,7 +235,9 @@ mod tests {
     #[serial]
     fn scorecard_binary_exists_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().expect("Ensuring scorecard binary failed");
+
         assert!(path.exists(), "Path is: {}", path.display());
+
         assert!(path.is_file(), "Path is: {}", path.display());
     }
 
@@ -204,7 +245,9 @@ mod tests {
     #[serial]
     fn scorecard_binary_can_be_executed_after_ensure_scorecard_binary_call() {
         let path = ensure_scorecard_binary().unwrap();
+
         let result = Command::new(path).arg("--version").output();
+
         assert!(result.is_ok(), "Error occurred: {}", result.unwrap_err())
     }
 
@@ -215,7 +258,9 @@ mod tests {
             error_threshold: None,
             probes: vec![],
         };
+
         let args_result = scorecard_args(&metric, &example_target());
+
         assert!(args_result.is_err())
     }
 
@@ -230,7 +275,9 @@ mod tests {
                 max_times: None,
             }],
         };
+
         let args = scorecard_args(&metric, &example_target()).unwrap();
+
         let expected = vec![
             example_target_arg(),
             "--probes=archived".to_string(),
@@ -257,7 +304,9 @@ mod tests {
                 },
             ],
         };
+
         let args = scorecard_args(&metric, &example_target()).unwrap();
+
         let expected = vec![
             example_target_arg(),
             "--probes=archived,fuzzed".to_string(),
@@ -284,7 +333,9 @@ mod tests {
             }],
         };
         assert!(!filepath.exists());
-        let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
+
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard, DEFAULT_TIMEOUT);
+
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -306,7 +357,9 @@ mod tests {
                 max_times: None,
             }],
         };
-        let result = run_scorecard_probe(&wrong_target, &metric, &scorecard);
+
+        let result = run_scorecard_probe(&wrong_target, &metric, &scorecard, DEFAULT_TIMEOUT);
+
         assert!(result.is_ok(), "{:#?}", result);
         assert!(filepath.exists(), "{} does not exist", filepath.display())
     }
@@ -322,12 +375,38 @@ mod tests {
             error_threshold: None,
             probes: vec![],
         };
-        let result = run_scorecard_probe(&example_target(), &metric, &scorecard);
+
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard, DEFAULT_TIMEOUT);
+
         assert!(result.is_err(), "{:#?}", result.unwrap());
         let error_print = format!("{}", result.unwrap_err());
         assert!(
             error_print.contains("probe"),
             "Error print is: {error_print}"
         );
+    }
+
+    #[test]
+    #[serial]
+    fn evaluation_is_aborted_after_timeout() {
+        ensure_scorecard_binary().unwrap();
+        dotenvy::dotenv().unwrap();
+        let scorecard = scorecard_path().unwrap();
+        let metric = Metric {
+            warn_threshold: None,
+            error_threshold: None,
+            probes: vec![ProbeInput {
+                name: ProbeName::dependencyUpdateToolConfigured,
+                weight: 1.,
+                max_times: None,
+            }],
+        };
+        let way_too_short = time::Duration::from_nanos(10);
+
+        let result = run_scorecard_probe(&example_target(), &metric, &scorecard, way_too_short);
+
+        assert!(result.is_err(), "{:#?}", result.unwrap());
+        let err = result.unwrap_err();
+        assert!(matches!(err, Error::Timeout));
     }
 }

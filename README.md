@@ -179,6 +179,20 @@ Cou can also specify a `warn_threshold`, where Secure Sum will not throw an erro
 13:49:21 [WARN] Repo github.com/jquery/jquery has a score of 4.4444447, which is dangerously close to the error threshold of 4.2.;
 ```
 
+#### Timeout
+
+It can happen that the scorecard evaluation hangs, and will never terminate. This is possible if you have for example hit a rate limit. If this happens in a non-interactive environment like a pipeline, this would use up the maximum amount of CI/CD time before the pipeline itself times out. To prevent this from happening, Secure Sum itself imposes a timeout on each individual evaluation.
+
+By default, this timeout is 3 minutes. This may seem rather large, but when running a lot of probes, scorecard can be rather slow.
+
+To cover the case that you are running in a particularly slow environment, this timeout can be configured with the `--timeout/-t` argument:
+``` bash
+secure_sum --timeout "5m"
+secure_sum -t "300s" # does the same thing
+```
+
+The input can be provided in very free, human-readable form.
+
 ### Supported Ecosystems
 
 Secure Sum can parse the following types of dependency files:
