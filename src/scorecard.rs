@@ -2,12 +2,13 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
+    time,
 };
 
-use chrono::TimeDelta;
 use flate2::read::GzDecoder;
 use rayon::prelude::*;
 use tar::Archive;
+use wait_timeout::ChildExt;
 
 use crate::{
     error::Error,
@@ -18,7 +19,7 @@ use crate::{
 };
 
 static CURRENT_VERSION: &str = "5.2.1";
-static DEFAULT_TIMEOUT: TimeDelta = TimeDelta::seconds(60);
+static DEFAULT_TIMEOUT: time::Duration = time::Duration::from_secs(60);
 
 fn scorecard_url() -> String {
     format!(
@@ -107,7 +108,7 @@ fn evaluate_repo(
         }
     }
     let timeout = timeout
-        .map(|duration| TimeDelta::seconds(duration.as_secs() as i64))
+        .map(|duration| time::Duration::from_secs(duration.as_secs()))
         .unwrap_or(DEFAULT_TIMEOUT);
     run_scorecard_probe(target, metric, scorecard, timeout)
 }
@@ -116,12 +117,14 @@ fn run_scorecard_probe(
     target: &SingleTarget,
     metric: &Metric,
     scorecard: &Path,
-    timeout: TimeDelta,
+    timeout: time::Duration,
 ) -> Result<ProbeResult, Error> {
     log::info!("Evaluating {target}.");
     let args = scorecard_args(metric, target)?;
     log::debug!("Args: {:#?}", args);
-    let output = Command::new(scorecard).args(args).output()?;
+
+    let output = wait_for_scorecard_evaluation(scorecard, timeout, args)?;
+
     let stderr = String::from_utf8(output.stderr)?;
     if !stderr.is_empty() {
         log::error!("Scorecard reported an error: {stderr}");
@@ -134,6 +137,27 @@ fn run_scorecard_probe(
     store_probe_json(target, &stdout)?;
     log::info!("Finished evaluation {target}.");
     Ok(probe_result)
+}
+
+fn wait_for_scorecard_evaluation(
+    scorecard: &Path,
+    timeout: time::Duration,
+    args: Vec<String>,
+) -> Result<std::process::Output, Error> {
+    let mut child = Command::new(scorecard).args(args).spawn()?;
+    let output = match child.wait_timeout(timeout)? {
+        Some(code) => {
+            log::debug!("Scorecard process finished in time with code {code}.");
+            child.wait_with_output()?
+        }
+        None => {
+            let timeout = humantime::Duration::from(timeout);
+            log::error!("Scorecard process timed out after {timeout}.");
+            child.kill()?;
+            return Err(Error::Timeout);
+        }
+    };
+    Ok(output)
 }
 
 fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>, Error> {
@@ -372,7 +396,7 @@ mod tests {
                 max_times: None,
             }],
         };
-        let way_too_short = TimeDelta::nanoseconds(10);
+        let way_too_short = time::Duration::from_nanos(10);
 
         let result = run_scorecard_probe(&example_target(), &metric, &scorecard, way_too_short);
 
