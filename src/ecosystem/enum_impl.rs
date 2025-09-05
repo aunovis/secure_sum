@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{Error, ecosystem::node_js};
 
 use super::rust;
 
@@ -20,7 +20,7 @@ impl Ecosystem {
 
     pub(crate) fn dep_to_scorecard_arg(&self, dep: &str) -> Result<String, Error> {
         match self {
-            Ecosystem::NodeJs => Ok(format!("--npm={dep}")),
+            Ecosystem::NodeJs => node_js::repo_url(dep).map(|url| format!("--repo={url}")),
             Ecosystem::NuGet => Ok(format!("--nuget={dep}")),
             Ecosystem::Rust => rust::repo_url(dep).map(|url| format!("--repo={url}")),
         }
