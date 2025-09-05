@@ -44,7 +44,7 @@ impl DepFile for CargoToml {
 }
 
 #[derive(Deserialize)]
-struct CrateResponse {
+struct CratesIoResponse {
     #[serde(rename = "crate")]
     crate_: Crate,
 }
@@ -55,16 +55,16 @@ struct Crate {
 }
 
 pub(super) fn repo_url(crate_name: &str) -> Result<Url, Error> {
-    let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
+    let crates_url = format!("https://crates.io/api/v1/crates/{crate_name}");
     let client = Client::new();
     let response = client
-        .get(&url)
+        .get(&crates_url)
         .header(USER_AGENT_HEADER, USER_AGENT)
         .send()?
         .text()?;
 
-    let crate_response: CrateResponse = serde_json::from_str(&response)?;
-    match crate_response.crate_.repository {
+    let crates_response: CratesIoResponse = serde_json::from_str(&response)?;
+    match crates_response.crate_.repository {
         Some(repo) => Ok(repo.into()),
         None => {
             let message = format!("Could not obtain repo for crate {}", crate_name);
