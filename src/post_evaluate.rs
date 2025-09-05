@@ -52,7 +52,7 @@ fn get_thresholds(metric: &Metric, args: &Arguments) -> Thresholds {
         warn_threshold = metric.warn_threshold;
     }
     let error = error_threshold.unwrap_or(DEFAULT_ERROR_THRESHOLD);
-    let warn = warn_threshold.unwrap_or_else(|| error + 1.);
+    let warn = warn_threshold.unwrap_or(error + 1.);
 
     if warn < error {
         log::warn!("Warning threshold is below error threshold, it will never become relevant.");

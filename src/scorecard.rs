@@ -1,7 +1,9 @@
 use std::{
     fs,
+    io::{BufReader, Read},
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    thread::{self, JoinHandle},
     time,
 };
 
@@ -126,14 +128,14 @@ fn run_scorecard_probe(
 
     let output = wait_for_scorecard_evaluation(scorecard, timeout, args)?;
 
-    let stderr = String::from_utf8(output.stderr)?;
+    let stderr = output.1;
     if !stderr.is_empty() {
         log::error!("Scorecard reported an error: {stderr}");
         let probe_result = ProbeResult::from_scorecard_error(target, stderr);
         store_probe(target, &probe_result)?;
         return Ok(probe_result);
     }
-    let stdout = String::from_utf8(output.stdout)?;
+    let stdout = output.0;
     let probe_result = serde_json::from_str(&stdout)?;
     store_probe_json(target, &stdout)?;
     log::info!("Finished evaluation of {target}.");
@@ -144,25 +146,54 @@ fn wait_for_scorecard_evaluation(
     scorecard: &Path,
     timeout: time::Duration,
     args: Vec<String>,
-) -> Result<std::process::Output, Error> {
+) -> Result<(String, String), Error> {
     let mut child = Command::new(scorecard)
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()?;
+    let stdout = child.stdout.take().ok_or(Error::Other(
+        "Could not access stdout of child process.".to_string(),
+    ))?;
+    let stderr = child.stderr.take().ok_or(Error::Other(
+        "Could not access stderr of child process.".to_string(),
+    ))?;
+
+    let stdout_handle = thread::spawn(move || {
+        let mut out = String::new();
+        BufReader::new(stdout).read_to_string(&mut out)?;
+        Ok(out)
+    });
+
+    let stderr_handle = thread::spawn(move || {
+        let mut err = String::new();
+        BufReader::new(stderr).read_to_string(&mut err)?;
+        Ok(err)
+    });
+
     let output = match child.wait_timeout(timeout)? {
         Some(code) => {
             log::debug!("Scorecard process finished in time with {code}.");
-            child.wait_with_output()?
+            let stdout = join_output(stdout_handle)?;
+            let stderr = join_output(stderr_handle)?;
+            (stdout, stderr)
         }
         None => {
             let timeout = humantime::Duration::from(timeout);
             log::error!("Scorecard process timed out after {timeout}.");
             child.kill()?;
+            child.wait()?;
             return Err(Error::Timeout);
         }
     };
     Ok(output)
+}
+
+fn join_output(handle: JoinHandle<Result<String, Error>>) -> Result<String, Error> {
+    match handle.join() {
+        Ok(outcome) => outcome,
+        Err(_) => Err(Error::Other("Could not join output handle.".to_string())),
+    }
 }
 
 fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>, Error> {

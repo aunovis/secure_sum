@@ -1,6 +1,6 @@
-use crate::Error;
+use crate::{Error, ecosystem::node_js};
 
-use super::rust::repo_url;
+use super::rust;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum Ecosystem {
@@ -20,9 +20,9 @@ impl Ecosystem {
 
     pub(crate) fn dep_to_scorecard_arg(&self, dep: &str) -> Result<String, Error> {
         match self {
-            Ecosystem::NodeJs => Ok(format!("--npm={dep}")),
+            Ecosystem::NodeJs => node_js::repo_url(dep).map(|url| format!("--repo={url}")),
             Ecosystem::NuGet => Ok(format!("--nuget={dep}")),
-            Ecosystem::Rust => repo_url(dep).map(|url| format!("--repo={url}")),
+            Ecosystem::Rust => rust::repo_url(dep).map(|url| format!("--repo={url}")),
         }
     }
 }

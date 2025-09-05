@@ -1,8 +1,14 @@
 use std::{collections::HashMap, fs, path::Path};
 
+use reqwest::blocking::Client;
 use serde::Deserialize;
 
-use crate::{Error, target::SingleTarget};
+use crate::{
+    Error,
+    github_token::{USER_AGENT, USER_AGENT_HEADER},
+    target::SingleTarget,
+    url::Url,
+};
 
 use super::{DepFile, Ecosystem};
 
@@ -37,6 +43,38 @@ impl PackageJson {
     }
 }
 
+#[derive(Deserialize)]
+struct NpmJsResponse {
+    repository: Repository,
+}
+
+#[derive(Deserialize)]
+struct Repository {
+    url: String,
+}
+
+pub(super) fn repo_url(package_name: &str) -> Result<Url, Error> {
+    let npmjs_url = format!("https://registry.npmjs.org/{package_name}");
+    let client = Client::new();
+    let response = client
+        .get(&npmjs_url)
+        .header(USER_AGENT_HEADER, USER_AGENT)
+        .send()?
+        .text()?;
+
+    let npm_response: NpmJsResponse = serde_json::from_str(&response)?;
+    let git_clone_arg = npm_response.repository.url;
+    let url = extract_repo_url(&git_clone_arg);
+    log::debug!("Resolved repo URL of NPM package {package_name} to {url}.");
+    Ok(url)
+}
+
+fn extract_repo_url(git_clone_arg: &str) -> Url {
+    let url = git_clone_arg.trim_start_matches("git+");
+    let url = url.trim_end_matches(".git");
+    url.replace("git@", "https://").into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,5 +103,14 @@ mod tests {
         assert_eq!(depfile.dependencies.len(), 2);
         assert!(depfile.dependencies.contains_key("@xenova/transformers"));
         assert!(depfile.dependencies.contains_key("handlebars"));
+    }
+
+    #[test]
+    fn npmjs_repo_url_can_be_obtained() {
+        let package_name = "handlebars";
+        let result = repo_url(package_name);
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        let repo = result.unwrap();
+        assert_eq!(repo.0, "https://github.com/handlebars-lang/handlebars.js");
     }
 }
