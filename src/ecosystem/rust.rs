@@ -64,13 +64,15 @@ pub(super) fn repo_url(crate_name: &str) -> Result<Url, Error> {
         .text()?;
 
     let crates_response: CratesIoResponse = serde_json::from_str(&response)?;
-    match crates_response.crate_.repository {
-        Some(repo) => Ok(repo.into()),
+    let url = match crates_response.crate_.repository {
+        Some(repo) => repo,
         None => {
-            let message = format!("Could not obtain repo for crate {}", crate_name);
-            Err(Error::Other(message))
+            let message = format!("Could not obtain repo URL for crate {}", crate_name);
+            return Err(Error::Other(message));
         }
-    }
+    };
+    log::debug!("Resolved repo URL of Rust crate {crate_name} to {url}.");
+    Ok(url.into())
 }
 
 #[cfg(test)]

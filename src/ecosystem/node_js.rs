@@ -65,6 +65,7 @@ pub(super) fn repo_url(package_name: &str) -> Result<Url, Error> {
     let npm_response: NpmJsResponse = serde_json::from_str(&response)?;
     let git_clone_arg = npm_response.repository.url;
     let url = extract_repo_url(&git_clone_arg);
+    log::debug!("Resolved repo URL of NPM package {package_name} to {url}.");
     Ok(url)
 }
 
