@@ -3,7 +3,8 @@ use std::{
     io::{BufReader, Read},
     path::{Path, PathBuf},
     process::{Command, Stdio},
-    thread, time,
+    thread::{self, JoinHandle},
+    time,
 };
 
 use flate2::read::GzDecoder;
@@ -151,37 +152,48 @@ fn wait_for_scorecard_evaluation(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()?;
-    let stdout = child.stdout.take().unwrap();
-    let stderr = child.stderr.take().unwrap();
+    let stdout = child.stdout.take().ok_or(Error::Other(
+        "Could not access stdout of child process.".to_string(),
+    ))?;
+    let stderr = child.stderr.take().ok_or(Error::Other(
+        "Could not access stderr of child process.".to_string(),
+    ))?;
 
     let stdout_handle = thread::spawn(move || {
         let mut out = String::new();
-        BufReader::new(stdout).read_to_string(&mut out).unwrap();
-        out
+        BufReader::new(stdout).read_to_string(&mut out)?;
+        Ok(out)
     });
 
     let stderr_handle = thread::spawn(move || {
         let mut err = String::new();
-        BufReader::new(stderr).read_to_string(&mut err).unwrap();
-        err
+        BufReader::new(stderr).read_to_string(&mut err)?;
+        Ok(err)
     });
 
     let output = match child.wait_timeout(timeout)? {
         Some(code) => {
             log::debug!("Scorecard process finished in time with {code}.");
-            let stdout = stdout_handle.join().unwrap();
-            let stderr = stderr_handle.join().unwrap();
+            let stdout = join_output(stdout_handle)?;
+            let stderr = join_output(stderr_handle)?;
             (stdout, stderr)
         }
         None => {
             let timeout = humantime::Duration::from(timeout);
             log::error!("Scorecard process timed out after {timeout}.");
             child.kill()?;
-            child.wait().unwrap();
+            child.wait()?;
             return Err(Error::Timeout);
         }
     };
     Ok(output)
+}
+
+fn join_output(handle: JoinHandle<Result<String, Error>>) -> Result<String, Error> {
+    match handle.join() {
+        Ok(outcome) => outcome,
+        Err(_) => Err(Error::Other("Could not join output handle.".to_string())),
+    }
 }
 
 fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>, Error> {
