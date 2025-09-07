@@ -37,10 +37,21 @@ impl DepFile for CargoToml {
 
     fn first_level_deps(&self) -> Vec<SingleTarget> {
         self.dependencies
-            .keys()
-            .map(|dep| SingleTarget::Package(dep.to_owned(), self.ecosystem()))
+            .iter()
+            .map(|(k, v)| key_val_to_target(k, v))
             .collect()
     }
+}
+
+fn key_val_to_target(key: &str, val: &toml::Value) -> SingleTarget {
+    if let toml::Value::Table(table) = val {
+        if let Some(toml::Value::String(git_url)) = table.get("git") {
+            let url = git_url.trim_end_matches(".git");
+            let url = url.replace("ssh://git@", "https://");
+            return SingleTarget::Url(url.into());
+        }
+    }
+    SingleTarget::Package(key.to_owned(), Ecosystem::Rust)
 }
 
 #[derive(Deserialize)]
@@ -149,9 +160,9 @@ mod tests {
 
         let deps = depfile.first_level_deps();
         assert_eq!(deps.len(), 2);
-        assert!(deps.contains(&SingleTarget::Url(
-            "https://github.com/serde-rs/serde".into()
-        )));
-        assert!(deps.contains(&SingleTarget::Url("https://github.com/toml-rs/toml".into())));
+        let serde_target = SingleTarget::Url("https://github.com/serde-rs/serde".into());
+        let toml_target = SingleTarget::Url("https://github.com/toml-rs/toml".into());
+        assert!(deps.contains(&serde_target), "{:#?}", deps);
+        assert!(deps.contains(&toml_target), "{:#?}", deps);
     }
 }
