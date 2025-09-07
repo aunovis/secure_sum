@@ -122,4 +122,36 @@ mod tests {
         let repo = result.unwrap();
         assert_eq!(repo.0, "https://github.com/serde-rs/serde");
     }
+
+    #[test]
+    fn depfile_with_git_dependencies_can_be_parsed() {
+        let content = r#"
+        [dependencies]
+        serde = { git = "https://github.com/serde-rs/serde.git" }
+        toml = { git = "ssh://git@github.com/toml-rs/toml.git" }
+    "#;
+        let result = CargoToml::parse_str(&content);
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        let depfile = result.unwrap();
+        assert_eq!(depfile.dependencies.len(), 2);
+        assert!(depfile.dependencies.contains_key("serde"));
+        assert!(depfile.dependencies.contains_key("toml"));
+    }
+
+    #[test]
+    fn git_dependencies_are_handled_as_urls() {
+        let content = r#"
+        [dependencies]
+        serde = { git = "https://github.com/serde-rs/serde.git" }
+        toml = { git = "ssh://git@github.com/toml-rs/toml.git" }
+    "#;
+        let depfile = CargoToml::parse_str(&content).unwrap();
+
+        let deps = depfile.first_level_deps();
+        assert_eq!(deps.len(), 2);
+        assert!(deps.contains(&SingleTarget::Url(
+            "https://github.com/serde-rs/serde".into()
+        )));
+        assert!(deps.contains(&SingleTarget::Url("https://github.com/toml-rs/toml".into())));
+    }
 }
