@@ -8,7 +8,7 @@ cd "$(git rev-parse --show-toplevel)"
 SCRIPT=$(readlink -f "$0")
 
 if grep -rinI todo * \
-    --exclude-dir=venv \
+    --exclude-dir=venv* \
     --exclude-dir=.git \
     --exclude-dir=target \
     --exclude=$(basename $SCRIPT) \
