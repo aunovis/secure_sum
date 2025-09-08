@@ -12,6 +12,11 @@ if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
    echo "Not on main branch. Exiting."
    exit 1
 fi
+# Check if the last commit message contains "[ci cd]"
+if git log -n 1 | grep "\[no ci\]"; then
+    echo "The last commit may not skip CI/CD, as this will prevent the release pipeline from running. Exiting."
+    exit 1
+fi
 
 if [ ! -f ~/.cargo/credentials.toml ]
 then
