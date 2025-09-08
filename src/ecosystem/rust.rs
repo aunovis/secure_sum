@@ -37,10 +37,21 @@ impl DepFile for CargoToml {
 
     fn first_level_deps(&self) -> Vec<SingleTarget> {
         self.dependencies
-            .keys()
-            .map(|dep| SingleTarget::Package(dep.to_owned(), self.ecosystem()))
+            .iter()
+            .map(|(k, v)| key_val_to_target(k, v))
             .collect()
     }
+}
+
+fn key_val_to_target(key: &str, val: &toml::Value) -> SingleTarget {
+    if let toml::Value::Table(table) = val {
+        if let Some(toml::Value::String(git_url)) = table.get("git") {
+            let url = git_url.trim_end_matches(".git");
+            let url = url.replace("ssh://git@", "https://");
+            return SingleTarget::Url(url.into());
+        }
+    }
+    SingleTarget::Package(key.to_owned(), Ecosystem::Rust)
 }
 
 #[derive(Deserialize)]
@@ -121,5 +132,37 @@ mod tests {
         assert!(result.is_ok(), "{}", result.unwrap_err());
         let repo = result.unwrap();
         assert_eq!(repo.0, "https://github.com/serde-rs/serde");
+    }
+
+    #[test]
+    fn depfile_with_git_dependencies_can_be_parsed() {
+        let content = r#"
+        [dependencies]
+        serde = { git = "https://github.com/serde-rs/serde.git" }
+        toml = { git = "ssh://git@github.com/toml-rs/toml.git" }
+    "#;
+        let result = CargoToml::parse_str(&content);
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        let depfile = result.unwrap();
+        assert_eq!(depfile.dependencies.len(), 2);
+        assert!(depfile.dependencies.contains_key("serde"));
+        assert!(depfile.dependencies.contains_key("toml"));
+    }
+
+    #[test]
+    fn git_dependencies_are_handled_as_urls() {
+        let content = r#"
+        [dependencies]
+        serde = { git = "https://github.com/serde-rs/serde.git" }
+        toml = { git = "ssh://git@github.com/toml-rs/toml.git" }
+    "#;
+        let depfile = CargoToml::parse_str(&content).unwrap();
+
+        let deps = depfile.first_level_deps();
+        assert_eq!(deps.len(), 2);
+        let serde_target = SingleTarget::Url("https://github.com/serde-rs/serde".into());
+        let toml_target = SingleTarget::Url("https://github.com/toml-rs/toml".into());
+        assert!(deps.contains(&serde_target), "{:#?}", deps);
+        assert!(deps.contains(&toml_target), "{:#?}", deps);
     }
 }
