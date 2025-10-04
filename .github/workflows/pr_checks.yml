@@ -21,9 +21,6 @@ jobs:
         steps:
             - name: Checkout repo
               uses: actions/checkout@v4
-            - name: Add GitHub Access Token to .env File
-              run: |
-                echo GITHUB_TOKEN=${{ secrets.PAT }} > .env
             - name: Run Tests
               uses: clechasseur/rs-cargo@v3
               with:
@@ -50,6 +47,5 @@ jobs:
               uses: actions-rust-lang/setup-rust-toolchain@v1
             - name: Run System Tests
               run: |
-                echo GITHUB_TOKEN=${{ secrets.PAT }} > .env
                 chmod +x ./system_tests/test.sh
                 ./system_tests/test.sh
