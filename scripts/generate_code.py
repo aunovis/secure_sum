@@ -16,8 +16,10 @@ headers = {
     "User-Agent": "Python-Directory-Fetcher"
 }
 github_pat = os.getenv("GITHUB_TOKEN")
-if github_pat is not None:
-    headers["Authorization"] = f"token {github_pat}"
+if github_pat:
+    headers["Authorization"] = f"Bearer {github_pat}"
+else:
+    raise Exception("No variable called GITHUB_TOKEN was found in the environment.")
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 TARGET_PATH = os.path.join(script_dir, "..", "src", "probe_name.rs")
