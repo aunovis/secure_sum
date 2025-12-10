@@ -2,9 +2,17 @@ from dotenv import load_dotenv
 import os
 import re
 import requests
+import pathlib
 
-# Needs to contain GITHUB_TOKEN
-load_dotenv()
+script_path = pathlib.Path(__file__).resolve()
+env_path = script_path.parent.parent / ".env"
+if env_path.exists():
+    print(f"Loading {env_path}, which needs to contain GITHUB_TOKEN.")
+    loading_worked = load_dotenv(env_path, override=True)
+    if not loading_worked:
+        raise Exception(f"{env_path} does not contain any environment variables.")
+else:
+    print(f"Dotenv file not found under {env_path}, hopefully the GITHUB_TOKEN is contained in the global environment.")
 
 # GitHub repository details
 owner = "ossf"
@@ -17,6 +25,8 @@ headers = {
 }
 github_pat = os.getenv("GITHUB_TOKEN")
 if github_pat:
+    last_5 = github_pat[-4:]
+    print(f"Using GITHUB_TOKEN token ***{last_5}.")
     headers["Authorization"] = f"Bearer {github_pat}"
 else:
     raise Exception("No variable called GITHUB_TOKEN was found in the environment.")
@@ -82,6 +92,7 @@ def get_probes():
         return probes
     except requests.exceptions.RequestException as e:
         print(f"\nError: {e}\n")
+        raise
 
 def get_as_str_parts(probes):
     return [AS_STR_TEMPLATE.format(probe = probe) for probe in probes]

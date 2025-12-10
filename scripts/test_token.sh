@@ -21,6 +21,7 @@ HTTP_BODY_AND_CODE="$(
   || true
 )"
 
+echo "Using GITHUB_TOKEN token ***$(echo $GITHUB_TOKEN | tail -c 5)."
 
 HTTP_CODE="$(echo "$HTTP_BODY_AND_CODE" | tail -n1)"
 
