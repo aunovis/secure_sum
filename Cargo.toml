@@ -14,7 +14,7 @@ categories = ["development-tools"]
 clap = { version = "4.5", default-features = false, features = ["color", "error-context", "derive", "help", "std", "suggestions"] }
 chrono = { version = "0.4.39", default-features = false, features = ["now", "serde"]}
 dotenvy = { version = "0.15.0", default-features = false }
-etcetera = { version = "0.10.0", default-features = false }
+etcetera = { version = "0.11.0", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] } # Decompression
 flexi_logger = { version = "0.31.0", default-features = false, features = ["colors"]}
 humantime = { version = "2.0", default-features = false }

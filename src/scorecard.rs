@@ -20,7 +20,7 @@ use crate::{
     target::{SingleTarget, Target, collect_single_targets},
 };
 
-static CURRENT_VERSION: &str = "5.2.1";
+static CURRENT_VERSION: &str = "5.4.0";
 /// The default timeout seems very high. That's because scorecard can be really slow.
 static DEFAULT_TIMEOUT: time::Duration = time::Duration::from_secs(180);
 

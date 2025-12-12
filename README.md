@@ -26,7 +26,7 @@ cargo install secure_sum
 
 ## Setup
 
-Most checks that scorecard runs require a personal access token (PAT) for the GitHub API. The [GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) explain how to generate one.
+Most checks that scorecard runs require a personal access token (PAT) for the GitHub API. The [GitHub Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) explain how to generate one.
 
 You need a Personal access tokens (classic) with the "public_repo" scope. 
 
@@ -51,7 +51,7 @@ set GITHUB_TOKEN=<your PAT>
 
 </details>
 
-A more persistent way is to write create a fiel called `.env` with the content `GITHUB_TOKEN=<your PAT>` in the folder from which you are calling Secure Sum.
+A more persistent way is to write create a file called `.env` with the content `GITHUB_TOKEN=<your PAT>` in the folder from which you are calling Secure Sum.
 
 > If you create a `.env` file inside a repository, do not forget to add it to your `.gitignore` file (or the analogous ignore file for your versioning ecosystem). You will leak secrets otherwise!
 
