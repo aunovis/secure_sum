@@ -21,6 +21,9 @@ jobs:
         steps:
             - name: Checkout repo
               uses: actions/checkout@v4
+            - name: Add GitHub Access Token to .env File
+              run: |
+                echo GITHUB_TOKEN=${{ github.token }} > .env
             - name: Run Tests
               uses: clechasseur/rs-cargo@v3
               with:
