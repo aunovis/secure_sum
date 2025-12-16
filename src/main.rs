@@ -60,8 +60,7 @@ fn main() -> Result<(), Error> {
             repo.print_detailed_output();
         }
     }
-    if args.probe.is_some() {
-        let probe_name = args.probe.as_ref().unwrap().trim();
+    if let Some(probe_name) = args.probe.as_deref().map(str::trim) {
         let probe: ProbeName = serde_json::from_str(&format!("\"{}\"", probe_name))
             .map_err(|_| Error::Input(format!("Unknown probe name: {}", probe_name)))?;
         println!("Detailed information for probe {}:", probe);
