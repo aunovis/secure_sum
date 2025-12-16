@@ -58,7 +58,66 @@ pub(crate) enum ProbeName {
 }
 
 impl ProbeName {
-    pub fn as_str(&self) -> &'static str {
+    pub(crate) fn as_str(&self) -> &'static str {
+        match self {
+            ProbeName::archived => "archived",
+            ProbeName::blocksDeleteOnBranches => "blocksDeleteOnBranches",
+            ProbeName::blocksForcePushOnBranches => "blocksForcePushOnBranches",
+            ProbeName::branchProtectionAppliesToAdmins => "branchProtectionAppliesToAdmins",
+            ProbeName::branchesAreProtected => "branchesAreProtected",
+            ProbeName::codeApproved => "codeApproved",
+            ProbeName::codeReviewOneReviewers => "codeReviewOneReviewers",
+            ProbeName::contributorsFromOrgOrCompany => "contributorsFromOrgOrCompany",
+            ProbeName::createdRecently => "createdRecently",
+            ProbeName::dependencyUpdateToolConfigured => "dependencyUpdateToolConfigured",
+            ProbeName::dismissesStaleReviews => "dismissesStaleReviews",
+            ProbeName::fuzzed => "fuzzed",
+            ProbeName::hasBinaryArtifacts => "hasBinaryArtifacts",
+            ProbeName::hasDangerousWorkflowScriptInjection => "hasDangerousWorkflowScriptInjection",
+            ProbeName::hasDangerousWorkflowUntrustedCheckout => {
+                "hasDangerousWorkflowUntrustedCheckout"
+            }
+            ProbeName::hasFSFOrOSIApprovedLicense => "hasFSFOrOSIApprovedLicense",
+            ProbeName::hasLicenseFile => "hasLicenseFile",
+            ProbeName::hasNoGitHubWorkflowPermissionUnknown => {
+                "hasNoGitHubWorkflowPermissionUnknown"
+            }
+            ProbeName::hasOSVVulnerabilities => "hasOSVVulnerabilities",
+            ProbeName::hasOpenSSFBadge => "hasOpenSSFBadge",
+            ProbeName::hasPermissiveLicense => "hasPermissiveLicense",
+            ProbeName::hasRecentCommits => "hasRecentCommits",
+            ProbeName::hasReleaseSBOM => "hasReleaseSBOM",
+            ProbeName::hasSBOM => "hasSBOM",
+            ProbeName::hasUnverifiedBinaryArtifacts => "hasUnverifiedBinaryArtifacts",
+            ProbeName::issueActivityByProjectMember => "issueActivityByProjectMember",
+            ProbeName::jobLevelPermissions => "jobLevelPermissions",
+            ProbeName::packagedWithAutomatedWorkflow => "packagedWithAutomatedWorkflow",
+            ProbeName::pinsDependencies => "pinsDependencies",
+            ProbeName::releasesAreSigned => "releasesAreSigned",
+            ProbeName::releasesHaveProvenance => "releasesHaveProvenance",
+            ProbeName::releasesHaveVerifiedProvenance => "releasesHaveVerifiedProvenance",
+            ProbeName::requiresApproversForPullRequests => "requiresApproversForPullRequests",
+            ProbeName::requiresCodeOwnersReview => "requiresCodeOwnersReview",
+            ProbeName::requiresLastPushApproval => "requiresLastPushApproval",
+            ProbeName::requiresPRsToChangeCode => "requiresPRsToChangeCode",
+            ProbeName::requiresUpToDateBranches => "requiresUpToDateBranches",
+            ProbeName::runsStatusChecksBeforeMerging => "runsStatusChecksBeforeMerging",
+            ProbeName::sastToolConfigured => "sastToolConfigured",
+            ProbeName::sastToolRunsOnAllCommits => "sastToolRunsOnAllCommits",
+            ProbeName::securityPolicyContainsLinks => "securityPolicyContainsLinks",
+            ProbeName::securityPolicyContainsText => "securityPolicyContainsText",
+            ProbeName::securityPolicyContainsVulnerabilityDisclosure => {
+                "securityPolicyContainsVulnerabilityDisclosure"
+            }
+            ProbeName::securityPolicyPresent => "securityPolicyPresent",
+            ProbeName::testsRunInCI => "testsRunInCI",
+            ProbeName::topLevelPermissions => "topLevelPermissions",
+            ProbeName::unsafeblock => "unsafeblock",
+            ProbeName::webhooksUseSecrets => "webhooksUseSecrets",
+        }
+    }
+
+    pub(crate) fn get_description(&self) -> &'static str {
         match self {
             ProbeName::archived => "archived",
             ProbeName::blocksDeleteOnBranches => "blocksDeleteOnBranches",

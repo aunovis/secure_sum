@@ -49,9 +49,15 @@ pub(crate) enum ProbeName {{
 }}
 
 impl ProbeName {{
-    pub fn as_str(&self) -> &'static str {{
+    pub(crate) fn as_str(&self) -> &'static str {{
         match self {{
             {as_str}
+        }}
+    }}
+
+    pub(crate) fn get_description(&self) -> &'static str {{
+        match self {{
+            {descriptions}
         }}
     }}
 }}
@@ -74,6 +80,7 @@ mod tests {{
 """
 
 AS_STR_TEMPLATE = "ProbeName::{probe} => \"{probe}\""
+DESCRIPTION_TEMPLATE = "ProbeName::{probe} => \"{description}\""
 
 def get_probes():
     try:
@@ -97,8 +104,13 @@ def get_probes():
 def get_as_str_parts(probes):
     return [AS_STR_TEMPLATE.format(probe = probe) for probe in probes]
 
+def get_description_parts(probes):
+    return [DESCRIPTION_TEMPLATE.format(probe = probe, description = probe) for probe in probes]
+
 probes = get_probes()
 as_str_parts = get_as_str_parts(probes)
+description_parts = get_description_parts(probes)
 with open(TARGET_PATH, 'w') as file:
     file.write(TEMPLATE.format(probes = ",".join(probes),
-                               as_str = ",".join(as_str_parts)))
+                               as_str = ",".join(as_str_parts),
+                               descriptions = ",".join(description_parts)))
