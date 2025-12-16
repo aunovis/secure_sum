@@ -28,7 +28,7 @@ use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use tabled::{Table, settings::Style};
 use target::Target;
 
-use crate::error::Error;
+use crate::{error::Error, probe_name::ProbeName};
 
 fn main() -> Result<(), Error> {
     let args = Arguments::parse();
@@ -59,6 +59,13 @@ fn main() -> Result<(), Error> {
         for repo in &results {
             repo.print_detailed_output();
         }
+    }
+    if args.probe.is_some() {
+        let probe_name = args.probe.as_ref().unwrap().trim();
+        let probe: ProbeName = serde_json::from_str(&format!("\"{}\"", probe_name))
+            .map_err(|_| Error::Input(format!("Unknown probe name: {}", probe_name)))?;
+        println!("Detailed information for probe {}:", probe);
+        println!("{}", probe.get_description());
     }
     post_evaluate_repos(&results, &metric, &args)
 }
