@@ -119,60 +119,150 @@ impl ProbeName {
 
     pub(crate) fn get_description(&self) -> &'static str {
         match self {
-            ProbeName::archived => "archived",
-            ProbeName::blocksDeleteOnBranches => "blocksDeleteOnBranches",
-            ProbeName::blocksForcePushOnBranches => "blocksForcePushOnBranches",
-            ProbeName::branchProtectionAppliesToAdmins => "branchProtectionAppliesToAdmins",
-            ProbeName::branchesAreProtected => "branchesAreProtected",
-            ProbeName::codeApproved => "codeApproved",
-            ProbeName::codeReviewOneReviewers => "codeReviewOneReviewers",
-            ProbeName::contributorsFromOrgOrCompany => "contributorsFromOrgOrCompany",
-            ProbeName::createdRecently => "createdRecently",
-            ProbeName::dependencyUpdateToolConfigured => "dependencyUpdateToolConfigured",
-            ProbeName::dismissesStaleReviews => "dismissesStaleReviews",
-            ProbeName::fuzzed => "fuzzed",
-            ProbeName::hasBinaryArtifacts => "hasBinaryArtifacts",
-            ProbeName::hasDangerousWorkflowScriptInjection => "hasDangerousWorkflowScriptInjection",
+            ProbeName::archived => {
+                "motivation: An archived project will not received security patches, and is not actively tested or used.\nimplementation: The probe checks the Archived Status of a project."
+            }
+            ProbeName::blocksDeleteOnBranches => {
+                "motivation: Allowing non-admins to delete project branches has a similar effect to performing force pushes.\nimplementation: Checks the protection rules of default and release branches."
+            }
+            ProbeName::blocksForcePushOnBranches => {
+                "motivation: Allowing force pushes to branches could allow those with write access to make insecure changes to the behavior of the project.\nimplementation: Checks the protection rules of default and release branches."
+            }
+            ProbeName::branchProtectionAppliesToAdmins => {
+                "motivation: Admins may be able to bypass branch protection settings which could defeat the purpose of having them.\nimplementation: Checks the protection rules of default and release branches."
+            }
+            ProbeName::branchesAreProtected => {
+                "motivation: Unprotected branches may allow actions that could compromise the project's security.\nimplementation: Checks the protection rules of default and release branches."
+            }
+            ProbeName::codeApproved => {
+                "motivation: To ensure that the review process works, the proposed changes should have a minimum number of approvals.\nimplementation: This probe looks for whether all changes over the last `--commit-depth` commits have been approved before merge. Commits are grouped by the changeset they were introduced in, and each changesets must have at least one approval. Reviewed, bot authored changesets (e.g. dependabot) are not counted."
+            }
+            ProbeName::codeReviewOneReviewers => {
+                "motivation: To ensure that the review process works, the proposed changes should have a minimum number of approvals.\nimplementation: This probe looks for whether all changes over the last `--commit-depth` commits have been approved by a minimum number of reviewers. Commits are grouped by the Pull Request they were introduced in. Only unique reviewer logins that aren't the same as the changeset author are counted."
+            }
+            ProbeName::contributorsFromOrgOrCompany => {
+                "motivation: This probe tries to determine if the project has recent contributors from multiple organizations. For some projects, having a diverse group of contributors is an indicator of project health.\nimplementation: The probe looks at the Company field on the user profile for authors of recent commits.  To receive the highest score, the project must have had contributors from at least 3 different companies in the last 30 commits."
+            }
+            ProbeName::createdRecently => {
+                "motivation: Recently created repositories have been used for malicious forks / typosquatting attacks in the past. A newly created repo is not a strong signal on its own, but can be a useful piece of information.\nimplementation: The implementation checks the creation date is within the last 90 days."
+            }
+            ProbeName::dependencyUpdateToolConfigured => {
+                "motivation: Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks. Tools can help the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.\nimplementation: The implementation looks for the presence of various config files for different dependency update tools."
+            }
+            ProbeName::dismissesStaleReviews => {
+                "motivation: When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make unreviewed commits.\nimplementation: Checks the protection rules of default and release branches."
+            }
+            ProbeName::fuzzed => {
+                "motivation: Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data into a program to expose bugs. Regular fuzzing is important to detect vulnerabilities that may be exploited by others, especially since attackers can also use fuzzing to find the same flaws.\nimplementation: The implementation looks for various fuzzing function signatures, imports, configuration files, and external integration data."
+            }
+            ProbeName::hasBinaryArtifacts => {
+                "motivation: Binary files are not human readable so users and reviewers can't easily see what they do.\nimplementation: The implementation looks for the presence of binary files. This is a more restrictive probe than 'hasUnverifiedBinaryArtifacts' which excludes verified binary files."
+            }
+            ProbeName::hasDangerousWorkflowScriptInjection => {
+                "motivation: Script injections allow attackers to use untrusted input to access privileged resources (code execution, secret exfiltration, etc.)\nimplementation: The probe analyzes the repository's workflows for known dangerous patterns."
+            }
             ProbeName::hasDangerousWorkflowUntrustedCheckout => {
-                "hasDangerousWorkflowUntrustedCheckout"
+                "motivation: GitHub workflows triggered with pull_request_target or workflow_run have write permission to the target repository and access to target repository secrets. Combined with a dangerous checkout of PR contents, attackers may be able to compromise the repository, for example, by using build scripts controlled by the PR author.\nimplementation: The probe iterates through the workflows looking for pull_request_target and workflow_run triggers which checkout references from a PR. This check does not detect whether untrusted code checkouts are used safely, for example, only on pull request that have been assigned a label."
             }
-            ProbeName::hasFSFOrOSIApprovedLicense => "hasFSFOrOSIApprovedLicense",
-            ProbeName::hasLicenseFile => "hasLicenseFile",
+            ProbeName::hasFSFOrOSIApprovedLicense => {
+                "motivation: A license can give users information about how the source code may or may not be used. Using a recognized license facilitates security or legal reviews for potential users.\nimplementation: The implementation checks whether a license file is present and is of an approved format. The list of FSF or OSI approved license is taken from https://spdx.org/licenses/ ."
+            }
+            ProbeName::hasLicenseFile => {
+                "motivation: A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.\nimplementation: The implementation checks whether a license file is present."
+            }
             ProbeName::hasNoGitHubWorkflowPermissionUnknown => {
-                "hasNoGitHubWorkflowPermissionUnknown"
+                "motivation: Unknown permissions may be a result of a bug or another error from fetching the permission levels.\nimplementation: The probe checks the permission levels of a projects workflows and collects the workflows that have unknown permissions."
             }
-            ProbeName::hasOSVVulnerabilities => "hasOSVVulnerabilities",
-            ProbeName::hasOpenSSFBadge => "hasOpenSSFBadge",
-            ProbeName::hasPermissiveLicense => "hasPermissiveLicense",
-            ProbeName::hasRecentCommits => "hasRecentCommits",
-            ProbeName::hasReleaseSBOM => "hasReleaseSBOM",
-            ProbeName::hasSBOM => "hasSBOM",
-            ProbeName::hasUnverifiedBinaryArtifacts => "hasUnverifiedBinaryArtifacts",
-            ProbeName::issueActivityByProjectMember => "issueActivityByProjectMember",
-            ProbeName::jobLevelPermissions => "jobLevelPermissions",
-            ProbeName::packagedWithAutomatedWorkflow => "packagedWithAutomatedWorkflow",
-            ProbeName::pinsDependencies => "pinsDependencies",
-            ProbeName::releasesAreSigned => "releasesAreSigned",
-            ProbeName::releasesHaveProvenance => "releasesHaveProvenance",
-            ProbeName::releasesHaveVerifiedProvenance => "releasesHaveVerifiedProvenance",
-            ProbeName::requiresApproversForPullRequests => "requiresApproversForPullRequests",
-            ProbeName::requiresCodeOwnersReview => "requiresCodeOwnersReview",
-            ProbeName::requiresLastPushApproval => "requiresLastPushApproval",
-            ProbeName::requiresPRsToChangeCode => "requiresPRsToChangeCode",
-            ProbeName::requiresUpToDateBranches => "requiresUpToDateBranches",
-            ProbeName::runsStatusChecksBeforeMerging => "runsStatusChecksBeforeMerging",
-            ProbeName::sastToolConfigured => "sastToolConfigured",
-            ProbeName::sastToolRunsOnAllCommits => "sastToolRunsOnAllCommits",
-            ProbeName::securityPolicyContainsLinks => "securityPolicyContainsLinks",
-            ProbeName::securityPolicyContainsText => "securityPolicyContainsText",
+            ProbeName::hasOSVVulnerabilities => {
+                "motivation: This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service. An open vulnerability may be exploited by attackers and should be fixed as soon as possible.\nimplementation: The implementation fetches data from OSV.dev about the project which shows whether a given project has known, unfixed vulnerabilities. The implementation uses the number of known, unfixed vulnerabilities to score."
+            }
+            ProbeName::hasOpenSSFBadge => {
+                "motivation: The OpenSSF Best Practices badge indicates whether or not the project uses a set of security-focused best development practices for open source software.\nimplementation: The probe checks the badge level using the OpenSSF Best Practices Badge API."
+            }
+            ProbeName::hasPermissiveLicense => {
+                "motivation: A permissive license allows users to use the analyzed component to be used in derivative works. Non-permissive licenses (as copyleft licenses) might be a legal risk for potential users.\nimplementation: The implementation checks whether a permissive license is present"
+            }
+            ProbeName::hasRecentCommits => {
+                "motivation: A project which is not active might not be patched, have its dependencies patched, or be actively tested and used. A lack of active maintenance should signal that potential users should investigate further to judge the situation. A project may not need further features or maintenance; In this case, the probe results can be disregarded.\nimplementation: The implementation checks the number of commits made in the last 90 days by any user type."
+            }
+            ProbeName::hasReleaseSBOM => {
+                "motivation: An SBOM can give users information about how the source code components and dependencies. They help facilitate software supplychain security and aid in identifying upstream vulnerabilities in a codebase.\nimplementation: The implementation checks whether a SBOM artifact is included in release artifacts."
+            }
+            ProbeName::hasSBOM => {
+                "motivation: An SBOM can give users information about how the source code components and dependencies. They help facilitate software supplychain security and aid in identifying upstream vulnerabilities in a codebase.\nimplementation: The implementation checks whether an SBOM file is present in the source code."
+            }
+            ProbeName::hasUnverifiedBinaryArtifacts => {
+                "motivation: Binary files are not human readable so users and reviewers can't easily see what they do.\nimplementation: The implementation looks for the presence of binary files that are not 'verified'. A verified binary is one that Scorecard considers valid for building and/or releasing the project. This is a more permissive probe than 'hasBinaryArtifacts' which does not skip verified binary files."
+            }
+            ProbeName::issueActivityByProjectMember => {
+                "motivation: A project which does not respond to issues may not be actively maintained. A lack of active maintenance should signal that potential users should investigate further to judge the situation. However a project may simply not have any recent issues; In this case, the probe results can be disregarded.\nimplementation: The probe checks whether collaborators, members or owners of a project have participated in issues in the last 90 days."
+            }
+            ProbeName::jobLevelPermissions => {
+                "motivation: In some circumstances, having 'write' permissions at the 'job' level may enable attackers to escalate privileges.\nimplementation: The probe checks the permission level, the workflow type and the permission type of each workflow in the project."
+            }
+            ProbeName::packagedWithAutomatedWorkflow => {
+                "motivation: Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager. In particular, they make it easy for users to receive security patches as updates.\nimplementation: The implementation checks whether a project uses common patterns for packaging across multiple ecosystems. Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`."
+            }
+            ProbeName::pinsDependencies => {
+                "motivation: Pinned dependencies ensure that checking and deployment are all done with the same software, reducing deployment risks, simplifying debugging, and enabling reproducibility. They can help mitigate compromised dependencies from undermining the security of the project (in the case where you've evaluated the pinned dependency, you are confident it's not compromised, and a later version is released that is compromised).\nimplementation: The probe works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows which are used during the build and release process of a project. Special considerations for Go modules treat full semantic versions as pinned due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module."
+            }
+            ProbeName::releasesAreSigned => {
+                "motivation: Signed releases allow consumers to verify their artifacts before consuming them.\nimplementation: The implementation checks whether a signature file is present in release assets. The probe checks the last 5 releases on GitHub and GitLab."
+            }
+            ProbeName::releasesHaveProvenance => {
+                "motivation: Provenance give users security-critical, verifiable information so that consumers can verify their artifacts before consuming them.\nimplementation: The probe checks whether any of the assets in any of the last five releases on GitHub or GitLab have a provenance file."
+            }
+            ProbeName::releasesHaveVerifiedProvenance => {
+                "motivation: Package provenance attestations provide a greater guarantee of authenticity and integrity than package signatures alone, since the attestation can be performed over a hash of both the package contents and metadata. Developers can attest to particular qualities of the build, such as the build environment, build steps or builder identity.\nimplementation: This probe checks how many packages published by the repository are associated with verified SLSA provenance attestations. It uses data from a ProjectPackageClient, which associates a GitHub/GitLab project with a package in a package manager. Using the data from the package manager (whom we rely on to verify the provenance attestation), this probe returns a finding for each release. For now, only NPM is supported."
+            }
+            ProbeName::requiresApproversForPullRequests => {
+                "motivation: Requiring approvers for pull requests makes it harder to introduce vulnerable code to the project.\nimplementation: The probe checks the number of required approvers in default and release branches of the project."
+            }
+            ProbeName::requiresCodeOwnersReview => {
+                "motivation: Code owners are expected to have deep knowledge about a code; Having experienced reviewers for PRs is expected to prevent security issues.\nimplementation: The probe checks which branches require code owner reviews. The probe only considers default and release branches."
+            }
+            ProbeName::requiresLastPushApproval => {
+                "motivation: Requiring approval of the most recent push prevents contributors from sneaking malicious commits into a PR after it has been approved.\nimplementation: The probe checks the protection rules of default and release branches branches."
+            }
+            ProbeName::requiresPRsToChangeCode => {
+                "motivation: Changing code through pull requests promotes testing and reviews of the suggested change.\nimplementation: The probe checks which branches require pull requests to change the branches' code. The probe only considers default and release branches."
+            }
+            ProbeName::requiresUpToDateBranches => {
+                "motivation: Requiring PRs to be in sync with the base branch is good practice.\nimplementation: The probe checks the branch protection rules of default and release branches in the repository."
+            }
+            ProbeName::runsStatusChecksBeforeMerging => {
+                "motivation: Required status checks can check for common errors and resolve issues in PRs.\nimplementation: The probe checks the rules for default and release branches in the projects repository."
+            }
+            ProbeName::sastToolConfigured => {
+                "motivation: SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.\nimplementation: The implementation checks for evidence of various SAST tools. This includes configuration files, GitHub Action workflows, and GitHub PR check annotations."
+            }
+            ProbeName::sastToolRunsOnAllCommits => {
+                "motivation: SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.\nimplementation: The implementation iterates through the projects commits and checks whether any of the check runs for the commits associated merge request was any of the SAST tools that Scorecard supports."
+            }
+            ProbeName::securityPolicyContainsLinks => {
+                "motivation: URLs point users to additional information as well as online disclosure forms. Emails provide a point of contact for vulnerability disclosure.\nimplementation: The implementation looks for strings 'http(s)://' to find URLs; and for strings '...@...' for email addresses."
+            }
+            ProbeName::securityPolicyContainsText => {
+                "motivation: Telling security researchers how to privately disclose problems with your project is important. The more details available, the better.\nimplementation: The implementation checks that the content of the SECURITY.md contains more than just a link or an email address. It does this by comparing the length of the content to the lengths of the links and email addresses."
+            }
             ProbeName::securityPolicyContainsVulnerabilityDisclosure => {
-                "securityPolicyContainsVulnerabilityDisclosure"
+                "motivation: If someone finds a vulnerability in the project, it is important for them to be able to communicate it to the maintainers.\nimplementation: The implementation looks for strings 'Disclos' and 'Vuln'."
             }
-            ProbeName::securityPolicyPresent => "securityPolicyPresent",
-            ProbeName::testsRunInCI => "testsRunInCI",
-            ProbeName::topLevelPermissions => "topLevelPermissions",
-            ProbeName::unsafeblock => "unsafeblock",
-            ProbeName::webhooksUseSecrets => "webhooksUseSecrets",
+            ProbeName::securityPolicyPresent => {
+                "motivation: A security policy (typically a SECURITY.md file) can give users information about what constitutes a vulnerability and how to report one securely so that information about a bug is not publicly visible. If you have a large organization, having a unified security policy across all your repositories may simplify the vulnerability disclosure response.\nimplementation: The implementation looks for the presence of security policy files in the repository or in '<org>/.github' repository. See https://github.com/ossf/scorecard/blob/main/checks/raw/security_policy.go#L139 for a detailed list of filenames."
+            }
+            ProbeName::testsRunInCI => {
+                "motivation: Running tests helps developers catch mistakes early on, which can reduce the number of vulnerabilities that find their way into a project.\nimplementation: The probe checks for tests in the projects CI jobs in the recent commits (~30)."
+            }
+            ProbeName::topLevelPermissions => {
+                "motivation: In some circumstances, having 'write' permissions at the 'top' level may enable attackers to escalate privileges.\nimplementation: The probe checks the permission level, the workflow type and the permission type of each workflow in the project."
+            }
+            ProbeName::unsafeblock => {
+                "motivation: Memory safety in software should be considered a continuum, rather than being binary.  While some languages and tools are memory safe by default, it may still be possible, and sometimes unavoidable, to write unsafe code in them. Unsafe code allow developers to bypass normal safety checks and directly manipulate memory.\nimplementation: The probe is ecosystem-specific and will surface non memory safe practices in the project by identifying unsafe code blocks. Unsafe code blocks are supported in rust, go, c#, and swift, but only go and c# are supported by this probe at this time: - for go the probe will look for the use of the `unsafe` include directive. - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property."
+            }
+            ProbeName::webhooksUseSecrets => {
+                "motivation: Webhooks without secret authorization have the potential to make projects accessible to third-parties.\nimplementation: The probe checks all webhooks of a project and checks whether each uses secret authentication."
+            }
         }
     }
 }

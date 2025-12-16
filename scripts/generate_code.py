@@ -3,6 +3,7 @@ import os
 import re
 import requests
 import pathlib
+import yaml
 
 script_path = pathlib.Path(__file__).resolve()
 env_path = script_path.parent.parent / ".env"
@@ -79,8 +80,8 @@ mod tests {{
 }}
 """
 
-AS_STR_TEMPLATE = "ProbeName::{probe} => \"{probe}\""
-DESCRIPTION_TEMPLATE = "ProbeName::{probe} => \"{description}\""
+AS_STR_TEMPLATE = "ProbeName::{probe_id} => \"{probe_id}\""
+DESCRIPTION_TEMPLATE = "ProbeName::{probe_id} => \"{description}\""
 
 def get_probes():
     try:
@@ -91,9 +92,19 @@ def get_probes():
         filepaths = [item['path'] for item in contents['tree']]
 
         pattern = r"probes/([^/]+)/def\.yml"
-        probes = [match.group(1) for filepath in filepaths if (match := re.search(pattern, filepath))]
-        num_probes = len(probes)
+        yml_filepaths = [filepath for filepath in filepaths if re.search(pattern, filepath)]
 
+        file_urls = [f"https://raw.githubusercontent.com/{owner}/{repo}/main/{filepath}" for filepath in yml_filepaths]
+        probes = {}
+        for file_url in file_urls:
+            res = requests.get(file_url, headers=headers)
+            res.raise_for_status()
+            file_content = yaml.load(res.text, Loader=yaml.SafeLoader)
+            motivation = file_content['motivation'].strip().replace('\"', '\'')
+            implementation = file_content['implementation'].strip().replace('\"', '\'')
+            probes[file_content['id']] = f"motivation: {motivation}\\nimplementation: {implementation}"
+
+        num_probes = len(probes)
         print(f"Found {num_probes} probes.")
         
         return probes
@@ -101,16 +112,16 @@ def get_probes():
         print(f"\nError: {e}\n")
         raise
 
-def get_as_str_parts(probes):
-    return [AS_STR_TEMPLATE.format(probe = probe) for probe in probes]
+def get_as_str_parts(probe_ids):
+    return [AS_STR_TEMPLATE.format(probe_id = id) for id in probe_ids]
 
 def get_description_parts(probes):
-    return [DESCRIPTION_TEMPLATE.format(probe = probe, description = probe) for probe in probes]
+    return [DESCRIPTION_TEMPLATE.format(probe_id = id, description = description) for (id, description) in probes.items()]
 
 probes = get_probes()
-as_str_parts = get_as_str_parts(probes)
+as_str_parts = get_as_str_parts(probes.keys())
 description_parts = get_description_parts(probes)
 with open(TARGET_PATH, 'w') as file:
-    file.write(TEMPLATE.format(probes = ",".join(probes),
+    file.write(TEMPLATE.format(probes = ",".join(probes.keys()),
                                as_str = ",".join(as_str_parts),
                                descriptions = ",".join(description_parts)))
