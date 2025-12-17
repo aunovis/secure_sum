@@ -43,4 +43,8 @@ pub(crate) struct Arguments {
     /// Overwrite the timeout before the evaluation of a single target is aborted
     #[arg(long, short)]
     pub(crate) timeout: Option<humantime::Duration>,
+
+    /// Get detailed information about a specific probe
+    #[arg(long, short, value_name = "PROBENAME")]
+    pub(crate) probe: Option<String>,
 }
