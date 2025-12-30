@@ -12,6 +12,9 @@ jobs:
 
         steps:
         - uses: actions/checkout@v2
+        - name: Add GitHub Access Token to .env File
+          run: |
+            echo GITHUB_TOKEN=${{ github.token }} > .env
         - run: |
             chmod +x ./scripts/generate_code.sh
             ./scripts/generate_code.sh
