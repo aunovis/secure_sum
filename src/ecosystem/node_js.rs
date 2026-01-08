@@ -1,14 +1,8 @@
 use std::{collections::HashMap, fs, path::Path};
 
-use reqwest::blocking::Client;
 use serde::Deserialize;
 
-use crate::{
-    Error,
-    github_token::{USER_AGENT, USER_AGENT_HEADER},
-    target::SingleTarget,
-    url::Url,
-};
+use crate::{Error, http::http_get, target::SingleTarget, url::Url};
 
 use super::{DepFile, Ecosystem};
 
@@ -55,12 +49,7 @@ struct Repository {
 
 pub(super) fn repo_url(package_name: &str) -> Result<Url, Error> {
     let npmjs_url = format!("https://registry.npmjs.org/{package_name}");
-    let client = Client::new();
-    let response = client
-        .get(&npmjs_url)
-        .header(USER_AGENT_HEADER, USER_AGENT)
-        .send()?
-        .text()?;
+    let response = http_get(&npmjs_url, None)?.body_mut().read_to_string()?;
 
     let npm_response: NpmJsResponse = serde_json::from_str(&response)?;
     let git_clone_arg = npm_response.repository.url;

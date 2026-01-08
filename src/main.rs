@@ -6,6 +6,7 @@ mod ecosystem;
 mod error;
 mod filesystem;
 mod github_token;
+mod http;
 mod logging;
 mod metric;
 mod post_evaluate;

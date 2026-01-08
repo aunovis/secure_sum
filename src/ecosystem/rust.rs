@@ -1,14 +1,8 @@
 use std::{collections::HashMap, fs, path::Path};
 
-use reqwest::blocking::Client;
 use serde::Deserialize;
 
-use crate::{
-    error::Error,
-    github_token::{USER_AGENT, USER_AGENT_HEADER},
-    target::SingleTarget,
-    url::Url,
-};
+use crate::{error::Error, http::http_get, target::SingleTarget, url::Url};
 
 use super::{Ecosystem, depfile::DepFile};
 
@@ -67,12 +61,7 @@ struct Crate {
 
 pub(super) fn repo_url(crate_name: &str) -> Result<Url, Error> {
     let crates_url = format!("https://crates.io/api/v1/crates/{crate_name}");
-    let client = Client::new();
-    let response = client
-        .get(&crates_url)
-        .header(USER_AGENT_HEADER, USER_AGENT)
-        .send()?
-        .text()?;
+    let response = http_get(&crates_url, None)?.body_mut().read_to_string()?;
 
     let crates_response: CratesIoResponse = serde_json::from_str(&response)?;
     let url = match crates_response.crate_.repository {

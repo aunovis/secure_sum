@@ -19,16 +19,16 @@ flate2 = { version = "1.0", default-features = false, features = ["rust_backend"
 flexi_logger = { version = "0.31.0", default-features = false, features = ["colors"]}
 humantime = { version = "2.0", default-features = false }
 log = { version = "0.4.22", default-features = false }
+quick-xml = { version = "0.38.0", features = ["serialize"] }
 rayon = { version = "1.10", default-features = false } # Parallelisation
-reqwest = { version = "0.12.12", features = ["blocking", "native-tls-vendored"] }
+regex = { version = "1.0", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
 serde_json  = { version = "1.0", default-features = false, features = ["std"]}
-quick-xml = { version = "0.38.0", features = ["serialize"] }
-regex = { version = "1.0", default-features = false }
 tabled = { version = "0.20.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression
 toml = { version = "0.9.4", default-features = false, features = ["display", "parse", "serde"]}
+ureq = { version = "3.0", features = ["rustls"] }
 wait-timeout = { version = "0.2", default-features = false }
 
 [dev-dependencies]

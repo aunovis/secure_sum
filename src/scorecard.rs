@@ -15,6 +15,7 @@ use wait_timeout::ChildExt;
 use crate::{
     error::Error,
     filesystem::{ARCH_STR, OS_STR, data_dir},
+    http::http_get,
     metric::Metric,
     probe::{ProbeResult, load_stored_probe, needs_rerun, store_probe, store_probe_json},
     target::{SingleTarget, Target, collect_single_targets},
@@ -57,8 +58,9 @@ pub(crate) fn ensure_scorecard_binary() -> Result<PathBuf, Error> {
     fs::create_dir_all(&dir)?;
     let url = scorecard_url();
     log::info!("Downloading Scorecard binary from {url}.");
-    let mut response = reqwest::blocking::get(url)?;
-    let gz_decoder = GzDecoder::new(&mut response);
+    let mut response = http_get(&url, None)?;
+    let mut response_reader = response.body_mut().as_reader();
+    let gz_decoder = GzDecoder::new(&mut response_reader);
     let mut archive = Archive::new(gz_decoder);
     archive.unpack(dir)?;
     if !fs::exists(&path)? {
@@ -217,7 +219,6 @@ fn scorecard_args(metric: &Metric, target: &SingleTarget) -> Result<Vec<String>,
 
 #[cfg(test)]
 mod tests {
-    use reqwest::blocking::Client;
     use serial_test::serial;
 
     use crate::{
@@ -243,11 +244,8 @@ mod tests {
     #[test]
     fn scorecard_url_exists() {
         let url = scorecard_url();
-        let client = Client::new();
-
-        let response = client.head(&url).send().unwrap();
-
-        assert!(response.status().is_success(), "URL is: {url}")
+        let response = http_get(&url, None);
+        assert!(response.is_ok());
     }
 
     #[test]

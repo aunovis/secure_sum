@@ -19,8 +19,8 @@ pub(crate) enum Error {
     #[error("FlexiLogger error occurred: {0}")]
     Logger(#[from] flexi_logger::FlexiLoggerError),
 
-    #[error("Reqwest error occurred: {0}")]
-    Reqwest(#[from] reqwest::Error),
+    #[error("Quick XML error: {0}")]
+    QuickXml(#[from] quick_xml::de::DeError),
 
     #[error("Serde JSON error: {0}")]
     SerdeJson(#[from] serde_json::Error),
@@ -28,8 +28,8 @@ pub(crate) enum Error {
     #[error("Toml error: {0}")]
     Toml(#[from] toml::de::Error),
 
-    #[error("Quick XML error: {0}")]
-    QuickXml(#[from] quick_xml::de::DeError),
+    #[error("Ureq error: {0}")]
+    Ureq(#[from] ureq::Error),
 
     #[error("At least one probed repo has a score that is unacceptably low.")]
     ScoreTooLow,
