@@ -1,8 +1,6 @@
-use crate::Error;
+use crate::{Error, http::http_get};
 
 pub(crate) static GITHUB_TOKEN_NAME: &str = "GITHUB_TOKEN";
-pub(crate) static USER_AGENT_HEADER: &str = "User-Agent";
-pub(crate) static USER_AGENT: &str = "secure_sum (info@aunovis.de)";
 
 pub(crate) fn ensure_valid_github_token() -> Result<(), Error> {
     let token = get_token()?;
@@ -19,14 +17,8 @@ fn get_token() -> Result<String, Error> {
 
 fn check_token_validity(token: &str) -> Result<(), Error> {
     static ENDPOINT: &str = "https://api.github.com/rate_limit";
-    static AUTH_HEADER: &str = "Authorization";
-    let header_value = format!("token {token}");
-    let response = reqwest::blocking::Client::new()
-        .get(ENDPOINT)
-        .header(AUTH_HEADER, header_value)
-        .header(USER_AGENT_HEADER, USER_AGENT)
-        .send()?
-        .error_for_status();
+    let auth = format!("token {token}");
+    let response = http_get(ENDPOINT, Some(&auth));
     match response {
         Ok(_) => Ok(()),
         Err(e) => {

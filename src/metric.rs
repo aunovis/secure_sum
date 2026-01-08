@@ -5,7 +5,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, filesystem::data_dir, probe::ProbeInput, probe_name::ProbeName};
+use crate::{
+    error::Error, filesystem::data_dir, http::http_get, probe::ProbeInput, probe_name::ProbeName,
+};
 
 static DEFAULT_METRIC_URL: &str =
     "https://raw.githubusercontent.com/aunovis/secure_sum/refs/heads/main/default_metric.toml";
@@ -32,8 +34,9 @@ fn ensure_default_metric_file() -> Result<PathBuf, Error> {
     let dir = data_dir()?;
     fs::create_dir_all(&dir)?;
     log::info!("Downloading Default Metric from {DEFAULT_METRIC_URL}.");
-    let response = reqwest::blocking::get(DEFAULT_METRIC_URL)?;
-    let metric_text = response.text()?;
+    let metric_text = http_get(DEFAULT_METRIC_URL, None)?
+        .body_mut()
+        .read_to_string()?;
     fs::write(&path, metric_text)?;
     log::info!("Stored default metric file under \"{}\".", path.display());
     Ok(path)
