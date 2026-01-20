@@ -18,7 +18,7 @@ mod scorecard;
 mod target;
 mod url;
 
-use args::Arguments;
+use args::{Arguments, Command};
 use clap::Parser;
 use github_token::ensure_valid_github_token;
 use logging::init_logging;
@@ -39,6 +39,9 @@ fn main() -> Result<(), Error> {
         ));
     }
     init_logging(&args)?;
+    if let Some(Command::Clear { level }) = args.command.as_ref() {
+        return probe::clear_stored_probes(*level);
+    }
     let metric = Metric::new(args.metric.as_deref())?;
     let targets: Vec<_> = args
         .dependencies

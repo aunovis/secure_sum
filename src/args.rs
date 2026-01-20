@@ -2,10 +2,10 @@
 
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None, subcommand_precedence_over_arg = true)]
 #[derive(Default)]
 pub(crate) struct Arguments {
     /// Path to the metric file that defines the probes to analyse
@@ -47,4 +47,28 @@ pub(crate) struct Arguments {
     /// Get detailed information about a specific probe
     #[arg(long, short, value_name = "PROBENAME")]
     pub(crate) probe: Option<String>,
+
+    /// Subcommands
+    #[command(subcommand)]
+    pub(crate) command: Option<Command>,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub(crate) enum Command {
+    /// Clear stored probe results
+    #[command(visible_alias = "clean")]
+    Clear {
+        /// Level of clearing.
+        #[arg(value_enum, value_name = "LEVEL")]
+        level: ClearLevel,
+    },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+#[value(rename_all = "snake_case")]
+pub(crate) enum ClearLevel {
+    /// Clear all stored probe results
+    All,
+    /// Clear only stored probe results that contain scorecard errors
+    ErrorsOnly,
 }

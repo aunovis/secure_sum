@@ -8,7 +8,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    error::Error, filesystem::data_dir, metric::Metric, probe_name::ProbeName,
+    args::ClearLevel, error::Error, filesystem::data_dir, metric::Metric, probe_name::ProbeName,
     target::SingleTarget, url::Url,
 };
 
@@ -172,6 +172,44 @@ pub(crate) fn needs_rerun(stored_probe: &ProbeResult, metric: &Metric) -> bool {
     probes_to_run
         .iter()
         .any(|probe| !probe_finding_names.contains(&probe.name.to_string().as_str()))
+}
+
+pub(crate) fn clear_stored_probes(clear_level: ClearLevel) -> Result<(), Error> {
+    let probe_dir = data_dir()?.join("probes");
+    if !probe_dir.exists() || !probe_dir.is_dir() {
+        log::warn!(
+            "Unable to clear stored probes. Directory does not exist: {}",
+            probe_dir.display()
+        );
+        return Ok(());
+    }
+    match clear_level {
+        ClearLevel::All => {
+            fs::remove_dir_all(&probe_dir)?;
+            fs::create_dir_all(&probe_dir)?;
+            log::info!("Cleared all stored probes");
+        }
+        ClearLevel::ErrorsOnly => {
+            let mut num_probes_cleared = 0;
+            for probe in fs::read_dir(&probe_dir)? {
+                let path = probe?.path();
+                if path.is_file() {
+                    let contents = read_to_string(&path)?;
+                    let probe: ProbeResult = serde_json::from_str(&contents)?;
+                    if probe.scorecard_error_message.is_some() {
+                        fs::remove_file(&path)?;
+                        num_probes_cleared += 1;
+                    }
+                }
+            }
+            if num_probes_cleared == 0 {
+                log::info!("No stored probes with errors found");
+            } else {
+                log::info!("Cleared {} stored probes with errors", num_probes_cleared);
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
