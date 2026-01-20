@@ -2,9 +2,10 @@
 /// Please do not modify it directly.
 use std::fmt::Display;
 
+use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, ValueEnum)]
 #[allow(non_camel_case_types)]
 pub(crate) enum ProbeName {
     archived,

@@ -4,6 +4,8 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
+use crate::probe_name::ProbeName;
+
 #[derive(Parser)]
 #[command(version, about, long_about = None, subcommand_precedence_over_arg = true)]
 #[derive(Default)]
@@ -44,10 +46,6 @@ pub(crate) struct Arguments {
     #[arg(long, short)]
     pub(crate) timeout: Option<humantime::Duration>,
 
-    /// Get detailed information about a specific probe
-    #[arg(long, short, value_name = "PROBENAME")]
-    pub(crate) probe: Option<String>,
-
     /// Subcommands
     #[command(subcommand)]
     pub(crate) command: Option<Command>,
@@ -61,6 +59,13 @@ pub(crate) enum Command {
         /// Level of clearing.
         #[arg(value_enum, value_name = "LEVEL")]
         level: ClearLevel,
+    },
+
+    /// Get detailed information about a specific probe
+    Probe {
+        /// Name of the probe to get information about
+        #[arg(value_name = "PROBENAME")]
+        probe_name: ProbeName,
     },
 }
 
