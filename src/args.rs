@@ -25,11 +25,11 @@ pub(crate) struct Arguments {
     pub(crate) rerun: bool,
 
     /// Supress all output except for results and errors
-    #[arg(long, short)]
+    #[arg(long, short, global = true)]
     pub(crate) quiet: bool,
 
     /// Print a lot of detailed output
-    #[arg(long, short)]
+    #[arg(long, short, global = true)]
     pub(crate) verbose: bool,
 
     /// Overwrite the minimal score a repo must reach before an error is displayed
