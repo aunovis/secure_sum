@@ -38,12 +38,12 @@ impl DepFile for CargoToml {
 }
 
 fn key_val_to_target(key: &str, val: &toml::Value) -> SingleTarget {
-    if let toml::Value::Table(table) = val {
-        if let Some(toml::Value::String(git_url)) = table.get("git") {
-            let url = git_url.trim_end_matches(".git");
-            let url = url.replace("ssh://git@", "https://");
-            return SingleTarget::Url(url.into());
-        }
+    if let toml::Value::Table(table) = val
+        && let Some(toml::Value::String(git_url)) = table.get("git")
+    {
+        let url = git_url.trim_end_matches(".git");
+        let url = url.replace("ssh://git@", "https://");
+        return SingleTarget::Url(url.into());
     }
     SingleTarget::Package(key.to_owned(), Ecosystem::Rust)
 }

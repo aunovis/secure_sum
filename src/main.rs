@@ -18,7 +18,7 @@ mod scorecard;
 mod target;
 mod url;
 
-use args::Arguments;
+use args::{Arguments, Command};
 use clap::Parser;
 use github_token::ensure_valid_github_token;
 use logging::init_logging;
@@ -29,7 +29,7 @@ use scorecard::{dispatch_scorecard_runs, ensure_scorecard_binary};
 use tabled::{Table, settings::Style};
 use target::Target;
 
-use crate::{error::Error, probe_name::ProbeName};
+use crate::error::Error;
 
 fn main() -> Result<(), Error> {
     let args = Arguments::parse();
@@ -39,6 +39,19 @@ fn main() -> Result<(), Error> {
         ));
     }
     init_logging(&args)?;
+
+    match args.command.as_ref() {
+        Some(Command::Clear { level }) => {
+            return probe::clear_stored_probes(*level);
+        }
+        Some(Command::Probe { probe_name }) => {
+            println!("Detailed information for probe {}:", probe_name);
+            println!("{}", probe_name.get_description());
+            return Ok(());
+        }
+        None => {}
+    }
+
     let metric = Metric::new(args.metric.as_deref())?;
     let targets: Vec<_> = args
         .dependencies
@@ -61,11 +74,6 @@ fn main() -> Result<(), Error> {
             repo.print_detailed_output();
         }
     }
-    if let Some(probe_name) = args.probe.as_deref().map(str::trim) {
-        let probe: ProbeName = serde_json::from_str(&format!("\"{}\"", probe_name))
-            .map_err(|_| Error::Input(format!("Unknown probe name: {}", probe_name)))?;
-        println!("Detailed information for probe {}:", probe);
-        println!("{}", probe.get_description());
-    }
+
     post_evaluate_repos(&results, &metric, &args)
 }

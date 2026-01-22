@@ -2,10 +2,18 @@
 
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{Parser, Subcommand, ValueEnum};
+
+use crate::probe_name::ProbeName;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(
+    version,
+    about,
+    long_about = None,
+    subcommand_precedence_over_arg = true,
+    override_usage = "\n  secure_sum [FILEPATH(S)|URL(S)...] [OPTIONS]\n  secure_sum <COMMAND> [OPTIONS]"
+)]
 #[derive(Default)]
 pub(crate) struct Arguments {
     /// Path to the metric file that defines the probes to analyse
@@ -25,11 +33,11 @@ pub(crate) struct Arguments {
     pub(crate) rerun: bool,
 
     /// Supress all output except for results and errors
-    #[arg(long, short)]
+    #[arg(long, short, global = true)]
     pub(crate) quiet: bool,
 
     /// Print a lot of detailed output
-    #[arg(long, short)]
+    #[arg(long, short, global = true)]
     pub(crate) verbose: bool,
 
     /// Overwrite the minimal score a repo must reach before an error is displayed
@@ -44,7 +52,38 @@ pub(crate) struct Arguments {
     #[arg(long, short)]
     pub(crate) timeout: Option<humantime::Duration>,
 
+    /// Subcommands
+    #[command(subcommand)]
+    pub(crate) command: Option<Command>,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub(crate) enum Command {
+    /// Clear stored probe results
+    #[command(
+        visible_alias = "clean",
+        override_usage = "\n  secure_sum clear <LEVEL> [OPTIONS]"
+    )]
+    Clear {
+        /// Level of clearing.
+        #[arg(value_enum, value_name = "LEVEL")]
+        level: ClearLevel,
+    },
+
     /// Get detailed information about a specific probe
-    #[arg(long, short, value_name = "PROBENAME")]
-    pub(crate) probe: Option<String>,
+    #[command(override_usage = "\n  secure_sum probe <PROBENAME> [OPTIONS]")]
+    Probe {
+        /// Name of the probe to get information about
+        #[arg(value_name = "PROBENAME")]
+        probe_name: ProbeName,
+    },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+#[value(rename_all = "snake_case")]
+pub(crate) enum ClearLevel {
+    /// Clear all stored probe results
+    All,
+    /// Clear only stored probe results that contain scorecard errors
+    ErrorsOnly,
 }
