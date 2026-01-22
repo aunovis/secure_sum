@@ -39,7 +39,7 @@ fn main() -> Result<(), Error> {
         ));
     }
     init_logging(&args)?;
-    
+
     match args.command.as_ref() {
         Some(Command::Clear { level }) => {
             return probe::clear_stored_probes(*level);

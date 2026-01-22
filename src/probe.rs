@@ -123,10 +123,10 @@ pub(crate) fn store_probe(target: &SingleTarget, result: &ProbeResult) -> Result
 
 pub(crate) fn store_probe_json(target: &SingleTarget, raw_output: &str) -> Result<(), Error> {
     let path = probe_file(target)?;
-    if let Some(dir) = path.parent() {
-        if !dir.exists() {
-            fs::create_dir_all(dir)?;
-        }
+    if let Some(dir) = path.parent()
+        && !dir.exists()
+    {
+        fs::create_dir_all(dir)?;
     }
     log::debug!("Storing probe output in {}", path.display());
     Ok(fs::write(path, raw_output)?)

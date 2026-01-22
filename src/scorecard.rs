@@ -105,12 +105,11 @@ fn evaluate_repo(
     force_rerun: bool,
     timeout: Option<humantime::Duration>,
 ) -> Result<ProbeResult, Error> {
-    if !force_rerun {
-        if let Some(stored_probe) = load_stored_probe(target)? {
-            if !needs_rerun(&stored_probe, metric) {
-                return Ok(stored_probe);
-            }
-        }
+    if !force_rerun
+        && let Some(stored_probe) = load_stored_probe(target)?
+        && !needs_rerun(&stored_probe, metric)
+    {
+        return Ok(stored_probe);
     }
     let timeout = timeout
         .map(|duration| time::Duration::from_secs(duration.as_secs()))
