@@ -34,14 +34,14 @@ jobs:
         run: syft scan Cargo.lock -o cyclonedx-json=secure-sum-sbom.cdx.json --source-name="Secure Sum" --source-version "$VERSION"
 
       - name: Setup BOMnipotent Client
-        uses: Weichwerke-Heidrich-Software/setup-bomnipotent-action@v1.2.0
+        uses: Weichwerke-Heidrich-Software/setup-bomnipotent-action@v1
         with:
           domain: bomnipotent.aunovis.de
           user: ${{ vars.BOMNIUSER }}
           secret-key: ${{ secrets.BOMNIKEY }}
 
       - name: Upload SBOM to BOMnipotent Server
-        uses: Weichwerke-Heidrich-Software/upload-bom-action@v1.0.0
+        uses: Weichwerke-Heidrich-Software/upload-bom-action@v1
         with:
           bom: secure-sum-sbom.cdx.json
           tlp: WHITE
