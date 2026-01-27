@@ -1,0 +1,48 @@
+name: SBOM
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Determine version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+            echo "ON_EXISTING=error" >> "$GITHUB_ENV"
+          else
+            echo "VERSION=latest-dev" >> "$GITHUB_ENV"
+            echo "ON_EXISTING=replace" >> "$GITHUB_ENV"
+          fi
+
+      - name: Download and install Syft
+        run: curl -sSfL https://get.anchore.io/syft | sudo sh -s -- -b /usr/local/bin
+
+      - name: Generate SBOM
+        run: syft scan Cargo.lock -o cyclonedx-json=secure-sum-sbom.cdx.json --source-name="Secure Sum" --source-version "$VERSION"
+
+      - name: Setup BOMnipotent Client
+        uses: Weichwerke-Heidrich-Software/setup-bomnipotent-action@v1
+        with:
+          domain: bomnipotent.aunovis.de
+          user: ${{ vars.BOMNIUSER }}
+          secret-key: ${{ secrets.BOMNIKEY }}
+
+      - name: Upload SBOM to BOMnipotent Server
+        uses: Weichwerke-Heidrich-Software/upload-bom-action@v1
+        with:
+          bom: secure-sum-sbom.cdx.json
+          tlp: WHITE
+          on-existing: ${{ env.ON_EXISTING }}
