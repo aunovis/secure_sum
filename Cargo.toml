@@ -1,8 +1,8 @@
 [package]
 name = "secure_sum"
-version = "1.2.0"
+version = "1.3.0"
 edition = "2024"
-authors = ["Simon Heidrich (heidrich@aunovis.de)"]
+authors = ["Simon Heidrich (Heidrich@aunovis.de)", "Leonard Michalsky (Michalsky@aunovis.de)"]
 description = "Utilizes OSSF Scorecard to probe open source repositories for their security posture using a customizable metric."
 readme = "README.md"
 repository = "https://github.com/aunovis/secure_sum"
@@ -19,7 +19,7 @@ flate2 = { version = "1.0", default-features = false, features = ["rust_backend"
 flexi_logger = { version = "0.31.0", default-features = false, features = ["colors"]}
 humantime = { version = "2.0", default-features = false }
 log = { version = "0.4.22", default-features = false }
-quick-xml = { version = "0.38.0", features = ["serialize"] }
+quick-xml = { version = "0.39.0", features = ["serialize"] }
 rayon = { version = "1.10", default-features = false } # Parallelisation
 regex = { version = "1.0", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"]}
