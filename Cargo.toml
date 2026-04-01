@@ -27,7 +27,7 @@ serde_json  = { version = "1.0", default-features = false, features = ["std"]}
 tabled = { version = "0.20.0", default-features = false, features = ["derive", "macros"] }
 thiserror = { version = "2.0", default-features = false }
 tar = { version = "0.4.43", default-features = false } # Decompression
-toml = { version = "1.0", default-features = false, features = ["display", "parse", "serde"]}
+toml = { version = "1.1", default-features = false, features = ["display", "parse", "serde"]}
 ureq = { version = "3.0", features = ["rustls"] }
 wait-timeout = { version = "0.2", default-features = false }
 
