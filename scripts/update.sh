@@ -16,7 +16,7 @@ echo Updating Dependencies
 cargo update
 
 echo Checking for outdated dependencies
-cargo install cargo-outdated
+cargo install cargo-outdated --locked
 cargo outdated --exit-code 1
 
 echo Checking for uncommitted changes
