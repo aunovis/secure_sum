@@ -7,12 +7,10 @@ cd scripts
 
 source ./python_cmd.sh
 
-$PYTHON -m pip install --upgrade pip
+yesterday=$(date -Is -d "yesterday")
 
-pip install -r ./requirements.txt
+$PYTHON -m pip install --upgrade --uploaded-prior-to=$yesterday pip
 
-pip install --upgrade setuptools pip-review
-
-pip-review --auto
+pip install --upgrade --uploaded-prior-to=$yesterday --requirement ./requirements.txt
 
 pip freeze > requirements.txt
