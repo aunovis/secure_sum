@@ -13,7 +13,8 @@ chmod +x ./scripts/generate_code.sh
 ./scripts/generate_code.sh
 
 echo Updating Dependencies
-cargo update
+cargo install cargo-cooldown --locked
+cargo cooldown update
 
 echo Checking for outdated dependencies
 cargo install cargo-outdated --locked

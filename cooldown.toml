@@ -1,0 +1,9 @@
+# Use packages that are at most 60*24 minutes old
+cooldown_minutes = 1440
+# If a younger package is required, begrudgingly use it...
+# (Note: Due to reasons of causality, this only happens if you add exceptions for some packages)
+enforcement = "cargo_compatible"
+# ...prompt first, though.
+cargo_compatible_accept = "prompt"
+# Do not be afraid to use versions that are older than the ones currently in the lockfile.
+lockfile_baseline = "ignore"
