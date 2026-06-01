@@ -7,8 +7,9 @@ cd scripts
 
 source ./python_cmd.sh
 
-yesterday=$(date -u -d "1 day ago" +"%Y-%m-%dT%H:%M:%S")
+$PYTHON -m pip install -r ./requirements.txt
 
+yesterday=$(date -u -d "1 day ago" +"%Y-%m-%dT%H:%M:%S")
 $PYTHON -m pip install --upgrade --uploaded-prior-to=$yesterday pip
 
 outdated=$(pip list --outdated --format=json)
